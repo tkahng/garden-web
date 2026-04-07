@@ -1,0 +1,67 @@
+// Response types — mirror the backend DTOs exactly
+
+export interface PageResponse {
+  id: string
+  title: string
+  handle: string
+  body: string
+  metaTitle: string | null
+  metaDescription: string | null
+  publishedAt: string
+}
+
+export interface CollectionSummaryResponse {
+  id: string
+  title: string
+  handle: string
+}
+
+export interface CollectionProductResponse {
+  id: string
+  productId: string
+  title: string
+  handle: string
+  position: number
+}
+
+export interface PageMeta {
+  page: number
+  pageSize: number
+  total: number
+}
+
+export interface PagedResult<T> {
+  content: T[]
+  meta: PageMeta
+}
+
+// Internal helpers
+
+function base(): string {
+  return import.meta.env.VITE_API_BASE_URL
+}
+
+async function apiFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${base()}${path}`)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  return json.data as T
+}
+
+// Public API functions
+
+export function getPage(handle: string): Promise<PageResponse> {
+  return apiFetch(`/api/v1/pages/${handle}`)
+}
+
+export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
+  return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
+}
+
+export function listCollectionProducts(
+  handle: string,
+  page: number,
+  size: number,
+): Promise<PagedResult<CollectionProductResponse>> {
+  return apiFetch(`/api/v1/collections/${handle}/products?page=${page}&size=${size}`)
+}
