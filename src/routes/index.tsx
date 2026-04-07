@@ -1,87 +1,162 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { Card, CardContent } from '#/components/ui/card'
+import {
+  getPage,
+  listCollections,
+  listCollectionProducts,
+  type PageResponse,
+  type CollectionSummaryResponse,
+  type CollectionProductResponse,
+} from '#/lib/api'
 
-export const Route = createFileRoute('/')({ component: App })
+// ─── Route ────────────────────────────────────────────────────────────────────
 
-function App() {
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const collections = await listCollections(0, 20)
+    const firstHandle = collections.content[0]?.handle
+
+    const [homePage, featuredProducts] = await Promise.all([
+      getPage('home').catch(() => null),
+      firstHandle ? listCollectionProducts(firstHandle, 0, 4) : Promise.resolve({ content: [], meta: { page: 0, pageSize: 4, total: 0 } }),
+    ])
+
+    return { homePage, collections: collections.content, featuredProducts: featuredProducts.content }
+  },
+  component: HomePage,
+})
+
+function HomePage() {
+  const { homePage, collections, featuredProducts } = Route.useLoaderData()
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
+    <main>
+      <HeroSection page={homePage} />
+      {collections.length > 0 && (
+        <FeaturedCollection collection={collections[0]} products={featuredProducts} />
+      )}
+      <CollectionsGrid collections={collections} />
+    </main>
+  )
+}
+
+// ─── HeroSection ──────────────────────────────────────────────────────────────
+
+export function HeroSection({ page }: { page: PageResponse | null }) {
+  const title = page?.title ?? 'Welcome to Garden'
+  const body = page?.body ?? 'Plants, seeds, and tools for every garden.'
+
+  return (
+    <section className="page-wrap px-4 pt-12 pb-8">
+      <div className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
         <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
         <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p className="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
+        <p className="island-kicker mb-3">The Garden Shop</p>
+        <h1 className="display-title mb-4 max-w-2xl text-4xl font-bold leading-[1.02] tracking-tight text-[var(--sea-ink)] sm:text-6xl">
+          {title}
         </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
+        <p className="mb-8 max-w-xl text-base text-[var(--sea-ink-soft)] sm:text-lg">{body}</p>
         <div className="flex flex-wrap gap-3">
           <a
-            href="/about"
+            href="/products"
             className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
           >
-            About This Starter
+            Shop Now
           </a>
           <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/collections"
             className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
           >
-            Router Guide
+            View Collections
           </a>
         </div>
-      </section>
+      </div>
+    </section>
+  )
+}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
+// ─── FeaturedCollection ───────────────────────────────────────────────────────
+
+export function FeaturedCollection({
+  collection,
+  products,
+}: {
+  collection: CollectionSummaryResponse
+  products: CollectionProductResponse[]
+}) {
+  return (
+    <section className="page-wrap px-4 py-8">
+      <div className="mb-6 flex items-baseline justify-between">
+        <div>
+          <p className="island-kicker mb-1">Featured Collection</p>
+          <h2 className="display-title text-2xl font-bold text-[var(--sea-ink)] sm:text-3xl">
+            {collection.title}
+          </h2>
+        </div>
+        <a
+          href={`/collections/${collection.handle}`}
+          className="text-sm font-semibold text-[var(--lagoon-deep)] no-underline hover:underline"
+        >
+          View all →
+        </a>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {products.map((product) => (
+          <a
+            key={product.id}
+            href={`/products/${product.handle}`}
+            className="no-underline"
           >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
-            </h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
+            <Card className="island-shell feature-card h-full rounded-2xl border-[var(--line)] transition">
+              <div className="flex h-36 items-center justify-center rounded-t-2xl bg-[rgba(79,184,178,0.08)]">
+                <div className="h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
+              </div>
+              <CardContent className="p-4">
+                <p className="text-sm font-semibold text-[var(--sea-ink)]">{product.title}</p>
+              </CardContent>
+            </Card>
+          </a>
         ))}
-      </section>
+      </div>
+    </section>
+  )
+}
 
-      <section className="island-shell mt-8 rounded-2xl p-6">
-        <p className="island-kicker mb-2">Quick Start</p>
-        <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> and{' '}
-            <code>src/components/Footer.tsx</code> for brand links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
+// ─── CollectionsGrid ──────────────────────────────────────────────────────────
+
+export function CollectionsGrid({ collections }: { collections: CollectionSummaryResponse[] }) {
+  if (collections.length === 0) {
+    return (
+      <section className="page-wrap px-4 py-8">
+        <p className="text-sm text-[var(--sea-ink-soft)]">No collections available yet.</p>
       </section>
-    </main>
+    )
+  }
+
+  return (
+    <section className="page-wrap px-4 py-8">
+      <p className="island-kicker mb-1">Collections</p>
+      <h2 className="display-title mb-6 text-2xl font-bold text-[var(--sea-ink)] sm:text-3xl">
+        Shop by Category
+      </h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {collections.map((collection) => (
+          <Card
+            key={collection.id}
+            className="island-shell feature-card rounded-2xl border-[var(--line)]"
+          >
+            <CardContent className="flex flex-col items-center p-8 text-center">
+              <div className="mb-4 h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
+              <p className="mb-3 text-base font-bold text-[var(--sea-ink)]">{collection.title}</p>
+              <a
+                href={`/collections/${collection.handle}`}
+                className="text-sm font-semibold text-[var(--lagoon-deep)] no-underline hover:underline"
+              >
+                Browse →
+              </a>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
   )
 }
