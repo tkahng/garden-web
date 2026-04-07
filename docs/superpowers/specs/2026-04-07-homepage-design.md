@@ -1,7 +1,7 @@
 # Homepage Design Spec
 
 **Date:** 2026-04-07
-**Scope:** Storefront homepage (`/`) for `garden-web` React SPA
+**Scope:** Storefront homepage (`/`) for `garden-web` React SPA + dev seed data runner in the Java backend
 
 ---
 
@@ -156,6 +156,39 @@ All sections live in `src/routes/index.tsx`. No new files created unless the fil
 | `src/routes/index.tsx` | Replace placeholder with homepage route + loader + sections |
 
 No new route files. No new component files unless `index.tsx` exceeds ~200 lines.
+
+**Backend (`garden`):**
+
+| File | Change |
+|---|---|
+| `src/main/java/io/k2dv/garden/DevDataSeeder.java` | New — `@Profile("local") ApplicationRunner` seed bean |
+
+---
+
+## Dev Seed Data Runner (Backend)
+
+A `@Profile("local")` Spring Boot `ApplicationRunner` bean that populates the database with realistic dev data on startup, idempotently (no-op if data already exists).
+
+**Location:** `src/main/java/io/k2dv/garden/DevDataSeeder.java`
+
+**Activation:** Only runs when `spring.profiles.active=local` (already the dev profile per `application-local.properties`).
+
+**Idempotency:** Checks `SELECT COUNT(*) FROM catalog.products` before inserting. Skips entirely if count > 0.
+
+**Seed data:**
+
+| Table | Rows | Detail |
+|---|---|---|
+| `content.pages` | 1 | handle=`home`, status=`PUBLISHED`, title="Welcome to Garden", body="Seasonal plants, seeds, and tools for every garden.", `published_at`=now |
+| `catalog.products` | 8 | status=`ACTIVE`, each with 1 variant (price, sku) |
+| `catalog.product_variants` | 8 | One per product, `price` varies, `fulfillment_type`=`MANUAL`, `inventory_policy`=`DENY` |
+| `inventory.inventory_items` | 8 | One per variant, `requires_shipping`=true |
+| `catalog.collections` | 3 | status=`ACTIVE`, `collection_type`=`MANUAL` — "Seeds & Bulbs" (`seeds-bulbs`), "Tools & Supplies" (`tools-supplies`), "Pots & Planters" (`pots-planters`) |
+| `catalog.collection_products` | 8 | Products distributed across collections (3 / 3 / 2) |
+
+**Implementation:** Uses `JdbcTemplate` with raw SQL inserts (no service layer — avoids auth/permission checks on internal seeding). UUIDs generated with `UUID.randomUUID()` in Java.
+
+**No images seeded** — product cards render a placeholder area when no images are present.
 
 ---
 
