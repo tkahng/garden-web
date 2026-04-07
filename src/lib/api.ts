@@ -38,7 +38,9 @@ export interface PagedResult<T> {
 // Internal helpers
 
 function base(): string {
-  return import.meta.env.VITE_API_BASE_URL
+  const url = import.meta.env.VITE_API_BASE_URL
+  if (!url) throw new Error('VITE_API_BASE_URL is not set')
+  return url
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
