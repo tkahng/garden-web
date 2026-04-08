@@ -136,3 +136,57 @@ describe('ProductInfo — static rendering', () => {
     expect(screen.queryByTestId('product-tags')).not.toBeInTheDocument()
   })
 })
+
+describe('ProductInfo — price and variant selection', () => {
+  it('renders the price from activeVariant', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByText('$19.99')).toBeInTheDocument()
+  })
+
+  it('renders compareAtPrice with line-through class when present', () => {
+    render(<ProductInfo {...defaultProps} />)
+    const comparePrice = screen.getByText('$24.99')
+    expect(comparePrice).toBeInTheDocument()
+    expect(comparePrice).toHaveClass('line-through')
+  })
+
+  it('hides the price section when activeVariant is undefined', () => {
+    render(<ProductInfo {...defaultProps} activeVariant={undefined} />)
+    expect(screen.queryByText('$19.99')).not.toBeInTheDocument()
+  })
+
+  it('renders an option group label for each unique option name', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByText('Size')).toBeInTheDocument()
+    expect(screen.getByText('Color')).toBeInTheDocument()
+  })
+
+  it('renders pill buttons for non-color option values', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'S' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument()
+  })
+
+  it('renders color option values as swatch buttons with aria-label', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Lagoon' })).toBeInTheDocument()
+  })
+
+  it('calls setSelectedOptions with the updated selection when a pill is clicked', () => {
+    const setSelectedOptions = vi.fn()
+    render(<ProductInfo {...defaultProps} setSelectedOptions={setSelectedOptions} />)
+    fireEvent.click(screen.getByRole('button', { name: 'M' }))
+    expect(setSelectedOptions).toHaveBeenCalledWith({ Size: 'M', Color: 'Lagoon' })
+  })
+
+  it('renders "Add to cart" button when activeVariant is defined', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add to cart' })).not.toBeDisabled()
+  })
+
+  it('renders disabled "Unavailable" button when activeVariant is undefined', () => {
+    render(<ProductInfo {...defaultProps} activeVariant={undefined} />)
+    expect(screen.getByRole('button', { name: 'Unavailable' })).toBeDisabled()
+  })
+})
