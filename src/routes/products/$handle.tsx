@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { getProduct } from '#/lib/api'
 import type {
   ProductDetailResponse,
@@ -112,7 +112,7 @@ export function ProductInfo({
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType].filter(Boolean).join(' · ')
 
-  const optionGroups = buildOptionGroups(product.variants)
+  const optionGroups = useMemo(() => buildOptionGroups(product.variants), [product.variants])
 
   return (
     <div className="flex flex-col gap-6">
@@ -195,7 +195,7 @@ export function ProductInfo({
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
       </button>
 
-      {/* Description */}
+      {/* Description — backend is the sanitization trust boundary */}
       {product.description != null && (
         <div
           data-testid="product-description"

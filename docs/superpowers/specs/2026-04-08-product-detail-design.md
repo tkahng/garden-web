@@ -31,8 +31,8 @@ interface ProductVariantResponse {
   id: string
   title: string
   sku: string | null
-  price: string          // BigDecimal serialized as string
-  compareAtPrice: string | null
+  price: number          // BigDecimal serialized as JSON number by default
+  compareAtPrice: number | null
   optionValues: OptionValueLabel[]
   fulfillmentType: string
   inventoryPolicy: string
