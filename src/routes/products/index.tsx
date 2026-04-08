@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
+import { listProducts } from '#/lib/api'
 import type { ProductSummaryResponse } from '#/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -9,7 +10,22 @@ type Search = { q?: string; vendor?: string; type?: string; page: number }
 // ─── Route (completed in Task 5) ─────────────────────────────────────────────
 
 export const Route = createFileRoute('/products/')({
-  component: () => null,
+  validateSearch: (search: Record<string, unknown>): Search => ({
+    q: typeof search.q === 'string' ? search.q : undefined,
+    vendor: typeof search.vendor === 'string' ? search.vendor : undefined,
+    type: typeof search.type === 'string' ? search.type : undefined,
+    page: typeof search.page === 'number' ? Math.max(0, Math.floor(search.page)) : 0,
+  }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) =>
+    listProducts({
+      q: deps.q,
+      vendor: deps.vendor,
+      type: deps.type,
+      page: deps.page,
+      size: 20,
+    }),
+  component: ProductListingPage,
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -179,5 +195,56 @@ export function Pagination({
         Next
       </button>
     </div>
+  )
+}
+
+// ─── ProductListingPage ───────────────────────────────────────────────────────
+
+function ProductListingPage() {
+  const data = Route.useLoaderData()
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: '/products/' })
+
+  function handleSearch(updates: Partial<Search>) {
+    navigate({ search: (prev) => ({ ...prev, ...updates }) })
+  }
+
+  function handlePage(page: number) {
+    navigate({ search: (prev) => ({ ...prev, page }) })
+  }
+
+  const { content: products, meta } = data
+
+  return (
+    <main className="page-wrap px-4 py-10">
+      <header className="mb-6">
+        <h1 className="display-title">Products</h1>
+        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">{meta.total} products</p>
+      </header>
+      <FilterBar search={search} onSearch={handleSearch} />
+      {products.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="text-[var(--sea-ink-soft)]">No products found.</p>
+          <a
+            href="/products"
+            className="text-sm text-[var(--lagoon-deep)] underline mt-2 inline-block"
+          >
+            Clear filters
+          </a>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
+      <Pagination
+        page={meta.page}
+        total={meta.total}
+        pageSize={meta.pageSize}
+        onPage={handlePage}
+      />
+    </main>
   )
 }
