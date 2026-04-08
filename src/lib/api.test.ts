@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getPage, listCollections, listCollectionProducts } from './api'
+import {
+  getPage, listCollections, listCollectionProducts, getProduct,
+  type ProductDetailResponse,
+} from './api'
 
 const BASE = 'http://localhost:8080'
 
@@ -69,5 +72,32 @@ describe('listCollectionProducts', () => {
     expect(fetch).toHaveBeenCalledWith(
       `${BASE}/api/v1/collections/seeds-bulbs/products?page=0&size=4`
     )
+  })
+})
+
+describe('getProduct', () => {
+  it('fetches the correct URL and returns the data field', async () => {
+    const product: ProductDetailResponse = {
+      id: 'p1',
+      title: 'Heirloom Tomato Seeds',
+      description: '<p>Rich flavor.</p>',
+      handle: 'heirloom-tomato-seeds',
+      vendor: 'Garden Co',
+      productType: 'Seeds',
+      variants: [],
+      images: [],
+      tags: ['organic'],
+    }
+    vi.stubGlobal('fetch', mockFetch({ data: product }))
+
+    const result = await getProduct('heirloom-tomato-seeds')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products/heirloom-tomato-seeds`)
+    expect(result).toEqual(product)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', mockFetch({ error: 'Not Found' }, 404))
+    await expect(getProduct('unknown')).rejects.toThrow('HTTP 404')
   })
 })

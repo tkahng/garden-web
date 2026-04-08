@@ -67,3 +67,43 @@ export function listCollectionProducts(
 ): Promise<PagedResult<CollectionProductResponse>> {
   return apiFetch(`/api/v1/collections/${handle}/products?page=${page}&size=${size}`)
 }
+
+export interface OptionValueLabel {
+  optionName: string
+  valueLabel: string
+}
+
+export interface ProductVariantResponse {
+  id: string
+  title: string
+  sku: string | null
+  price: number
+  compareAtPrice: number | null
+  optionValues: OptionValueLabel[]
+  fulfillmentType: string
+  inventoryPolicy: string
+  leadTimeDays: number
+}
+
+export interface ProductImageResponse {
+  id: string
+  url: string
+  altText: string | null
+  position: number
+}
+
+export interface ProductDetailResponse {
+  id: string
+  title: string
+  description: string | null
+  handle: string
+  vendor: string | null
+  productType: string | null
+  variants: ProductVariantResponse[]
+  images: ProductImageResponse[]
+  tags: string[]
+}
+
+export function getProduct(handle: string): Promise<ProductDetailResponse> {
+  return apiFetch(`/api/v1/products/${handle}`)
+}
