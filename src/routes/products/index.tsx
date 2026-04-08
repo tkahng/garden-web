@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { ProductSummaryResponse } from '#/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,6 +72,16 @@ export function FilterBar({
 }) {
   const [inputValue, setInputValue] = useState(search.q ?? '')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    setInputValue(search.q ?? '')
+  }, [search.q])
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
