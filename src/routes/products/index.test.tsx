@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import type { ProductSummaryResponse } from '#/lib/api'
-import { ProductCard } from './index'
+import { ProductCard, FilterBar } from './index'
 
 const base: ProductSummaryResponse = {
   id: 'p1',
@@ -75,5 +75,86 @@ describe('ProductCard', () => {
     render(<ProductCard product={base} />)
     const link = screen.getByRole('link')
     expect(link).toHaveAttribute('href', '/products/heirloom-tomato-seeds')
+  })
+})
+
+describe('FilterBar', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('renders the search input with placeholder', () => {
+    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    expect(screen.getByPlaceholderText('Search products…')).toBeInTheDocument()
+  })
+
+  it('calls onSearch with q after 300ms debounce', () => {
+    const onSearch = vi.fn()
+    render(<FilterBar search={{}} onSearch={onSearch} />)
+    fireEvent.change(screen.getByPlaceholderText('Search products…'), {
+      target: { value: 'tomato' },
+    })
+    expect(onSearch).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(300)
+    expect(onSearch).toHaveBeenCalledWith({ q: 'tomato', page: 0 })
+  })
+
+  it('passes q as undefined when input is cleared', () => {
+    const onSearch = vi.fn()
+    render(<FilterBar search={{ q: 'tomato' }} onSearch={onSearch} />)
+    fireEvent.change(screen.getByPlaceholderText('Search products…'), {
+      target: { value: '' },
+    })
+    vi.advanceTimersByTime(300)
+    expect(onSearch).toHaveBeenCalledWith({ q: undefined, page: 0 })
+  })
+
+  it('does not render vendor dropdown when vendor is not in search', () => {
+    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    expect(screen.queryByText('All vendors')).not.toBeInTheDocument()
+  })
+
+  it('renders vendor dropdown when vendor is in search', () => {
+    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={vi.fn()} />)
+    expect(screen.getByText('All vendors')).toBeInTheDocument()
+    expect(screen.getByText('Garden Co')).toBeInTheDocument()
+  })
+
+  it('calls onSearch when vendor is cleared via dropdown', () => {
+    const onSearch = vi.fn()
+    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={onSearch} />)
+    fireEvent.change(screen.getByDisplayValue('Garden Co'), { target: { value: '' } })
+    expect(onSearch).toHaveBeenCalledWith({ vendor: undefined, page: 0 })
+  })
+
+  it('does not render type dropdown when type is not in search', () => {
+    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    expect(screen.queryByText('All types')).not.toBeInTheDocument()
+  })
+
+  it('renders type dropdown when type is in search', () => {
+    render(<FilterBar search={{ type: 'Seeds' }} onSearch={vi.fn()} />)
+    expect(screen.getByText('All types')).toBeInTheDocument()
+    expect(screen.getByText('Seeds')).toBeInTheDocument()
+  })
+
+  it('does not render clear filters link when no filters active', () => {
+    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    expect(screen.queryByText('Clear filters')).not.toBeInTheDocument()
+  })
+
+  it('renders clear filters link when q is set', () => {
+    render(<FilterBar search={{ q: 'tomato' }} onSearch={vi.fn()} />)
+    const link = screen.getByText('Clear filters')
+    expect(link).toHaveAttribute('href', '/products')
+  })
+
+  it('renders clear filters link when vendor is set', () => {
+    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={vi.fn()} />)
+    expect(screen.getByText('Clear filters')).toBeInTheDocument()
   })
 })

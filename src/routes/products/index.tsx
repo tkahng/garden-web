@@ -1,5 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState, useRef } from 'react'
 import type { ProductSummaryResponse } from '#/lib/api'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Search = { q?: string; vendor?: string; type?: string; page: number }
 
 // ─── Route (completed in Task 5) ─────────────────────────────────────────────
 
@@ -53,5 +58,77 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
         </div>
       )}
     </a>
+  )
+}
+
+// ─── FilterBar ────────────────────────────────────────────────────────────────
+
+export function FilterBar({
+  search,
+  onSearch,
+}: {
+  search: { q?: string; vendor?: string; type?: string }
+  onSearch: (updates: Partial<Search>) => void
+}) {
+  const [inputValue, setInputValue] = useState(search.q ?? '')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value
+    setInputValue(value)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => {
+      onSearch({ q: value || undefined, page: 0 })
+    }, 300)
+  }
+
+  function handleVendor(e: React.ChangeEvent<HTMLSelectElement>) {
+    onSearch({ vendor: e.target.value || undefined, page: 0 })
+  }
+
+  function handleType(e: React.ChangeEvent<HTMLSelectElement>) {
+    onSearch({ type: e.target.value || undefined, page: 0 })
+  }
+
+  const hasFilters = !!(search.q || search.vendor || search.type)
+
+  return (
+    <div className="flex flex-wrap gap-3 mb-6">
+      <input
+        type="text"
+        placeholder="Search products…"
+        value={inputValue}
+        onChange={handleInput}
+        className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+      />
+      {search.vendor !== undefined && (
+        <select
+          value={search.vendor}
+          onChange={handleVendor}
+          className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+        >
+          <option value="">All vendors</option>
+          <option value={search.vendor}>{search.vendor}</option>
+        </select>
+      )}
+      {search.type !== undefined && (
+        <select
+          value={search.type}
+          onChange={handleType}
+          className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+        >
+          <option value="">All types</option>
+          <option value={search.type}>{search.type}</option>
+        </select>
+      )}
+      {hasFilters && (
+        <a
+          href="/products"
+          className="text-sm text-[var(--lagoon-deep)] underline self-center"
+        >
+          Clear filters
+        </a>
+      )}
+    </div>
   )
 }
