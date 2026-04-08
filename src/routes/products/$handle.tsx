@@ -25,14 +25,15 @@ export function ProductGallery({
   activeIndex: number
   onSelect: (i: number) => void
 }) {
+  const safeIndex = Math.min(activeIndex, images.length - 1)
   return (
     <div className="flex flex-col gap-3">
       <div className="island-shell aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[rgba(79,184,178,0.08)]">
         {images.length > 0 ? (
           <img
             data-testid="featured-image"
-            src={images[activeIndex].url}
-            alt={images[activeIndex].altText ?? ''}
+            src={images[safeIndex].url}
+            alt={images[safeIndex].altText ?? ''}
             className="h-full w-full object-cover"
           />
         ) : (
