@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import type { ProductImageResponse } from '#/lib/api'
-import type { ProductDetailResponse, ProductVariantResponse } from '#/lib/api'
+import type { ProductImageResponse, ProductDetailResponse, ProductVariantResponse } from '#/lib/api'
 import { ProductGallery, ProductInfo } from './$handle'
 
 const mockImages: ProductImageResponse[] = [
