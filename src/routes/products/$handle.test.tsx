@@ -101,7 +101,8 @@ describe('ProductInfo — static rendering', () => {
   it('renders vendor and productType in the kicker', () => {
     render(<ProductInfo {...defaultProps} />)
     expect(screen.getByText(/Garden Co/)).toBeInTheDocument()
-    expect(screen.getAllByText(/Seeds/).length).toBeGreaterThan(0)
+    const kicker = screen.getByTestId('product-kicker')
+    expect(kicker).toHaveTextContent('Seeds')
   })
 
   it('omits the kicker when vendor and productType are both null', () => {
