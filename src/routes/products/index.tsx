@@ -1,11 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
-import { listProducts } from '#/lib/api'
 import type { ProductSummaryResponse } from '#/lib/api'
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Search = { q?: string; vendor?: string; type?: string; page: number }
 
 // ─── Route (completed in Task 5) ─────────────────────────────────────────────
 
@@ -29,6 +23,7 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
           <img
             src={product.featuredImageUrl}
             alt={product.title}
+            loading="lazy"
             className="w-full h-full object-cover"
           />
         ) : (
@@ -42,12 +37,12 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
       {product.vendor && (
         <p className="text-xs text-[var(--sea-ink-soft)] mt-0.5">{product.vendor}</p>
       )}
-      {product.priceMin !== null && (
+      {product.priceMin !== null && product.priceMax !== null && (
         <div className="mt-1 text-sm flex items-center gap-2">
           <span>
             {product.priceMin === product.priceMax
               ? formatPrice(product.priceMin)
-              : `${formatPrice(product.priceMin)} – ${formatPrice(product.priceMax!)}`}
+              : `${formatPrice(product.priceMin)} – ${formatPrice(product.priceMax)}`}
           </span>
           {product.compareAtPriceMin !== null &&
             product.compareAtPriceMin > product.priceMin && (
