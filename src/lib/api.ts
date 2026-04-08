@@ -71,6 +71,18 @@ export interface ProductDetailResponse {
   tags: string[]
 }
 
+export interface ProductSummaryResponse {
+  id: string
+  title: string
+  handle: string
+  vendor: string | null
+  featuredImageUrl: string | null
+  priceMin: number | null
+  priceMax: number | null
+  compareAtPriceMin: number | null
+  compareAtPriceMax: number | null
+}
+
 // Internal helpers
 
 function base(): string {
@@ -106,4 +118,21 @@ export function listCollectionProducts(
 
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
   return apiFetch(`/api/v1/products/${handle}`)
+}
+
+export function listProducts(params: {
+  q?: string
+  vendor?: string
+  type?: string
+  page?: number
+  size?: number
+}): Promise<PagedResult<ProductSummaryResponse>> {
+  const qs = new URLSearchParams()
+  if (params.q !== undefined) qs.set('titleContains', params.q)
+  if (params.vendor !== undefined) qs.set('vendor', params.vendor)
+  if (params.type !== undefined) qs.set('productType', params.type)
+  if (params.page !== undefined) qs.set('page', String(params.page))
+  if (params.size !== undefined) qs.set('size', String(params.size))
+  const query = qs.toString()
+  return apiFetch(`/api/v1/products${query ? `?${query}` : ''}`)
 }

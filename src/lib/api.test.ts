@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  getPage, listCollections, listCollectionProducts, getProduct,
-  type ProductDetailResponse,
+  getPage, listCollections, listCollectionProducts, getProduct, listProducts,
+  type ProductDetailResponse, type ProductSummaryResponse,
 } from './api'
 
 const BASE = 'http://localhost:8080'
@@ -99,5 +99,77 @@ describe('getProduct', () => {
   it('throws on non-ok response', async () => {
     vi.stubGlobal('fetch', mockFetch({ error: 'Not Found' }, 404))
     await expect(getProduct('unknown')).rejects.toThrow('HTTP 404')
+  })
+})
+
+describe('listProducts', () => {
+  const summary: ProductSummaryResponse = {
+    id: 'p1',
+    title: 'Heirloom Tomato Seeds',
+    handle: 'heirloom-tomato-seeds',
+    vendor: 'Garden Co',
+    featuredImageUrl: 'https://cdn.example.com/img.jpg',
+    priceMin: 9.99,
+    priceMax: 19.99,
+    compareAtPriceMin: 24.99,
+    compareAtPriceMax: 24.99,
+  }
+
+  it('fetches /api/v1/products with no query string when no params provided', async () => {
+    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    await listProducts({})
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products`)
+  })
+
+  it('maps q to titleContains in the query string', async () => {
+    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    await listProducts({ q: 'tomato' })
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products?titleContains=tomato`)
+  })
+
+  it('maps vendor and type to their respective query params', async () => {
+    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    await listProducts({ vendor: 'Garden Co', type: 'Seeds' })
+
+    const url = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string
+    expect(url).toContain('vendor=Garden+Co')
+    expect(url).toContain('productType=Seeds')
+  })
+
+  it('includes page and size when provided', async () => {
+    const response = { data: { content: [], meta: { page: 2, pageSize: 20, total: 100 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    await listProducts({ page: 2, size: 20 })
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products?page=2&size=20`)
+  })
+
+  it('omits undefined params from the query string', async () => {
+    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 1 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    await listProducts({ page: 0 })
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products?page=0`)
+  })
+
+  it('returns the paged result with content and meta', async () => {
+    const response = { data: { content: [summary], meta: { page: 0, pageSize: 20, total: 1 } } }
+    vi.stubGlobal('fetch', mockFetch(response))
+
+    const result = await listProducts({})
+
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0].handle).toBe('heirloom-tomato-seeds')
+    expect(result.meta.total).toBe(1)
   })
 })
