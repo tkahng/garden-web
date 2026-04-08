@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { getProduct } from '#/lib/api'
 import type {
   ProductDetailResponse,
@@ -195,13 +196,14 @@ export function ProductInfo({
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
       </button>
 
-      {/* Description — backend is the sanitization trust boundary */}
+      {/* Description */}
       {product.description != null && (
         <div
           data-testid="product-description"
           className="prose prose-sm max-w-none text-[var(--sea-ink-soft)]"
-          dangerouslySetInnerHTML={{ __html: product.description }}
-        />
+        >
+          <ReactMarkdown>{product.description}</ReactMarkdown>
+        </div>
       )}
 
       {/* Tags */}

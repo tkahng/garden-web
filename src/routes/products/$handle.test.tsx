@@ -75,7 +75,7 @@ const mockVariants: ProductVariantResponse[] = [
 const mockProduct: ProductDetailResponse = {
   id: 'p1',
   title: 'Heirloom Tomato Seeds',
-  description: '<p>Rich flavor.</p>',
+  description: '**Rich** flavor.',
   handle: 'heirloom-tomato-seeds',
   vendor: 'Garden Co',
   productType: 'Seeds',
@@ -113,9 +113,12 @@ describe('ProductInfo — static rendering', () => {
     expect(screen.queryByTestId('product-kicker')).not.toBeInTheDocument()
   })
 
-  it('renders the description as HTML', () => {
+  it('renders the description as markdown', () => {
     render(<ProductInfo {...defaultProps} />)
-    expect(screen.getByTestId('product-description')).toContainHTML('<p>Rich flavor.</p>')
+    const desc = screen.getByTestId('product-description')
+    expect(desc).toBeInTheDocument()
+    expect(desc.querySelector('strong')).toHaveTextContent('Rich')
+    expect(desc).toHaveTextContent('flavor.')
   })
 
   it('omits the description section when description is null', () => {
