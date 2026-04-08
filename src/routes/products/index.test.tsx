@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import type { ProductSummaryResponse } from '#/lib/api'
-import { ProductCard, FilterBar } from './index'
+import { ProductCard, FilterBar, Pagination } from './index'
 
 const base: ProductSummaryResponse = {
   id: 'p1',
@@ -156,5 +156,65 @@ describe('FilterBar', () => {
   it('renders clear filters link when vendor is set', () => {
     render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={vi.fn()} />)
     expect(screen.getByText('Clear filters')).toBeInTheDocument()
+  })
+})
+
+describe('Pagination', () => {
+  it('renders null when total is less than or equal to pageSize', () => {
+    const { container } = render(
+      <Pagination page={0} total={10} pageSize={20} onPage={vi.fn()} />
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('renders null when total exactly equals pageSize', () => {
+    const { container } = render(
+      <Pagination page={0} total={20} pageSize={20} onPage={vi.fn()} />
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
+  it('renders when total exceeds pageSize', () => {
+    render(<Pagination page={0} total={21} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument()
+  })
+
+  it('disables Prev button on the first page', () => {
+    render(<Pagination page={0} total={40} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Prev' })).toBeDisabled()
+  })
+
+  it('enables Prev button on pages after the first', () => {
+    render(<Pagination page={1} total={40} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Prev' })).not.toBeDisabled()
+  })
+
+  it('disables Next button on the last page', () => {
+    render(<Pagination page={1} total={40} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+  })
+
+  it('enables Next button when not on the last page', () => {
+    render(<Pagination page={0} total={40} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Next' })).not.toBeDisabled()
+  })
+
+  it('calls onPage with page - 1 when Prev is clicked', () => {
+    const onPage = vi.fn()
+    render(<Pagination page={1} total={60} pageSize={20} onPage={onPage} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Prev' }))
+    expect(onPage).toHaveBeenCalledWith(0)
+  })
+
+  it('calls onPage with page + 1 when Next is clicked', () => {
+    const onPage = vi.fn()
+    render(<Pagination page={0} total={60} pageSize={20} onPage={onPage} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(onPage).toHaveBeenCalledWith(1)
+  })
+
+  it('shows correct page label: Page N of M', () => {
+    render(<Pagination page={2} total={60} pageSize={20} onPage={vi.fn()} />)
+    expect(screen.getByText('Page 3 of 3')).toBeInTheDocument()
   })
 })

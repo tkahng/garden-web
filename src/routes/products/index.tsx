@@ -142,3 +142,42 @@ export function FilterBar({
     </div>
   )
 }
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+export function Pagination({
+  page,
+  total,
+  pageSize,
+  onPage,
+}: {
+  page: number
+  total: number
+  pageSize: number
+  onPage: (page: number) => void
+}) {
+  const totalPages = Math.ceil(total / pageSize)
+  if (total <= pageSize) return null
+
+  return (
+    <div className="flex items-center justify-center gap-4 mt-10">
+      <button
+        onClick={() => onPage(page - 1)}
+        disabled={page === 0}
+        className="px-4 py-2 border border-[var(--line)] rounded text-sm disabled:opacity-40"
+      >
+        Prev
+      </button>
+      <span className="text-sm text-[var(--sea-ink-soft)]">
+        Page {page + 1} of {totalPages}
+      </span>
+      <button
+        onClick={() => onPage(page + 1)}
+        disabled={page >= totalPages - 1}
+        className="px-4 py-2 border border-[var(--line)] rounded text-sm disabled:opacity-40"
+      >
+        Next
+      </button>
+    </div>
+  )
+}
