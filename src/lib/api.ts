@@ -35,39 +35,6 @@ export interface PagedResult<T> {
   meta: PageMeta
 }
 
-// Internal helpers
-
-function base(): string {
-  const url = import.meta.env.VITE_API_BASE_URL
-  if (!url) throw new Error('VITE_API_BASE_URL is not set')
-  return url
-}
-
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${base()}${path}`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return json.data as T
-}
-
-// Public API functions
-
-export function getPage(handle: string): Promise<PageResponse> {
-  return apiFetch(`/api/v1/pages/${handle}`)
-}
-
-export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
-  return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
-}
-
-export function listCollectionProducts(
-  handle: string,
-  page: number,
-  size: number,
-): Promise<PagedResult<CollectionProductResponse>> {
-  return apiFetch(`/api/v1/collections/${handle}/products?page=${page}&size=${size}`)
-}
-
 export interface OptionValueLabel {
   optionName: string
   valueLabel: string
@@ -102,6 +69,39 @@ export interface ProductDetailResponse {
   variants: ProductVariantResponse[]
   images: ProductImageResponse[]
   tags: string[]
+}
+
+// Internal helpers
+
+function base(): string {
+  const url = import.meta.env.VITE_API_BASE_URL
+  if (!url) throw new Error('VITE_API_BASE_URL is not set')
+  return url
+}
+
+async function apiFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${base()}${path}`)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  return json.data as T
+}
+
+// Public API functions
+
+export function getPage(handle: string): Promise<PageResponse> {
+  return apiFetch(`/api/v1/pages/${handle}`)
+}
+
+export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
+  return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
+}
+
+export function listCollectionProducts(
+  handle: string,
+  page: number,
+  size: number,
+): Promise<PagedResult<CollectionProductResponse>> {
+  return apiFetch(`/api/v1/collections/${handle}/products?page=${page}&size=${size}`)
 }
 
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
