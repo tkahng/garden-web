@@ -100,6 +100,7 @@ export function FilterBar({
   }, [])
 
   useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
     setInputValue(search.q ?? '')
   }, [search.q])
 
