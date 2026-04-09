@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { getProduct } from '#/lib/api'
+import { getProduct } from '#/lib/apiFetch'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
   ProductImageResponse,
-} from '#/lib/api'
+} from '#/lib/apiFetch'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -18,7 +18,10 @@ export const Route = createFileRoute('/products/$handle')({
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatPrice(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount)
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -37,7 +40,9 @@ function resolveColor(value: string): string {
   return COLOR_MAP[value.toLowerCase()] ?? '#cde8e5'
 }
 
-function buildOptionGroups(variants: ProductVariantResponse[]): [string, string[]][] {
+function buildOptionGroups(
+  variants: ProductVariantResponse[],
+): [string, string[]][] {
   const map = new Map<string, string[]>()
   for (const variant of variants) {
     for (const ov of variant.optionValues) {
@@ -88,7 +93,11 @@ export function ProductGallery({
                   : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
-              <img src={img.url} alt={img.altText ?? ''} className="h-full w-full object-cover" />
+              <img
+                src={img.url}
+                alt={img.altText ?? ''}
+                className="h-full w-full object-cover"
+              />
             </button>
           ))}
         </div>
@@ -111,9 +120,14 @@ export function ProductInfo({
   activeVariant: ProductVariantResponse | undefined
 }) {
   const hasKicker = product.vendor != null || product.productType != null
-  const kicker = [product.vendor, product.productType].filter(Boolean).join(' · ')
+  const kicker = [product.vendor, product.productType]
+    .filter(Boolean)
+    .join(' · ')
 
-  const optionGroups = useMemo(() => buildOptionGroups(product.variants), [product.variants])
+  const optionGroups = useMemo(
+    () => buildOptionGroups(product.variants),
+    [product.variants],
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -158,7 +172,12 @@ export function ProductInfo({
                   return isColorOption ? (
                     <button
                       key={value}
-                      onClick={() => setSelectedOptions({ ...selectedOptions, [name]: value })}
+                      onClick={() =>
+                        setSelectedOptions({
+                          ...selectedOptions,
+                          [name]: value,
+                        })
+                      }
                       aria-label={value}
                       title={value}
                       className={`h-8 w-8 rounded-full border-2 transition ${
@@ -171,7 +190,12 @@ export function ProductInfo({
                   ) : (
                     <button
                       key={value}
-                      onClick={() => setSelectedOptions({ ...selectedOptions, [name]: value })}
+                      onClick={() =>
+                        setSelectedOptions({
+                          ...selectedOptions,
+                          [name]: value,
+                        })
+                      }
                       className={`rounded-lg border-2 px-3 py-1.5 text-sm font-semibold transition ${
                         isSelected
                           ? 'border-[var(--lagoon-deep)] bg-[rgba(79,184,178,0.12)] text-[var(--sea-ink)]'
@@ -228,15 +252,21 @@ export function ProductInfo({
 function ProductDetailPage() {
   const product = Route.useLoaderData()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    () =>
-      Object.fromEntries(
-        product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
-      ),
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >(() =>
+    Object.fromEntries(
+      product.variants[0]?.optionValues.map((v) => [
+        v.optionName,
+        v.valueLabel,
+      ]) ?? [],
+    ),
   )
   const activeVariant =
     product.variants.find((v) =>
-      v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
+      v.optionValues.every(
+        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
+      ),
     ) ?? product.variants[0]
 
   return (

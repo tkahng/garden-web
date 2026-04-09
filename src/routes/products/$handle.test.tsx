@@ -1,11 +1,25 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import type { ProductImageResponse, ProductDetailResponse, ProductVariantResponse } from '#/lib/api'
+import type {
+  ProductImageResponse,
+  ProductDetailResponse,
+  ProductVariantResponse,
+} from '#/lib/apiFetch'
 import { ProductGallery, ProductInfo } from './$handle'
 
 const mockImages: ProductImageResponse[] = [
-  { id: 'img1', url: 'https://example.com/img1.jpg', altText: 'Front view', position: 1 },
-  { id: 'img2', url: 'https://example.com/img2.jpg', altText: 'Side view', position: 2 },
+  {
+    id: 'img1',
+    url: 'https://example.com/img1.jpg',
+    altText: 'Front view',
+    position: 1,
+  },
+  {
+    id: 'img2',
+    url: 'https://example.com/img2.jpg',
+    altText: 'Side view',
+    position: 2,
+  },
 ]
 
 describe('ProductGallery', () => {
@@ -15,26 +29,42 @@ describe('ProductGallery', () => {
   })
 
   it('renders the featured image at activeIndex', () => {
-    render(<ProductGallery images={mockImages} activeIndex={1} onSelect={vi.fn()} />)
+    render(
+      <ProductGallery images={mockImages} activeIndex={1} onSelect={vi.fn()} />,
+    )
     const featured = screen.getByTestId('featured-image')
     expect(featured).toHaveAttribute('src', 'https://example.com/img2.jpg')
     expect(featured).toHaveAttribute('alt', 'Side view')
   })
 
   it('does not render thumbnail strip for a single image', () => {
-    render(<ProductGallery images={[mockImages[0]]} activeIndex={0} onSelect={vi.fn()} />)
+    render(
+      <ProductGallery
+        images={[mockImages[0]]}
+        activeIndex={0}
+        onSelect={vi.fn()}
+      />,
+    )
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('renders a thumbnail button per image when multiple images exist', () => {
-    render(<ProductGallery images={mockImages} activeIndex={0} onSelect={vi.fn()} />)
+    render(
+      <ProductGallery images={mockImages} activeIndex={0} onSelect={vi.fn()} />,
+    )
     const buttons = screen.getAllByRole('button')
     expect(buttons).toHaveLength(2)
   })
 
   it('calls onSelect with the correct index when a thumbnail is clicked', () => {
     const onSelect = vi.fn()
-    render(<ProductGallery images={mockImages} activeIndex={0} onSelect={onSelect} />)
+    render(
+      <ProductGallery
+        images={mockImages}
+        activeIndex={0}
+        onSelect={onSelect}
+      />,
+    )
     const buttons = screen.getAllByRole('button')
     fireEvent.click(buttons[1])
     expect(onSelect).toHaveBeenCalledWith(1)
@@ -94,7 +124,9 @@ const defaultProps = {
 describe('ProductInfo — static rendering', () => {
   it('renders the product title in an h1', () => {
     render(<ProductInfo {...defaultProps} />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Heirloom Tomato Seeds')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Heirloom Tomato Seeds',
+    )
   })
 
   it('renders vendor and productType in the kicker', () => {
@@ -122,7 +154,10 @@ describe('ProductInfo — static rendering', () => {
   })
 
   it('omits the description section when description is null', () => {
-    const props = { ...defaultProps, product: { ...mockProduct, description: null } }
+    const props = {
+      ...defaultProps,
+      product: { ...mockProduct, description: null },
+    }
     render(<ProductInfo {...props} />)
     expect(screen.queryByTestId('product-description')).not.toBeInTheDocument()
   })
@@ -177,15 +212,24 @@ describe('ProductInfo — price and variant selection', () => {
 
   it('calls setSelectedOptions with the updated selection when a pill is clicked', () => {
     const setSelectedOptions = vi.fn()
-    render(<ProductInfo {...defaultProps} setSelectedOptions={setSelectedOptions} />)
+    render(
+      <ProductInfo {...defaultProps} setSelectedOptions={setSelectedOptions} />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'M' }))
-    expect(setSelectedOptions).toHaveBeenCalledWith({ Size: 'M', Color: 'Lagoon' })
+    expect(setSelectedOptions).toHaveBeenCalledWith({
+      Size: 'M',
+      Color: 'Lagoon',
+    })
   })
 
   it('renders "Add to cart" button when activeVariant is defined', () => {
     render(<ProductInfo {...defaultProps} />)
-    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Add to cart' })).not.toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: 'Add to cart' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Add to cart' }),
+    ).not.toBeDisabled()
   })
 
   it('renders disabled "Unavailable" button when activeVariant is undefined', () => {
