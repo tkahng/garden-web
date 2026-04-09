@@ -1,15 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
-import {
-  getPage,
-  listCollections,
-  listCollectionProducts,
-} from '#/lib/apiFetch'
+import { getPage, listCollections, listCollectionProducts } from '#/lib/api'
 import type {
   PageResponse,
   CollectionSummaryResponse,
   CollectionProductResponse,
-} from '#/lib/apiFetch'
+} from '#/lib/api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 

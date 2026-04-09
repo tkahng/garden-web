@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { getProduct } from '#/lib/apiFetch'
+import { getProduct } from '#/lib/api'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
   ProductImageResponse,
-} from '#/lib/apiFetch'
+} from '#/lib/api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 

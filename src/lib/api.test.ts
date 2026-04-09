@@ -6,12 +6,12 @@ import {
   getCollection,
   getProduct,
   listProducts,
-} from './apiFetch'
+} from './api'
 import type {
   ProductDetailResponse,
   ProductSummaryResponse,
   CollectionDetailResponse,
-} from './apiFetch'
+} from './api'
 
 const BASE = 'http://localhost:8080'
 

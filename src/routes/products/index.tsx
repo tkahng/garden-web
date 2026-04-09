@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
-import { listProducts } from '#/lib/apiFetch'
-import type { ProductSummaryResponse } from '#/lib/apiFetch'
+import { listProducts } from '#/lib/api'
+import type { ProductSummaryResponse } from '#/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

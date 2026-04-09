@@ -4,7 +4,7 @@ import type {
   ProductImageResponse,
   ProductDetailResponse,
   ProductVariantResponse,
-} from '#/lib/apiFetch'
+} from '#/lib/api'
 import { ProductGallery, ProductInfo } from './$handle'
 
 const mockImages: ProductImageResponse[] = [

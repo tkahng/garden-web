@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import type { ProductSummaryResponse } from '#/lib/apiFetch'
+import type { ProductSummaryResponse } from '#/lib/api'
 import { ProductCard, FilterBar, Pagination } from './index'
 
 const base: ProductSummaryResponse = {

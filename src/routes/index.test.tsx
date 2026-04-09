@@ -4,7 +4,7 @@ import type {
   PageResponse,
   CollectionSummaryResponse,
   CollectionProductResponse,
-} from '#/lib/apiFetch'
+} from '#/lib/api'
 import { HeroSection, FeaturedCollection, CollectionsGrid } from './index'
 
 const mockPage: PageResponse = {
