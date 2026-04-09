@@ -305,6 +305,11 @@ describe('authRefresh', () => {
 
     const result = await authRefresh('old-ref')
 
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: 'old-ref' }),
+    })
     expect(result).toEqual({ accessToken: 'new-acc', refreshToken: 'new-ref' })
   })
 })
@@ -424,11 +429,55 @@ describe('createAuthFetch', () => {
     let callCount = 0
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
       callCount++
-      return Promise.resolve({ ok: false, status: callCount === 1 ? 401 : 401 } as Response)
+      return Promise.resolve({ ok: false, status: 401 } as Response)
     }))
 
     const authFetch = createAuthFetch({
       getTokens: () => ({ accessToken: 'old', refreshToken: 'ref' }),
+      onTokensRefreshed: vi.fn(),
+      onAuthFailure,
+    })
+
+    await expect(authFetch('/api/v1/account')).rejects.toThrow('Session expired')
+    expect(onAuthFailure).toHaveBeenCalled()
+  })
+
+  it('calls onAuthFailure when the retry request also returns 401', async () => {
+    const onAuthFailure = vi.fn()
+    let callCount = 0
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        return Promise.resolve({ ok: false, status: 401 } as Response)
+      }
+      if (callCount === 2) {
+        // refresh succeeds
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ data: { accessToken: 'new', refreshToken: 'new-ref' } }),
+        } as Response)
+      }
+      // retry also 401
+      return Promise.resolve({ ok: false, status: 401 } as Response)
+    }))
+
+    const authFetch = createAuthFetch({
+      getTokens: () => ({ accessToken: 'old', refreshToken: 'ref' }),
+      onTokensRefreshed: vi.fn(),
+      onAuthFailure,
+    })
+
+    await expect(authFetch('/api/v1/account')).rejects.toThrow('Session expired')
+    expect(onAuthFailure).toHaveBeenCalled()
+  })
+
+  it('calls onAuthFailure on 401 when no refresh token is available', async () => {
+    const onAuthFailure = vi.fn()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 } as Response))
+
+    const authFetch = createAuthFetch({
+      getTokens: () => ({ accessToken: 'tok', refreshToken: null }),
       onTokensRefreshed: vi.fn(),
       onAuthFailure,
     })

@@ -116,39 +116,50 @@ export function createAuthFetch(config: AuthFetchConfig) {
     const { accessToken, refreshToken } = config.getTokens()
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers as Record<string, string> | undefined),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     }
 
     const res = await fetch(`${base()}${path}`, { ...options, headers })
 
-    if (res.status === 401 && refreshToken) {
-      const refreshRes = await fetch(`${base()}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      })
+    if (res.status === 401) {
+      if (refreshToken) {
+        const refreshRes = await fetch(`${base()}/api/v1/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        })
 
-      if (!refreshRes.ok) {
+        if (!refreshRes.ok) {
+          config.onAuthFailure()
+          throw new Error('Session expired')
+        }
+
+        const refreshJson = await refreshRes.json()
+        const newTokens: AuthTokens = {
+          accessToken: refreshJson.data.accessToken,
+          refreshToken: refreshJson.data.refreshToken,
+        }
+        config.onTokensRefreshed(newTokens)
+
+        const retryRes = await fetch(`${base()}${path}`, {
+          ...options,
+          headers: { ...headers, Authorization: `Bearer ${newTokens.accessToken}` },
+        })
+        if (!retryRes.ok) {
+          if (retryRes.status === 401) {
+            config.onAuthFailure()
+            throw new Error('Session expired')
+          }
+          throw new Error(`HTTP ${retryRes.status}`)
+        }
+        const retryJson = await retryRes.json()
+        return retryJson.data as T
+      } else {
         config.onAuthFailure()
         throw new Error('Session expired')
       }
-
-      const refreshJson = await refreshRes.json()
-      const newTokens: AuthTokens = {
-        accessToken: refreshJson.data.accessToken,
-        refreshToken: refreshJson.data.refreshToken,
-      }
-      config.onTokensRefreshed(newTokens)
-
-      const retryRes = await fetch(`${base()}${path}`, {
-        ...options,
-        headers: { ...headers, Authorization: `Bearer ${newTokens.accessToken}` },
-      })
-      if (!retryRes.ok) throw new Error(`HTTP ${retryRes.status}`)
-      const retryJson = await retryRes.json()
-      return retryJson.data as T
     }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -240,7 +251,7 @@ export async function getAccount(accessToken: string): Promise<User> {
     firstName: d.firstName ?? '',
     lastName: d.lastName ?? '',
     phone: d.phone ?? null,
-    status: d.status ?? 'ACTIVE',
+    status: d.status ?? 'UNVERIFIED',
   }
 }
 
