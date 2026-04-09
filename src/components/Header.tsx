@@ -7,6 +7,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from '#/components/ui/sheet'
 
 const NAV_LINKS = [
@@ -76,6 +77,7 @@ export default function Header() {
                 <SheetTitle className="text-base font-bold text-[var(--sea-ink)]">
                   The Garden Shop
                 </SheetTitle>
+                <SheetDescription className="sr-only">Navigation menu</SheetDescription>
               </SheetHeader>
               <nav
                 className="mt-6 flex flex-col gap-1 px-4"
