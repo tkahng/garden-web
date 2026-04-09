@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  getPage, listCollections, listCollectionProducts, getProduct, listProducts,
-  type ProductDetailResponse, type ProductSummaryResponse,
+  getPage, listCollections, listCollectionProducts, getCollection, getProduct, listProducts,
+  type ProductDetailResponse, type ProductSummaryResponse, type CollectionDetailResponse,
 } from './api'
 
 const BASE = 'http://localhost:8080'
@@ -72,6 +72,29 @@ describe('listCollectionProducts', () => {
     expect(fetch).toHaveBeenCalledWith(
       `${BASE}/api/v1/collections/seeds-bulbs/products?page=0&size=4`
     )
+  })
+})
+
+describe('getCollection', () => {
+  it('fetches the correct URL and returns the data field', async () => {
+    const collection: CollectionDetailResponse = {
+      id: 'c1',
+      title: 'Seeds & Bulbs',
+      handle: 'seeds-bulbs',
+      description: 'All your seed needs.',
+      featuredImageUrl: 'https://cdn.example.com/seeds.jpg',
+    }
+    vi.stubGlobal('fetch', mockFetch({ data: collection }))
+
+    const result = await getCollection('seeds-bulbs')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/collections/seeds-bulbs`)
+    expect(result).toEqual(collection)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', mockFetch({ error: 'Not Found' }, 404))
+    await expect(getCollection('unknown')).rejects.toThrow('HTTP 404')
   })
 })
 
