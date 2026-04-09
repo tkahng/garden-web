@@ -16,6 +16,14 @@ export interface CollectionSummaryResponse {
   handle: string
 }
 
+export interface CollectionDetailResponse {
+  id: string
+  title: string
+  handle: string
+  description: string | null
+  featuredImageUrl: string | null
+}
+
 export interface CollectionProductResponse {
   id: string
   productId: string
@@ -106,6 +114,10 @@ export function getPage(handle: string): Promise<PageResponse> {
 
 export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
   return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
+}
+
+export function getCollection(handle: string): Promise<CollectionDetailResponse> {
+  return apiFetch(`/api/v1/collections/${handle}`)
 }
 
 export function listCollectionProducts(

@@ -1,0 +1,81 @@
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { listCollections } from '#/lib/api'
+import type { CollectionSummaryResponse } from '#/lib/api'
+import { Pagination } from '#/routes/products/index'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Search = { page: number }
+
+// ─── Route ────────────────────────────────────────────────────────────────────
+
+export const Route = createFileRoute('/collections/')({
+  validateSearch: (search: Record<string, unknown>): Search => ({
+    page: (() => {
+      const raw = search.page
+      const n = typeof raw === 'number' ? raw : Number(raw)
+      return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0
+    })(),
+  }),
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => listCollections(deps.page, 20),
+  component: CollectionsListPage,
+})
+
+// ─── CollectionCard ───────────────────────────────────────────────────────────
+
+export function CollectionCard({ collection }: { collection: CollectionSummaryResponse }) {
+  return (
+    <div className="island-shell feature-card rounded-2xl border-[var(--line)]">
+      <div className="flex flex-col items-center p-8 text-center">
+        <div className="mb-4 h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
+        <p className="mb-3 text-base font-bold text-[var(--sea-ink)]">{collection.title}</p>
+        <a
+          href={`/collections/${collection.handle}`}
+          className="text-sm font-semibold text-[var(--lagoon-deep)] no-underline hover:underline"
+        >
+          Browse →
+        </a>
+      </div>
+    </div>
+  )
+}
+
+// ─── CollectionsListPage ──────────────────────────────────────────────────────
+
+function CollectionsListPage() {
+  const data = Route.useLoaderData()
+  const navigate = useNavigate({ from: '/collections/' })
+
+  function handlePage(page: number) {
+    navigate({ search: (prev) => ({ ...prev, page }) })
+  }
+
+  const { content: collections, meta } = data
+
+  return (
+    <main className="page-wrap px-4 py-10">
+      <header className="mb-6">
+        <h1 className="display-title">Collections</h1>
+        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">{meta.total} collections</p>
+      </header>
+      {collections.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="text-[var(--sea-ink-soft)]">No collections available.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {collections.map((collection) => (
+            <CollectionCard key={collection.id} collection={collection} />
+          ))}
+        </div>
+      )}
+      <Pagination
+        page={meta.page}
+        total={meta.total}
+        pageSize={meta.pageSize}
+        onPage={handlePage}
+      />
+    </main>
+  )
+}

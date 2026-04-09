@@ -1,12 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
-import {
-  getPage,
-  listCollections,
-  listCollectionProducts,
-  type PageResponse,
-  type CollectionSummaryResponse,
-  type CollectionProductResponse,
+import { getPage, listCollections, listCollectionProducts } from '#/lib/api'
+import type {
+  PageResponse,
+  CollectionSummaryResponse,
+  CollectionProductResponse,
 } from '#/lib/api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -18,10 +16,19 @@ export const Route = createFileRoute('/')({
 
     const [homePage, featuredProducts] = await Promise.all([
       getPage('home').catch(() => null),
-      firstHandle ? listCollectionProducts(firstHandle, 0, 4) : Promise.resolve({ content: [], meta: { page: 0, pageSize: 4, total: 0 } }),
+      firstHandle
+        ? listCollectionProducts(firstHandle, 0, 4)
+        : Promise.resolve({
+            content: [],
+            meta: { page: 0, pageSize: 4, total: 0 },
+          }),
     ])
 
-    return { homePage, collections: collections.content, featuredProducts: featuredProducts.content }
+    return {
+      homePage,
+      collections: collections.content,
+      featuredProducts: featuredProducts.content,
+    }
   },
   component: HomePage,
 })
@@ -32,7 +39,10 @@ function HomePage() {
     <main>
       <HeroSection page={homePage} />
       {collections.length > 0 && (
-        <FeaturedCollection collection={collections[0]} products={featuredProducts} />
+        <FeaturedCollection
+          collection={collections[0]}
+          products={featuredProducts}
+        />
       )}
       <CollectionsGrid collections={collections} />
     </main>
@@ -54,7 +64,9 @@ export function HeroSection({ page }: { page: PageResponse | null }) {
         <h1 className="display-title mb-4 max-w-2xl text-4xl font-bold leading-[1.02] tracking-tight text-[var(--sea-ink)] sm:text-6xl">
           {title}
         </h1>
-        <p className="mb-8 max-w-xl text-base text-[var(--sea-ink-soft)] sm:text-lg">{body}</p>
+        <p className="mb-8 max-w-xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
+          {body}
+        </p>
         <div className="flex flex-wrap gap-3">
           <a
             href="/products"
@@ -111,7 +123,9 @@ export function FeaturedCollection({
                 <div className="h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
               </div>
               <CardContent className="p-4">
-                <p className="text-sm font-semibold text-[var(--sea-ink)]">{product.title}</p>
+                <p className="text-sm font-semibold text-[var(--sea-ink)]">
+                  {product.title}
+                </p>
               </CardContent>
             </Card>
           </a>
@@ -123,11 +137,17 @@ export function FeaturedCollection({
 
 // ─── CollectionsGrid ──────────────────────────────────────────────────────────
 
-export function CollectionsGrid({ collections }: { collections: CollectionSummaryResponse[] }) {
+export function CollectionsGrid({
+  collections,
+}: {
+  collections: CollectionSummaryResponse[]
+}) {
   if (collections.length === 0) {
     return (
       <section className="page-wrap px-4 py-8">
-        <p className="text-sm text-[var(--sea-ink-soft)]">No collections available yet.</p>
+        <p className="text-sm text-[var(--sea-ink-soft)]">
+          No collections available yet.
+        </p>
       </section>
     )
   }
@@ -146,7 +166,9 @@ export function CollectionsGrid({ collections }: { collections: CollectionSummar
           >
             <CardContent className="flex flex-col items-center p-8 text-center">
               <div className="mb-4 h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
-              <p className="mb-3 text-base font-bold text-[var(--sea-ink)]">{collection.title}</p>
+              <p className="mb-3 text-base font-bold text-[var(--sea-ink)]">
+                {collection.title}
+              </p>
               <a
                 href={`/collections/${collection.handle}`}
                 className="text-sm font-semibold text-[var(--lagoon-deep)] no-underline hover:underline"

@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  getPage, listCollections, listCollectionProducts, getProduct, listProducts,
-  type ProductDetailResponse, type ProductSummaryResponse,
+  getPage,
+  listCollections,
+  listCollectionProducts,
+  getCollection,
+  getProduct,
+  listProducts,
+} from './api'
+import type {
+  ProductDetailResponse,
+  ProductSummaryResponse,
+  CollectionDetailResponse,
 } from './api'
 
 const BASE = 'http://localhost:8080'
@@ -25,7 +34,15 @@ afterEach(() => {
 
 describe('getPage', () => {
   it('fetches the correct URL and returns the data field', async () => {
-    const page = { id: '1', title: 'Home', handle: 'home', body: 'Hello', metaTitle: null, metaDescription: null, publishedAt: '2026-01-01T00:00:00Z' }
+    const page = {
+      id: '1',
+      title: 'Home',
+      handle: 'home',
+      body: 'Hello',
+      metaTitle: null,
+      metaDescription: null,
+      publishedAt: '2026-01-01T00:00:00Z',
+    }
     vi.stubGlobal('fetch', mockFetch({ data: page }))
 
     const result = await getPage('home')
@@ -42,17 +59,26 @@ describe('getPage', () => {
 
 describe('listCollections', () => {
   it('fetches with page and size query params', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listCollections(0, 20)
 
-    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/collections?page=0&size=20`)
+    expect(fetch).toHaveBeenCalledWith(
+      `${BASE}/api/v1/collections?page=0&size=20`,
+    )
   })
 
   it('returns the paged result', async () => {
     const collection = { id: 'abc', title: 'Seeds', handle: 'seeds-bulbs' }
-    const response = { data: { content: [collection], meta: { page: 0, pageSize: 20, total: 1 } } }
+    const response = {
+      data: {
+        content: [collection],
+        meta: { page: 0, pageSize: 20, total: 1 },
+      },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     const result = await listCollections(0, 20)
@@ -64,14 +90,39 @@ describe('listCollections', () => {
 
 describe('listCollectionProducts', () => {
   it('fetches the correct URL with handle and pagination', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 4, total: 0 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 4, total: 0 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listCollectionProducts('seeds-bulbs', 0, 4)
 
     expect(fetch).toHaveBeenCalledWith(
-      `${BASE}/api/v1/collections/seeds-bulbs/products?page=0&size=4`
+      `${BASE}/api/v1/collections/seeds-bulbs/products?page=0&size=4`,
     )
+  })
+})
+
+describe('getCollection', () => {
+  it('fetches the correct URL and returns the data field', async () => {
+    const collection: CollectionDetailResponse = {
+      id: 'c1',
+      title: 'Seeds & Bulbs',
+      handle: 'seeds-bulbs',
+      description: 'All your seed needs.',
+      featuredImageUrl: 'https://cdn.example.com/seeds.jpg',
+    }
+    vi.stubGlobal('fetch', mockFetch({ data: collection }))
+
+    const result = await getCollection('seeds-bulbs')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/collections/seeds-bulbs`)
+    expect(result).toEqual(collection)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', mockFetch({ error: 'Not Found' }, 404))
+    await expect(getCollection('unknown')).rejects.toThrow('HTTP 404')
   })
 })
 
@@ -92,7 +143,9 @@ describe('getProduct', () => {
 
     const result = await getProduct('heirloom-tomato-seeds')
 
-    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products/heirloom-tomato-seeds`)
+    expect(fetch).toHaveBeenCalledWith(
+      `${BASE}/api/v1/products/heirloom-tomato-seeds`,
+    )
     expect(result).toEqual(product)
   })
 
@@ -116,7 +169,9 @@ describe('listProducts', () => {
   }
 
   it('fetches /api/v1/products with no query string when no params provided', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listProducts({})
@@ -125,16 +180,22 @@ describe('listProducts', () => {
   })
 
   it('maps q to titleContains in the query string', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listProducts({ q: 'tomato' })
 
-    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/products?titleContains=tomato`)
+    expect(fetch).toHaveBeenCalledWith(
+      `${BASE}/api/v1/products?titleContains=tomato`,
+    )
   })
 
   it('maps vendor and type to their respective query params', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 20, total: 0 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listProducts({ vendor: 'Garden Co', type: 'Seeds' })
@@ -145,7 +206,9 @@ describe('listProducts', () => {
   })
 
   it('includes page and size when provided', async () => {
-    const response = { data: { content: [], meta: { page: 2, pageSize: 20, total: 100 } } }
+    const response = {
+      data: { content: [], meta: { page: 2, pageSize: 20, total: 100 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listProducts({ page: 2, size: 20 })
@@ -154,7 +217,9 @@ describe('listProducts', () => {
   })
 
   it('omits undefined params from the query string', async () => {
-    const response = { data: { content: [], meta: { page: 0, pageSize: 20, total: 1 } } }
+    const response = {
+      data: { content: [], meta: { page: 0, pageSize: 20, total: 1 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     await listProducts({ page: 0 })
@@ -163,7 +228,9 @@ describe('listProducts', () => {
   })
 
   it('returns the paged result with content and meta', async () => {
-    const response = { data: { content: [summary], meta: { page: 0, pageSize: 20, total: 1 } } }
+    const response = {
+      data: { content: [summary], meta: { page: 0, pageSize: 20, total: 1 } },
+    }
     vi.stubGlobal('fetch', mockFetch(response))
 
     const result = await listProducts({})

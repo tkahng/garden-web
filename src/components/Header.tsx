@@ -35,7 +35,10 @@ export default function Header() {
         </Link>
 
         {/* Center — desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex" aria-label="Main navigation">
+        <nav
+          className="hidden items-center gap-6 md:flex"
+          aria-label="Main navigation"
+        >
           {NAV_LINKS.map(({ label, to }) => (
             <Link
               key={to}
@@ -77,7 +80,9 @@ export default function Header() {
                 <SheetTitle className="text-base font-bold text-[var(--sea-ink)]">
                   The Garden Shop
                 </SheetTitle>
-                <SheetDescription className="sr-only">Navigation menu</SheetDescription>
+                <SheetDescription className="sr-only">
+                  Navigation menu
+                </SheetDescription>
               </SheetHeader>
               <nav
                 className="mt-6 flex flex-col gap-1 px-4"

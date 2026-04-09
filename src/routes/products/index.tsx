@@ -35,7 +35,10 @@ export const Route = createFileRoute('/products/')({
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatPrice(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount)
 }
 
 // ─── ProductCard ──────────────────────────────────────────────────────────────
@@ -58,9 +61,13 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
           />
         )}
       </div>
-      <p className="font-bold text-[var(--sea-ink)] text-sm leading-snug">{product.title}</p>
+      <p className="font-bold text-[var(--sea-ink)] text-sm leading-snug">
+        {product.title}
+      </p>
       {product.vendor && (
-        <p className="text-xs text-[var(--sea-ink-soft)] mt-0.5">{product.vendor}</p>
+        <p className="text-xs text-[var(--sea-ink-soft)] mt-0.5">
+          {product.vendor}
+        </p>
       )}
       {product.priceMin !== null && product.priceMax !== null && (
         <div className="mt-1 text-sm flex items-center gap-2">
@@ -224,7 +231,9 @@ function ProductListingPage() {
     <main className="page-wrap px-4 py-10">
       <header className="mb-6">
         <h1 className="display-title">Products</h1>
-        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">{meta.total} products</p>
+        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">
+          {meta.total} products
+        </p>
       </header>
       <FilterBar search={search} onSearch={handleSearch} />
       {products.length === 0 ? (

@@ -22,7 +22,10 @@ describe('ProductCard', () => {
   })
 
   it('renders the product image when featuredImageUrl is set', () => {
-    const product = { ...base, featuredImageUrl: 'https://cdn.example.com/img.jpg' }
+    const product = {
+      ...base,
+      featuredImageUrl: 'https://cdn.example.com/img.jpg',
+    }
     render(<ProductCard product={product} />)
     const img = screen.getByRole('img')
     expect(img).toHaveAttribute('src', 'https://cdn.example.com/img.jpg')
@@ -50,23 +53,47 @@ describe('ProductCard', () => {
   })
 
   it('renders a single price when priceMin equals priceMax', () => {
-    render(<ProductCard product={{ ...base, priceMin: 19.99, priceMax: 19.99 }} />)
+    render(
+      <ProductCard product={{ ...base, priceMin: 19.99, priceMax: 19.99 }} />,
+    )
     expect(screen.getByText('$19.99')).toBeInTheDocument()
   })
 
   it('renders a price range when priceMin differs from priceMax', () => {
-    render(<ProductCard product={{ ...base, priceMin: 9.99, priceMax: 19.99 }} />)
+    render(
+      <ProductCard product={{ ...base, priceMin: 9.99, priceMax: 19.99 }} />,
+    )
     expect(screen.getByText('$9.99 – $19.99')).toBeInTheDocument()
   })
 
   it('renders compare-at price with line-through when compareAtPriceMin > priceMin', () => {
-    render(<ProductCard product={{ ...base, priceMin: 9.99, priceMax: 9.99, compareAtPriceMin: 14.99, compareAtPriceMax: 14.99 }} />)
+    render(
+      <ProductCard
+        product={{
+          ...base,
+          priceMin: 9.99,
+          priceMax: 9.99,
+          compareAtPriceMin: 14.99,
+          compareAtPriceMax: 14.99,
+        }}
+      />,
+    )
     const compareAt = screen.getByText('$14.99')
     expect(compareAt).toHaveClass('line-through')
   })
 
   it('does not render compare-at when compareAtPriceMin equals priceMin', () => {
-    render(<ProductCard product={{ ...base, priceMin: 9.99, priceMax: 9.99, compareAtPriceMin: 9.99, compareAtPriceMax: 9.99 }} />)
+    render(
+      <ProductCard
+        product={{
+          ...base,
+          priceMin: 9.99,
+          priceMax: 9.99,
+          compareAtPriceMin: 9.99,
+          compareAtPriceMax: 9.99,
+        }}
+      />,
+    )
     // only one $9.99 element (no compare-at)
     expect(screen.getAllByText('$9.99')).toHaveLength(1)
   })
@@ -127,7 +154,9 @@ describe('FilterBar', () => {
   it('calls onSearch when vendor is cleared via dropdown', () => {
     const onSearch = vi.fn()
     render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={onSearch} />)
-    fireEvent.change(screen.getByDisplayValue('Garden Co'), { target: { value: '' } })
+    fireEvent.change(screen.getByDisplayValue('Garden Co'), {
+      target: { value: '' },
+    })
     expect(onSearch).toHaveBeenCalledWith({ vendor: undefined, page: 0 })
   })
 
@@ -162,14 +191,14 @@ describe('FilterBar', () => {
 describe('Pagination', () => {
   it('renders null when total is less than or equal to pageSize', () => {
     const { container } = render(
-      <Pagination page={0} total={10} pageSize={20} onPage={vi.fn()} />
+      <Pagination page={0} total={10} pageSize={20} onPage={vi.fn()} />,
     )
     expect(container.firstChild).toBeNull()
   })
 
   it('renders null when total exactly equals pageSize', () => {
     const { container } = render(
-      <Pagination page={0} total={20} pageSize={20} onPage={vi.fn()} />
+      <Pagination page={0} total={20} pageSize={20} onPage={vi.fn()} />,
     )
     expect(container.firstChild).toBeNull()
   })
