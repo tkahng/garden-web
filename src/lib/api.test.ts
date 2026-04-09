@@ -6,6 +6,15 @@ import {
   getCollection,
   getProduct,
   listProducts,
+  authLogin,
+  authRegister,
+  authLogout,
+  authRefresh,
+  authRequestPasswordReset,
+  authConfirmPasswordReset,
+  authVerifyEmail,
+  getAccount,
+  createAuthFetch,
 } from './api'
 import type {
   ProductDetailResponse,
@@ -238,5 +247,193 @@ describe('listProducts', () => {
     expect(result.content).toHaveLength(1)
     expect(result.content[0].handle).toBe('heirloom-tomato-seeds')
     expect(result.meta.total).toBe(1)
+  })
+})
+
+describe('authLogin', () => {
+  it('POSTs credentials and returns tokens', async () => {
+    vi.stubGlobal('fetch', mockFetch({ data: { accessToken: 'acc', refreshToken: 'ref' } }))
+
+    const result = await authLogin('a@b.com', 'pass')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'a@b.com', password: 'pass' }),
+    })
+    expect(result).toEqual({ accessToken: 'acc', refreshToken: 'ref' })
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.stubGlobal('fetch', mockFetch({ error: 'Unauthorized' }, 401))
+    await expect(authLogin('a@b.com', 'wrong')).rejects.toThrow('HTTP 401')
+  })
+})
+
+describe('authRegister', () => {
+  it('POSTs registration data and returns tokens', async () => {
+    vi.stubGlobal('fetch', mockFetch({ data: { accessToken: 'acc', refreshToken: 'ref' } }))
+
+    const result = await authRegister('a@b.com', 'pass', 'Jane', 'Doe')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'a@b.com', password: 'pass', firstName: 'Jane', lastName: 'Doe' }),
+    })
+    expect(result).toEqual({ accessToken: 'acc', refreshToken: 'ref' })
+  })
+})
+
+describe('authLogout', () => {
+  it('POSTs the refresh token', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 } as Response))
+
+    await authLogout('ref-token')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: 'ref-token' }),
+    })
+  })
+})
+
+describe('authRefresh', () => {
+  it('POSTs the refresh token and returns new tokens', async () => {
+    vi.stubGlobal('fetch', mockFetch({ data: { accessToken: 'new-acc', refreshToken: 'new-ref' } }))
+
+    const result = await authRefresh('old-ref')
+
+    expect(result).toEqual({ accessToken: 'new-acc', refreshToken: 'new-ref' })
+  })
+})
+
+describe('authRequestPasswordReset', () => {
+  it('POSTs email to request-password-reset', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 } as Response))
+
+    await authRequestPasswordReset('a@b.com')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/request-password-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'a@b.com' }),
+    })
+  })
+})
+
+describe('authConfirmPasswordReset', () => {
+  it('POSTs new password to confirm-password-reset', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 } as Response))
+
+    await authConfirmPasswordReset('tok123', 'newpassword')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/confirm-password-reset/tok123`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: 'newpassword' }),
+    })
+  })
+})
+
+describe('authVerifyEmail', () => {
+  it('GETs verify-email with token query param', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 } as Response))
+
+    await authVerifyEmail('verify-tok')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/auth/verify-email?token=verify-tok`)
+  })
+})
+
+describe('getAccount', () => {
+  it('GETs /account with Authorization header and returns User', async () => {
+    const account = {
+      id: 'u1',
+      email: 'a@b.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      phone: null,
+      status: 'ACTIVE',
+    }
+    vi.stubGlobal('fetch', mockFetch({ data: account }))
+
+    const result = await getAccount('my-token')
+
+    expect(fetch).toHaveBeenCalledWith(`${BASE}/api/v1/account`, {
+      headers: { Authorization: 'Bearer my-token' },
+    })
+    expect(result).toEqual({ ...account })
+  })
+})
+
+describe('createAuthFetch', () => {
+  it('sends request with Authorization header', async () => {
+    vi.stubGlobal('fetch', mockFetch({ data: { ok: true } }))
+
+    const authFetch = createAuthFetch({
+      getTokens: () => ({ accessToken: 'tok', refreshToken: 'ref' }),
+      onTokensRefreshed: vi.fn(),
+      onAuthFailure: vi.fn(),
+    })
+
+    const result = await authFetch<{ ok: boolean }>('/api/v1/account')
+
+    const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(call[1].headers.Authorization).toBe('Bearer tok')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('refreshes tokens on 401 and retries', async () => {
+    const onTokensRefreshed = vi.fn()
+    let callCount = 0
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        return Promise.resolve({ ok: false, status: 401 } as Response)
+      }
+      if (callCount === 2) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ data: { accessToken: 'new', refreshToken: 'new-ref' } }),
+        } as Response)
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: { result: 'ok' } }),
+      } as Response)
+    }))
+
+    const authFetch = createAuthFetch({
+      getTokens: () => ({ accessToken: 'old', refreshToken: 'ref' }),
+      onTokensRefreshed,
+      onAuthFailure: vi.fn(),
+    })
+
+    const result = await authFetch<{ result: string }>('/api/v1/account')
+
+    expect(onTokensRefreshed).toHaveBeenCalledWith({ accessToken: 'new', refreshToken: 'new-ref' })
+    expect(result).toEqual({ result: 'ok' })
+  })
+
+  it('calls onAuthFailure when refresh fails', async () => {
+    const onAuthFailure = vi.fn()
+    let callCount = 0
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => {
+      callCount++
+      return Promise.resolve({ ok: false, status: callCount === 1 ? 401 : 401 } as Response)
+    }))
+
+    const authFetch = createAuthFetch({
+      getTokens: () => ({ accessToken: 'old', refreshToken: 'ref' }),
+      onTokensRefreshed: vi.fn(),
+      onAuthFailure,
+    })
+
+    await expect(authFetch('/api/v1/account')).rejects.toThrow('Session expired')
+    expect(onAuthFailure).toHaveBeenCalled()
   })
 })
