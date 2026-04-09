@@ -15,7 +15,7 @@ const NAV_LINKS = [
   { label: 'Products', to: '/products' },
   { label: 'Collections', to: '/collections' },
   { label: 'About', to: '/about' },
-]
+] as const
 
 const navLinkClass =
   'text-sm font-semibold text-[var(--sea-ink-soft)] no-underline transition hover:text-[var(--sea-ink)]'
