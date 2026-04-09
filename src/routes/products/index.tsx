@@ -14,7 +14,11 @@ export const Route = createFileRoute('/products/')({
     q: typeof search.q === 'string' ? search.q : undefined,
     vendor: typeof search.vendor === 'string' ? search.vendor : undefined,
     type: typeof search.type === 'string' ? search.type : undefined,
-    page: typeof search.page === 'number' ? Math.max(0, Math.floor(search.page)) : 0,
+    page: (() => {
+      const raw = search.page
+      const n = typeof raw === 'number' ? raw : Number(raw)
+      return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0
+    })(),
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ deps }) =>
