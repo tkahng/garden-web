@@ -15,6 +15,8 @@ import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -46,10 +48,22 @@ const CollectionsHandleRoute = CollectionsHandleRouteImport.update({
   path: '/collections/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/auth/verify-email',
+  path: '/auth/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/collections/': typeof CollectionsIndexRoute
@@ -58,6 +72,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/collections': typeof CollectionsIndexRoute
@@ -67,6 +83,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/collections/': typeof CollectionsIndexRoute
@@ -77,6 +95,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/auth/reset-password'
+    | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
     | '/collections/'
@@ -85,6 +105,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/auth/reset-password'
+    | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
     | '/collections'
@@ -93,6 +115,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/auth/reset-password'
+    | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
     | '/collections/'
@@ -102,6 +126,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
@@ -152,12 +178,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollectionsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/verify-email': {
+      id: '/auth/verify-email'
+      path: '/auth/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,

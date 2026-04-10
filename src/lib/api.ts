@@ -91,6 +91,170 @@ export interface ProductSummaryResponse {
   compareAtPriceMax: number | null
 }
 
+export interface User {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  phone: string | null
+  status: 'UNVERIFIED' | 'ACTIVE' | 'SUSPENDED'
+}
+
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+}
+
+export interface AuthFetchConfig {
+  getTokens: () => { accessToken: string | null; refreshToken: string | null }
+  onTokensRefreshed: (tokens: AuthTokens) => void
+  onAuthFailure: () => void
+}
+
+export function createAuthFetch(config: AuthFetchConfig) {
+  return async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const { accessToken, refreshToken } = config.getTokens()
+
+    const headers: Record<string, string> = {
+      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers as Record<string, string> | undefined),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    }
+
+    const res = await fetch(`${base()}${path}`, { ...options, headers })
+
+    if (res.status === 401) {
+      if (refreshToken) {
+        const refreshRes = await fetch(`${base()}/api/v1/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        })
+
+        if (!refreshRes.ok) {
+          config.onAuthFailure()
+          throw new Error('Session expired')
+        }
+
+        const refreshJson = await refreshRes.json()
+        const newTokens: AuthTokens = {
+          accessToken: refreshJson.data.accessToken,
+          refreshToken: refreshJson.data.refreshToken,
+        }
+        config.onTokensRefreshed(newTokens)
+
+        const retryRes = await fetch(`${base()}${path}`, {
+          ...options,
+          headers: { ...headers, Authorization: `Bearer ${newTokens.accessToken}` },
+        })
+        if (!retryRes.ok) {
+          if (retryRes.status === 401) {
+            config.onAuthFailure()
+            throw new Error('Session expired')
+          }
+          throw new Error(`HTTP ${retryRes.status}`)
+        }
+        const retryJson = await retryRes.json()
+        return retryJson.data as T
+      } else {
+        config.onAuthFailure()
+        throw new Error('Session expired')
+      }
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json()
+    return json.data as T
+  }
+}
+
+export async function authLogin(email: string, password: string): Promise<AuthTokens> {
+  const res = await fetch(`${base()}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+}
+
+export async function authRegister(
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+): Promise<AuthTokens> {
+  const res = await fetch(`${base()}/api/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, firstName, lastName }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+}
+
+export async function authLogout(refreshToken: string): Promise<void> {
+  const res = await fetch(`${base()}/api/v1/auth/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+export async function authRefresh(refreshToken: string): Promise<AuthTokens> {
+  const res = await fetch(`${base()}/api/v1/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+}
+
+export async function authRequestPasswordReset(email: string): Promise<void> {
+  const res = await fetch(`${base()}/api/v1/auth/request-password-reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+export async function authConfirmPasswordReset(token: string, newPassword: string): Promise<void> {
+  const res = await fetch(`${base()}/api/v1/auth/confirm-password-reset/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+export async function authVerifyEmail(token: string): Promise<void> {
+  const res = await fetch(`${base()}/api/v1/auth/verify-email?token=${token}`)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+export async function getAccount(accessToken: string): Promise<User> {
+  const res = await fetch(`${base()}/api/v1/account`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const json = await res.json()
+  const d = json.data
+  return {
+    id: d.id ?? '',
+    email: d.email ?? '',
+    firstName: d.firstName ?? '',
+    lastName: d.lastName ?? '',
+    phone: d.phone ?? null,
+    status: d.status ?? 'UNVERIFIED',
+  }
+}
+
 // Internal helpers
 
 function base(): string {
