@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import Header from './Header'
 
@@ -25,7 +25,8 @@ const mockOpenAuthModal = vi.fn()
 const mockLogout = vi.fn()
 
 // Default mock state: guest
-let mockUser: null | { firstName: string; lastName: string; email: string } = null
+let mockUser: null | { firstName: string; lastName: string; email: string } =
+  null
 let mockIsAuthenticated = false
 
 vi.mock('#/context/auth-modal', () => ({
@@ -49,7 +50,9 @@ describe('Header — guest state', () => {
 
   it('renders the store wordmark', () => {
     render(<Header />)
-    expect(screen.getByRole('link', { name: /The Garden Shop/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /The Garden Shop/i }),
+    ).toBeInTheDocument()
   })
 
   it('cart button opens auth modal with login tab', () => {
@@ -60,7 +63,9 @@ describe('Header — guest state', () => {
 
   it('does not show user avatar', () => {
     render(<Header />)
-    expect(screen.queryByRole('button', { name: /user menu/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /user menu/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('mobile nav shows Sign in button', () => {
@@ -78,7 +83,9 @@ describe('Header — authenticated state', () => {
 
   it('shows user initials avatar button', () => {
     render(<Header />)
-    expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /user menu/i }),
+    ).toBeInTheDocument()
     expect(screen.getByText('JD')).toBeInTheDocument()
   })
 
@@ -98,7 +105,9 @@ describe('Header — authenticated state', () => {
 
   it('mobile nav shows Sign out button instead of Sign in link', () => {
     render(<Header />)
-    expect(screen.queryByRole('link', { name: /sign in/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /sign in/i }),
+    ).not.toBeInTheDocument()
     // Mobile sheet has a Sign out button somewhere
     expect(screen.getAllByText('Sign out').length).toBeGreaterThanOrEqual(1)
   })
