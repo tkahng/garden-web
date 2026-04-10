@@ -86,7 +86,8 @@ export function createCartClient(getToken: () => string | null) {
     async getCart(): Promise<CartResponse> {
       const { data, response } = await client.GET('/api/v1/cart')
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return data!.data!
+      if (!data?.data) throw new Error('Invalid response: missing data')
+      return data.data
     },
 
     async addCartItem(variantId: string, quantity = 1): Promise<CartResponse> {
@@ -94,7 +95,8 @@ export function createCartClient(getToken: () => string | null) {
         body: { variantId, quantity },
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return data!.data!
+      if (!data?.data) throw new Error('Invalid response: missing data')
+      return data.data
     },
 
     async updateCartItem(itemId: string, quantity: number): Promise<CartResponse> {
@@ -103,7 +105,8 @@ export function createCartClient(getToken: () => string | null) {
         body: { quantity },
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return data!.data!
+      if (!data?.data) throw new Error('Invalid response: missing data')
+      return data.data
     },
 
     async removeCartItem(itemId: string): Promise<CartResponse> {
@@ -111,7 +114,8 @@ export function createCartClient(getToken: () => string | null) {
         params: { path: { itemId } },
       })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return data!.data!
+      if (!data?.data) throw new Error('Invalid response: missing data')
+      return data.data
     },
 
     async abandonCart(): Promise<void> {

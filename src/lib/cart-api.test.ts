@@ -124,6 +124,17 @@ describe('createCartClient', () => {
     await expect(client.getCart()).rejects.toThrow('HTTP 401')
   })
 
+  it('reads the token at call time, not at client creation time', async () => {
+    vi.stubGlobal('fetch', mockResponse({ data: mockCart }))
+    let token = 'initial-token'
+    const client = createCartClient(() => token)
+    token = 'refreshed-token'
+
+    await client.getCart()
+
+    expect(lastRequest().headers.get('Authorization')).toBe('Bearer refreshed-token')
+  })
+
   it('does not set Authorization header when token is null', async () => {
     vi.stubGlobal('fetch', mockResponse({ data: mockCart }))
     const client = createCartClient(() => null)
