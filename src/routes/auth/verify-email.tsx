@@ -21,9 +21,14 @@ export function VerifyEmailPage({ token }: { token: string | null }) {
 
   useEffect(() => {
     if (!token) return
+    let cancelled = false
     authVerifyEmail(token)
-      .then(() => setStatus('success'))
-      .catch(() => setStatus('error'))
+      .then(() => { if (!cancelled) setStatus('success') })
+      .catch((err) => {
+        console.error(err)
+        if (!cancelled) setStatus('error')
+      })
+    return () => { cancelled = true }
   }, [token])
 
   if (status === 'loading') {
