@@ -63,9 +63,9 @@ describe('Header — guest state', () => {
     expect(screen.queryByRole('button', { name: /user menu/i })).not.toBeInTheDocument()
   })
 
-  it('mobile nav shows Sign in link', () => {
+  it('mobile nav shows Sign in button', () => {
     render(<Header />)
-    expect(screen.getByRole('link', { name: /sign in/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 })
 
@@ -92,7 +92,7 @@ describe('Header — authenticated state', () => {
   it('Sign out calls logout', () => {
     render(<Header />)
     fireEvent.click(screen.getByRole('button', { name: /user menu/i }))
-    fireEvent.click(screen.getByText('Sign out'))
+    fireEvent.click(screen.getAllByText('Sign out')[0])
     expect(mockLogout).toHaveBeenCalled()
   })
 

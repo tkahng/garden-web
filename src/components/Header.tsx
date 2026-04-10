@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ShoppingBagIcon, ListIcon } from '@phosphor-icons/react'
 import ThemeToggle from './ThemeToggle'
@@ -10,14 +10,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from '#/components/ui/sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
@@ -38,6 +30,23 @@ export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { openAuthModal } = useAuthModal()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const avatarButtonRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleMouseDown(e: MouseEvent) {
+      if (
+        avatarButtonRef.current &&
+        !avatarButtonRef.current.contains(e.target as Node) &&
+        panelRef.current &&
+        !panelRef.current.contains(e.target as Node)
+      ) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => document.removeEventListener('mousedown', handleMouseDown)
+  }, [])
 
   const initials = user
     ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
@@ -82,41 +91,52 @@ export default function Header() {
 
           {/* User avatar / dropdown (authenticated only) */}
           {isAuthenticated && user && (
-            <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="User menu"
-                  onClick={() => setUserMenuOpen((v) => !v)}
-                  className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-[var(--lagoon-deep)] text-white text-xs font-semibold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
+            <div className="relative">
+              <button
+                ref={avatarButtonRef}
+                type="button"
+                aria-label="User menu"
+                onClick={() => setUserMenuOpen((v) => !v)}
+                className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-[var(--lagoon-deep)] text-white text-xs font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
               {userMenuOpen && (
                 <div
+                  ref={panelRef}
                   role="menu"
-                  className="absolute right-4 top-16 z-50 w-56 rounded border border-[var(--line)] bg-[var(--header-bg)] shadow-lg"
+                  className="absolute right-0 top-full z-50 w-56 rounded border border-[var(--line)] bg-[var(--header-bg)] shadow-lg"
                 >
                   <div className="flex flex-col gap-0.5 px-2 py-2">
                     <span className="font-semibold text-sm">{`${user.firstName} ${user.lastName}`}</span>
                     <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
                   </div>
                   <div className="border-t border-[var(--line)]" />
-                  <a
-                    href="/account"
+                  <Link
+                    to="/account"
                     className="block px-2 py-2 text-xs hover:bg-accent"
                     role="menuitem"
                   >
                     Account
-                  </a>
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="block w-full px-2 py-2 text-left text-xs hover:bg-accent"
+                    onClick={() => {
+                      setUserMenuOpen(false)
+                      logout()
+                    }}
+                  >
+                    Sign out
+                  </button>
                 </div>
               )}
-            </DropdownMenu>
+            </div>
           )}
 
           {/* Mobile sign-in / sign-out (visible on mobile, hidden on desktop) */}
@@ -130,13 +150,13 @@ export default function Header() {
                 Sign out
               </button>
             ) : (
-              <Link
-                to="/"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+              <button
+                type="button"
+                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
                 onClick={() => openAuthModal('login')}
               >
                 Sign in
-              </Link>
+              </button>
             )}
           </div>
 
