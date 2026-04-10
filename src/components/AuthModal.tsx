@@ -36,7 +36,7 @@ export default function AuthModal() {
           />
         )}
         {activeTab === 'register' && (
-          <RegisterView onSuccess={() => openAuthModal('login')} />
+          <RegisterView onSuccess={closeAuthModal} />
         )}
         {activeTab === 'forgot-password' && (
           <ForgotPasswordView onBack={() => openAuthModal('login')} />

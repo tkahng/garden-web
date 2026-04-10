@@ -104,7 +104,7 @@ describe('AuthModal - Register tab', () => {
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
   })
 
-  it('calls register on submit', async () => {
+  it('calls register on submit and closes the modal', async () => {
     vi.mocked(api.authRegister).mockResolvedValue({ accessToken: 'acc', refreshToken: 'ref' })
     vi.mocked(api.getAccount).mockResolvedValue({
       id: 'u1', email: 'a@b.com', firstName: 'Jane', lastName: 'Doe', phone: null, status: 'UNVERIFIED',
@@ -121,6 +121,7 @@ describe('AuthModal - Register tab', () => {
     await waitFor(() =>
       expect(api.authRegister).toHaveBeenCalledWith('a@b.com', 'pass', 'Jane', 'Doe'),
     )
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })
 
