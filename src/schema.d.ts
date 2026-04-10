@@ -1415,6 +1415,13 @@ export interface components {
             data?: components["schemas"]["CartResponse"];
             meta?: unknown;
         };
+        CartItemProductInfo: {
+            /** Format: uuid */
+            productId?: string;
+            productTitle?: string;
+            variantTitle?: string;
+            imageUrl?: string;
+        };
         CartItemResponse: {
             /** Format: uuid */
             id?: string;
@@ -1423,6 +1430,7 @@ export interface components {
             /** Format: int32 */
             quantity?: number;
             unitPrice?: number;
+            product?: components["schemas"]["CartItemProductInfo"];
         };
         CartResponse: {
             /** Format: uuid */
