@@ -26,6 +26,7 @@ import * as api from '#/lib/api'
 describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockNavigate.mockResolvedValue(undefined)
   })
 
   it('shows an error when no token is provided', () => {
@@ -69,6 +70,9 @@ describe('ResetPasswordPage', () => {
     fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: 'newpass' } })
     fireEvent.click(screen.getByRole('button', { name: /set new password/i }))
 
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent(/link may have expired/i)
+    })
   })
 })

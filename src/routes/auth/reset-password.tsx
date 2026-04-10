@@ -36,12 +36,14 @@ export function ResetPasswordPage({ token }: { token: string | null }) {
     )
   }
 
+  const safeToken = token
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
     try {
-      await authConfirmPasswordReset(token!, password)
+      await authConfirmPasswordReset(safeToken, password)
       await navigate({ to: '/' })
       openAuthModal('login')
     } catch {
@@ -68,6 +70,7 @@ export function ResetPasswordPage({ token }: { token: string | null }) {
               type="password"
               autoComplete="new-password"
               required
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
