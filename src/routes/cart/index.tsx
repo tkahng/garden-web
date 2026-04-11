@@ -45,6 +45,8 @@ export function CartItemRow({
   onRemove: (itemId: string) => void
   onUpdateQuantity: (itemId: string, qty: number) => void
 }) {
+  if (!item.id) return null
+
   const qty = item.quantity ?? 1
   const unitPrice = item.unitPrice ?? 0
   const lineTotal = unitPrice * qty
@@ -81,7 +83,7 @@ export function CartItemRow({
           type="button"
           aria-label="Decrease quantity"
           disabled={qty <= 1}
-          onClick={() => onUpdateQuantity(item.id!, qty - 1)}
+          onClick={() => onUpdateQuantity(item.id, qty - 1)}
           className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--line)] text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-[var(--lagoon-deep)]"
         >
           −
@@ -90,7 +92,7 @@ export function CartItemRow({
         <button
           type="button"
           aria-label="Increase quantity"
-          onClick={() => onUpdateQuantity(item.id!, qty + 1)}
+          onClick={() => onUpdateQuantity(item.id, qty + 1)}
           className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--line)] text-sm font-bold hover:border-[var(--lagoon-deep)]"
         >
           +
@@ -106,7 +108,7 @@ export function CartItemRow({
       <button
         type="button"
         aria-label="Remove item"
-        onClick={() => onRemove(item.id!)}
+        onClick={() => onRemove(item.id)}
         className="text-sm text-[var(--sea-ink-soft)] hover:text-[var(--sea-ink)]"
       >
         ✕
