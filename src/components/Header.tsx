@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
+import { useCart } from '#/context/cart'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -29,6 +30,7 @@ const navLinkActiveClass =
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { openAuthModal } = useAuthModal()
+  const { itemCount } = useCart()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const avatarButtonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -80,14 +82,21 @@ export default function Header() {
         {/* Right — actions */}
         <div className="flex items-center gap-2">
           {/* Cart */}
-          <button
-            type="button"
+          <Link
+            to="/cart"
             aria-label="Open cart"
-            className="rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
-            onClick={() => openAuthModal('login')}
+            className="relative rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
           >
             <ShoppingBagIcon size={22} />
-          </button>
+            {itemCount > 0 && (
+              <span
+                data-testid="cart-badge"
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--lagoon-deep)] text-[10px] font-bold text-white"
+              >
+                {itemCount}
+              </span>
+            )}
+          </Link>
 
           {/* User avatar / dropdown (authenticated only) */}
           {isAuthenticated && user && (
