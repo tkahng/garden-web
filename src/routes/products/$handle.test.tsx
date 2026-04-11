@@ -236,4 +236,16 @@ describe('ProductInfo — price and variant selection', () => {
     render(<ProductInfo {...defaultProps} activeVariant={undefined} />)
     expect(screen.getByRole('button', { name: 'Unavailable' })).toBeDisabled()
   })
+
+  it('calls onAddToCart when Add to cart button is clicked', () => {
+    const onAddToCart = vi.fn()
+    render(<ProductInfo {...defaultProps} onAddToCart={onAddToCart} isAddingToCart={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add to cart' }))
+    expect(onAddToCart).toHaveBeenCalled()
+  })
+
+  it('disables Add to cart button while isAddingToCart is true', () => {
+    render(<ProductInfo {...defaultProps} onAddToCart={vi.fn()} isAddingToCart={true} />)
+    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeDisabled()
+  })
 })

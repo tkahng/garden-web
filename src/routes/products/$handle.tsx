@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { getProduct } from '#/lib/api'
+import { useCart } from '#/context/cart'
+import { useAuth } from '#/context/auth'
+import { useAuthModal } from '#/context/auth-modal'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -113,11 +116,15 @@ export function ProductInfo({
   selectedOptions,
   setSelectedOptions,
   activeVariant,
+  onAddToCart,
+  isAddingToCart = false,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
   setSelectedOptions: (opts: Record<string, string>) => void
   activeVariant: ProductVariantResponse | undefined
+  onAddToCart?: () => void
+  isAddingToCart?: boolean
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -214,7 +221,8 @@ export function ProductInfo({
 
       {/* Add to Cart */}
       <button
-        disabled={activeVariant == null}
+        disabled={activeVariant == null || isAddingToCart}
+        onClick={onAddToCart}
         className="w-full rounded-full bg-[var(--lagoon-deep)] px-6 py-3.5 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
@@ -251,23 +259,30 @@ export function ProductInfo({
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
+  const { isAuthenticated } = useAuth()
+  const { openAuthModal } = useAuthModal()
+  const { addItem, isLoading: isCartLoading } = useCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string>
-  >(() =>
-    Object.fromEntries(
-      product.variants[0]?.optionValues.map((v) => [
-        v.optionName,
-        v.valueLabel,
-      ]) ?? [],
-    ),
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
+      ),
   )
   const activeVariant =
     product.variants.find((v) =>
-      v.optionValues.every(
-        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
-      ),
+      v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
     ) ?? product.variants[0]
+
+  function handleAddToCart() {
+    if (!isAuthenticated) {
+      openAuthModal('login')
+      return
+    }
+    if (activeVariant) {
+      addItem(activeVariant.id)
+    }
+  }
 
   return (
     <main className="page-wrap px-4 py-10">
@@ -282,6 +297,8 @@ function ProductDetailPage() {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           activeVariant={activeVariant}
+          onAddToCart={handleAddToCart}
+          isAddingToCart={isCartLoading}
         />
       </div>
     </main>
