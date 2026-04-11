@@ -248,4 +248,11 @@ describe('ProductInfo — price and variant selection', () => {
     render(<ProductInfo {...defaultProps} onAddToCart={vi.fn()} isAddingToCart={true} />)
     expect(screen.getByRole('button', { name: 'Add to cart' })).toBeDisabled()
   })
+
+  it('shows error message when addError is provided', () => {
+    render(<ProductInfo {...defaultProps} addError="Failed to add item to cart. Please try again." />)
+    expect(screen.getByTestId('add-error')).toHaveTextContent(
+      'Failed to add item to cart. Please try again.',
+    )
+  })
 })

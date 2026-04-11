@@ -15,11 +15,11 @@ vi.mock('#/context/auth', () => ({
     isAuthenticated: mockIsAuthenticated,
     authFetch: vi.fn().mockImplementation((path: string, init?: RequestInit) => {
       const method = (init?.method ?? 'GET').toUpperCase()
-      if (method === 'GET') return mockGetCart()
-      if (method === 'POST') return mockAddCartItem()
+      if (method === 'GET' && path === '/api/v1/cart') return mockGetCart()
+      if (method === 'POST' && path === '/api/v1/cart/items') return mockAddCartItem()
+      if (method === 'PUT' && path.startsWith('/api/v1/cart/items/')) return mockUpdateCartItem()
       if (method === 'DELETE' && path.startsWith('/api/v1/cart/items/')) return mockRemoveCartItem()
-      if (method === 'PUT') return mockUpdateCartItem()
-      if (method === 'DELETE') return mockAbandonCart()
+      if (method === 'DELETE' && path === '/api/v1/cart') return mockAbandonCart()
       return Promise.resolve(null)
     }),
   }),

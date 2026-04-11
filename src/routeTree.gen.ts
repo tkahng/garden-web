@@ -13,6 +13,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
+import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
@@ -36,6 +37,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
 const CollectionsIndexRoute = CollectionsIndexRouteImport.update({
   id: '/collections/',
   path: '/collections/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartIndexRoute = CartIndexRouteImport.update({
+  id: '/cart/',
+  path: '/cart/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsHandleRoute = ProductsHandleRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
+  '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
+  '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
+  '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
+    | '/cart/'
     | '/collections/'
     | '/products/'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
+    | '/cart'
     | '/collections'
     | '/products'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/collections/$handle'
     | '/products/$handle'
+    | '/cart/'
     | '/collections/'
     | '/products/'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
+  CartIndexRoute: typeof CartIndexRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
 }
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/collections'
       fullPath: '/collections/'
       preLoaderRoute: typeof CollectionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart/': {
+      id: '/cart/'
+      path: '/cart'
+      fullPath: '/cart/'
+      preLoaderRoute: typeof CartIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/$handle': {
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
   ProductsHandleRoute: ProductsHandleRoute,
+  CartIndexRoute: CartIndexRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
 }

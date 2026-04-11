@@ -93,7 +93,7 @@ export default function Header() {
                 data-testid="cart-badge"
                 className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--lagoon-deep)] text-[10px] font-bold text-white"
               >
-                {itemCount}
+                {itemCount > 9 ? '9+' : itemCount}
               </span>
             )}
           </Link>

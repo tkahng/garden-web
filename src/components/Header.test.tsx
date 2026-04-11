@@ -81,6 +81,12 @@ describe('Header — guest state', () => {
     expect(screen.getByTestId('cart-badge')).toHaveTextContent('3')
   })
 
+  it('shows 9+ in badge when itemCount exceeds 9', () => {
+    mockItemCount = 10
+    render(<Header />)
+    expect(screen.getByTestId('cart-badge')).toHaveTextContent('9+')
+  })
+
   it('does not show user avatar', () => {
     render(<Header />)
     expect(

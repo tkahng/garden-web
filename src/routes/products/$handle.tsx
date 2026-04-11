@@ -118,6 +118,7 @@ export function ProductInfo({
   activeVariant,
   onAddToCart,
   isAddingToCart = false,
+  addError,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
@@ -125,6 +126,7 @@ export function ProductInfo({
   activeVariant: ProductVariantResponse | undefined
   onAddToCart?: () => void
   isAddingToCart?: boolean
+  addError?: string | null
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -227,6 +229,11 @@ export function ProductInfo({
       >
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
       </button>
+      {addError != null && (
+        <p data-testid="add-error" className="text-sm text-red-600">
+          {addError}
+        </p>
+      )}
 
       {/* Description */}
       {product.description != null && (
@@ -261,7 +268,7 @@ function ProductDetailPage() {
   const product = Route.useLoaderData()
   const { isAuthenticated } = useAuth()
   const { openAuthModal } = useAuthModal()
-  const { addItem, isLoading: isCartLoading } = useCart()
+  const { addItem } = useCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
     () =>
@@ -269,6 +276,8 @@ function ProductDetailPage() {
         product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
       ),
   )
+  const [isAdding, setIsAdding] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
     product.variants.find((v) =>
       v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
@@ -280,7 +289,15 @@ function ProductDetailPage() {
       return
     }
     if (activeVariant) {
-      await addItem(activeVariant.id)
+      setIsAdding(true)
+      setAddError(null)
+      try {
+        await addItem(activeVariant.id)
+      } catch {
+        setAddError('Failed to add item to cart. Please try again.')
+      } finally {
+        setIsAdding(false)
+      }
     }
   }
 
@@ -298,7 +315,8 @@ function ProductDetailPage() {
           setSelectedOptions={setSelectedOptions}
           activeVariant={activeVariant}
           onAddToCart={handleAddToCart}
-          isAddingToCart={isCartLoading}
+          isAddingToCart={isAdding}
+          addError={addError}
         />
       </div>
     </main>
