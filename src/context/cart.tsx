@@ -32,8 +32,11 @@ const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, authFetch } = useAuth()
+  // authFetch identity changes when tokens refresh (it depends on accessToken in auth state).
+  // We use a ref so mutation callbacks always call the latest authFetch without
+  // needing to be recreated on every token change.
   const authFetchRef = useRef(authFetch)
-  authFetchRef.current = authFetch
+  authFetchRef.current = authFetch  // sync latest on every render
 
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)

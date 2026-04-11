@@ -148,6 +148,16 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('cart-id').textContent).toBe('none')
   })
 
+  it('sets cart to null and stops loading when fetch fails', async () => {
+    mockIsAuthenticated = true
+    mockGetCart = vi.fn().mockRejectedValue(new Error('Network error'))
+
+    await act(async () => { render(<Harness />) })
+
+    expect(screen.getByTestId('cart-id').textContent).toBe('none')
+    expect(screen.getByTestId('loading').textContent).toBe('false')
+  })
+
   it('clears cart when user logs out', async () => {
     mockIsAuthenticated = true
     const { rerender } = await act(async () => render(<Harness />))
