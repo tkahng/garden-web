@@ -274,13 +274,13 @@ function ProductDetailPage() {
       v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
     ) ?? product.variants[0]
 
-  function handleAddToCart() {
+  async function handleAddToCart() {
     if (!isAuthenticated) {
       openAuthModal('login')
       return
     }
     if (activeVariant) {
-      addItem(activeVariant.id)
+      await addItem(activeVariant.id)
     }
   }
 
