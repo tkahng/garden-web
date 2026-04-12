@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
-import { getPage, listCollections, listCollectionProducts } from '#/lib/api'
+import { getPage, listCollections, listCollectionProducts, getProduct, productDetailToSummary } from '#/lib/api'
 import type {
   PageResponse,
   CollectionSummaryResponse,
-  CollectionProductResponse,
+  ProductSummaryResponse,
 } from '#/lib/api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -14,20 +14,33 @@ export const Route = createFileRoute('/')({
     const collections = await listCollections(0, 20)
     const firstHandle = collections.content[0]?.handle
 
-    const [homePage, featuredProducts] = await Promise.all([
+    const [homePage, collectionProducts] = await Promise.all([
       getPage('home').catch(() => null),
       firstHandle
         ? listCollectionProducts(firstHandle, 0, 4)
-        : Promise.resolve({
-            content: [],
-            meta: { page: 0, pageSize: 4, total: 0 },
-          }),
+        : Promise.resolve({ content: [], meta: { page: 0, pageSize: 4, total: 0 } }),
     ])
+
+    const featuredProducts = await Promise.all(
+      collectionProducts.content.map((cp) =>
+        getProduct(cp.handle).then(productDetailToSummary).catch(() => ({
+          id: cp.productId,
+          title: cp.title,
+          handle: cp.handle,
+          vendor: null,
+          featuredImageUrl: null,
+          priceMin: null,
+          priceMax: null,
+          compareAtPriceMin: null,
+          compareAtPriceMax: null,
+        } satisfies ProductSummaryResponse)),
+      ),
+    )
 
     return {
       homePage,
       collections: collections.content,
-      featuredProducts: featuredProducts.content,
+      featuredProducts,
     }
   },
   component: HomePage,
@@ -91,7 +104,7 @@ export function FeaturedCollection({
   products,
 }: {
   collection: CollectionSummaryResponse
-  products: CollectionProductResponse[]
+  products: ProductSummaryResponse[]
 }) {
   return (
     <section className="page-wrap px-4 py-8">
@@ -160,10 +173,18 @@ export function CollectionsGrid({
         {collections.map((collection) => (
           <Card
             key={collection.id}
-            className="island-shell rounded-2xl border-border"
+            className="island-shell overflow-hidden rounded-2xl border-border"
           >
-            <CardContent className="flex flex-col items-center p-8 text-center">
-              <div className="mb-4 h-14 w-14 rounded-full bg-muted" />
+            {collection.featuredImageUrl && (
+              <div className="h-32 w-full overflow-hidden">
+                <img
+                  src={collection.featuredImageUrl}
+                  alt={collection.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+            <CardContent className="flex flex-col items-center p-6 text-center">
               <p className="mb-3 text-base font-bold text-foreground">
                 {collection.title}
               </p>

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { getCollection, listCollectionProducts } from '#/lib/api'
-import type { CollectionDetailResponse, CollectionProductResponse } from '#/lib/api'
+import { getCollection, listCollectionProducts, getProduct, productDetailToSummary } from '#/lib/api'
+import type { CollectionDetailResponse, ProductSummaryResponse } from '#/lib/api'
 import { Pagination, ProductCard } from '#/routes/products/index'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,11 +18,28 @@ export const Route = createFileRoute('/collections/$handle')({
     })(),
   }),
   loaderDeps: ({ search }) => search,
-  loader: ({ params, deps }) =>
-    Promise.all([
+  loader: async ({ params, deps }) => {
+    const [collection, collectionProducts] = await Promise.all([
       getCollection(params.handle),
       listCollectionProducts(params.handle, deps.page, 20),
-    ]),
+    ])
+    const products = await Promise.all(
+      collectionProducts.content.map((cp) =>
+        getProduct(cp.handle).then(productDetailToSummary).catch(() => ({
+          id: cp.productId,
+          title: cp.title,
+          handle: cp.handle,
+          vendor: null,
+          featuredImageUrl: null,
+          priceMin: null,
+          priceMax: null,
+          compareAtPriceMin: null,
+          compareAtPriceMax: null,
+        } satisfies ProductSummaryResponse)),
+      ),
+    )
+    return [collection, { content: products, meta: collectionProducts.meta }] as const
+  },
   component: CollectionDetailPage,
 })
 
@@ -58,22 +75,6 @@ export function CollectionHeader({ collection }: { collection: CollectionDetailR
   )
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function toProductSummary(cp: CollectionProductResponse) {
-  return {
-    id: cp.productId,
-    title: cp.title,
-    handle: cp.handle,
-    vendor: null,
-    featuredImageUrl: null,
-    priceMin: null,
-    priceMax: null,
-    compareAtPriceMin: null,
-    compareAtPriceMax: null,
-  }
-}
-
 // ─── CollectionDetailPage ─────────────────────────────────────────────────────
 
 function CollectionDetailPage() {
@@ -101,8 +102,8 @@ function CollectionDetailPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {content.map((cp) => (
-            <ProductCard key={cp.id} product={toProductSummary(cp)} />
+          {content.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       )}

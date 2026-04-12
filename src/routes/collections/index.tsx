@@ -26,9 +26,17 @@ export const Route = createFileRoute('/collections/')({
 
 export function CollectionCard({ collection }: { collection: CollectionSummaryResponse }) {
   return (
-    <div className="island-shell rounded-2xl border-border">
-      <div className="flex flex-col items-center p-8 text-center">
-        <div className="mb-4 h-14 w-14 rounded-full bg-muted" />
+    <div className="island-shell overflow-hidden rounded-2xl border-border">
+      {collection.featuredImageUrl && (
+        <div className="h-32 w-full overflow-hidden">
+          <img
+            src={collection.featuredImageUrl}
+            alt={collection.title}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+      <div className="flex flex-col items-center p-6 text-center">
         <p className="mb-3 text-base font-bold text-foreground">{collection.title}</p>
         <a
           href={`/collections/${collection.handle}`}

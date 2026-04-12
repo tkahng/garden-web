@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ResetPasswordPage } from './reset-password'
+import type * as TanstackRouter from '@tanstack/react-router'
 
 import * as api from '#/lib/api'
 
@@ -8,7 +9,7 @@ const mockNavigate = vi.fn()
 const mockOpenAuthModal = vi.fn()
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, unknown>
+  const actual = await importOriginal<typeof TanstackRouter>()
   return {
     ...actual,
     useNavigate: () => mockNavigate,

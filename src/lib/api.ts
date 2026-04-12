@@ -14,6 +14,7 @@ export interface CollectionSummaryResponse {
   id: string
   title: string
   handle: string
+  featuredImageUrl: string | null
 }
 
 export interface CollectionDetailResponse {
@@ -294,6 +295,22 @@ export function listCollectionProducts(
 
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
   return apiFetch(`/api/v1/products/${handle}`)
+}
+
+export function productDetailToSummary(detail: ProductDetailResponse): ProductSummaryResponse {
+  const prices = detail.variants.map((v) => v.price)
+  const comparePrices = detail.variants.map((v) => v.compareAtPrice).filter((p): p is number => p !== null)
+  return {
+    id: detail.id,
+    title: detail.title,
+    handle: detail.handle,
+    vendor: detail.vendor,
+    featuredImageUrl: detail.images[0]?.url ?? null,
+    priceMin: prices.length > 0 ? Math.min(...prices) : null,
+    priceMax: prices.length > 0 ? Math.max(...prices) : null,
+    compareAtPriceMin: comparePrices.length > 0 ? Math.min(...comparePrices) : null,
+    compareAtPriceMax: comparePrices.length > 0 ? Math.max(...comparePrices) : null,
+  }
 }
 
 export function listProducts(params: {
