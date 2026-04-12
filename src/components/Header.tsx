@@ -23,9 +23,9 @@ const NAV_LINKS = [
 ] as const
 
 const navLinkClass =
-  'text-sm font-semibold text-[var(--sea-ink-soft)] no-underline transition hover:text-[var(--sea-ink)]'
+  'text-sm font-semibold text-muted-foreground no-underline transition hover:text-foreground'
 const navLinkActiveClass =
-  'text-sm font-semibold text-[var(--sea-ink)] no-underline transition border-b-2 border-[var(--lagoon-deep)]'
+  'text-sm font-semibold text-foreground no-underline transition border-b-2 border-primary'
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
@@ -51,16 +51,16 @@ export default function Header() {
   }, [])
 
   const initials = user
-    ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
+    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
     : ''
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 px-4 backdrop-blur-lg">
       <div className="page-wrap flex h-16 items-center justify-between gap-4">
         {/* Left — store wordmark */}
         <Link
           to="/"
-          className="flex-shrink-0 text-base font-bold text-[var(--sea-ink)] no-underline"
+          className="flex-shrink-0 text-base font-bold text-foreground no-underline"
         >
           The Garden Shop
         </Link>
@@ -85,13 +85,13 @@ export default function Header() {
           <Link
             to="/cart"
             aria-label="Open cart"
-            className="relative rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+            className="relative rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <ShoppingBagIcon size={22} />
             {itemCount > 0 && (
               <span
                 data-testid="cart-badge"
-                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--lagoon-deep)] text-[10px] font-bold text-white"
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
               >
                 {itemCount > 9 ? '9+' : itemCount}
               </span>
@@ -109,7 +109,7 @@ export default function Header() {
                 className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-[var(--lagoon-deep)] text-white text-xs font-semibold">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -118,20 +118,20 @@ export default function Header() {
                 <div
                   ref={panelRef}
                   role="menu"
-                  className="absolute right-0 top-full z-50 w-56 rounded border border-[var(--line)] bg-[var(--header-bg)] shadow-lg"
+                  className="absolute right-0 top-full z-50 w-56 rounded border border-border bg-background shadow-lg"
                 >
                   <div className="flex flex-col gap-0.5 px-2 py-2">
                     <span className="font-semibold text-sm">{`${user.firstName} ${user.lastName}`}</span>
                     <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
                   </div>
-                  <div className="border-t border-[var(--line)]" />
-                  <Link
-                    to="/account"
+                  <div className="border-t border-border" />
+                  <a
+                    href="/account"
                     className="block px-2 py-2 text-xs hover:bg-accent"
                     role="menuitem"
                   >
                     Account
-                  </Link>
+                  </a>
                   <button
                     type="button"
                     role="menuitem"
@@ -153,7 +153,7 @@ export default function Header() {
             {isAuthenticated ? (
               <button
                 type="button"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
                 onClick={() => logout()}
               >
                 Sign out
@@ -161,7 +161,7 @@ export default function Header() {
             ) : (
               <button
                 type="button"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
                 onClick={() => openAuthModal('login')}
               >
                 Sign in
@@ -177,14 +177,14 @@ export default function Header() {
               <button
                 type="button"
                 aria-label="Open navigation menu"
-                className="rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)] md:hidden"
+                className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground md:hidden"
               >
                 <ListIcon size={22} />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 bg-[var(--header-bg)]">
+            <SheetContent side="left" className="w-72 bg-background">
               <SheetHeader>
-                <SheetTitle className="text-base font-bold text-[var(--sea-ink)]">
+                <SheetTitle className="text-base font-bold text-foreground">
                   The Garden Shop
                 </SheetTitle>
                 <SheetDescription className="sr-only">Navigation menu</SheetDescription>
@@ -194,20 +194,20 @@ export default function Header() {
                   <Link
                     key={to}
                     to={to}
-                    className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground no-underline transition hover:bg-accent hover:text-foreground"
                     activeProps={{
                       className:
-                        'rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline bg-[var(--link-bg-hover)]',
+                        'rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground no-underline bg-accent',
                     }}
                   >
                     {label}
                   </Link>
                 ))}
-                <div className="mt-4 border-t border-[var(--line)] pt-4">
+                <div className="mt-4 border-t border-border pt-4">
                   {isAuthenticated ? (
                     <button
                       type="button"
-                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
                       onClick={() => logout()}
                     >
                       Sign out
@@ -215,7 +215,7 @@ export default function Header() {
                   ) : (
                     <Link
                       to="/"
-                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground no-underline transition hover:bg-accent hover:text-foreground"
                       onClick={() => openAuthModal('login')}
                     >
                       Sign in

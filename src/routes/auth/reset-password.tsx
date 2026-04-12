@@ -28,8 +28,8 @@ export function ResetPasswordPage({ token }: { token: string | null }) {
   if (!token) {
     return (
       <main className="page-wrap py-16 text-center">
-        <h1 className="text-2xl font-bold text-[var(--sea-ink)]">Reset link invalid</h1>
-        <p className="mt-2 text-[var(--sea-ink-soft)]">
+        <h1 className="text-2xl font-bold text-foreground">Reset link invalid</h1>
+        <p className="mt-2 text-muted-foreground">
           This link is invalid or expired. Please request a new password reset.
         </p>
       </main>
@@ -56,7 +56,7 @@ export function ResetPasswordPage({ token }: { token: string | null }) {
   return (
     <main className="page-wrap py-16">
       <div className="mx-auto max-w-sm">
-        <h1 className="mb-6 text-2xl font-bold text-[var(--sea-ink)]">Set new password</h1>
+        <h1 className="mb-6 text-2xl font-bold text-foreground">Set new password</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {error && (
             <p role="alert" className="text-sm text-destructive">

@@ -3,6 +3,8 @@ import { render, screen, act } from '@testing-library/react'
 import { AuthModalProvider } from './auth-modal'
 import { AuthProvider, useAuth } from './auth'
 
+import * as api from '#/lib/api'
+
 // Stub api module
 vi.mock('#/lib/api', () => ({
   authLogin: vi.fn(),
@@ -12,8 +14,6 @@ vi.mock('#/lib/api', () => ({
   getAccount: vi.fn(),
   createAuthFetch: vi.fn(() => vi.fn()),
 }))
-
-import * as api from '#/lib/api'
 
 const STORAGE_KEY = 'garden:auth'
 

@@ -21,7 +21,7 @@ vi.mock('#/context/cart', () => ({
   useCart: () => ({
     cart: mockCart,
     isLoading: mockIsLoading,
-    itemCount: mockCart?.items?.reduce((s: number, i: { quantity?: number }) => s + (i.quantity ?? 0), 0) ?? 0,
+    itemCount: mockCart?.items.reduce((s: number, i: { quantity?: number }) => s + (i.quantity ?? 0), 0) ?? 0,
     removeItem: mockRemoveItem,
     updateQuantity: mockUpdateQuantity,
     abandon: mockAbandon,
@@ -92,7 +92,7 @@ describe('CartItemRow', () => {
   })
 
   it('renders a placeholder when imageUrl is null', () => {
-    const itemNoImg = { ...item, product: { ...item.product, imageUrl: null } }
+    const itemNoImg = { ...item, product: { ...item.product, imageUrl: undefined } }
     render(
       <CartItemRow item={itemNoImg} onRemove={vi.fn()} onUpdateQuantity={vi.fn()} />,
     )

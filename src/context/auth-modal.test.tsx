@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { AuthModalProvider, useAuthModal, type AuthTab } from './auth-modal'
+import { AuthModalProvider, useAuthModal  } from './auth-modal'
+import type {AuthTab} from './auth-modal';
 
 function OpenButton({ tab }: { tab?: AuthTab }) {
   const { openAuthModal } = useAuthModal()

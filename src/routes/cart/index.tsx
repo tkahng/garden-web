@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router'
+import { createFileRoute, Link  } from '@tanstack/react-router'
 import { useCart } from '#/context/cart'
 import type { CartItemResponse } from '#/lib/cart-api'
 
@@ -20,13 +19,14 @@ function formatPrice(amount: number): string {
 export function CartEmpty() {
   return (
     <div className="flex flex-col items-center gap-4 py-24 text-center">
-      <p className="text-lg font-semibold text-[var(--sea-ink)]">Your cart is empty</p>
-      <p className="text-sm text-[var(--sea-ink-soft)]">
+      <p className="text-lg font-semibold text-foreground">Your cart is empty</p>
+      <p className="text-sm text-muted-foreground">
         Looks like you haven't added anything yet.
       </p>
       <Link
         to="/products"
-        className="rounded-full bg-[var(--lagoon-deep)] px-6 py-2.5 text-sm font-bold text-white hover:opacity-90"
+        search={{ page: 0 }}
+        className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:opacity-90"
       >
         Continue shopping
       </Link>
@@ -46,15 +46,16 @@ export function CartItemRow({
   onUpdateQuantity: (itemId: string, qty: number) => void
 }) {
   if (!item.id) return null
+  const { id } = item
 
   const qty = item.quantity ?? 1
   const unitPrice = item.unitPrice ?? 0
   const lineTotal = unitPrice * qty
 
   return (
-    <div className="flex items-center gap-4 border-b border-[var(--line)] py-4">
+    <div className="flex items-center gap-4 border-b border-border py-4">
       {/* Image */}
-      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-[rgba(79,184,178,0.08)]">
+      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
         {item.product?.imageUrl ? (
           <img
             src={item.product.imageUrl}
@@ -68,13 +69,13 @@ export function CartItemRow({
 
       {/* Details */}
       <div className="flex flex-1 flex-col gap-1">
-        <p className="font-semibold text-[var(--sea-ink)]">
+        <p className="font-semibold text-foreground">
           {item.product?.productTitle ?? 'Unknown product'}
         </p>
         {item.product?.variantTitle && (
-          <p className="text-sm text-[var(--sea-ink-soft)]">{item.product.variantTitle}</p>
+          <p className="text-sm text-muted-foreground">{item.product.variantTitle}</p>
         )}
-        <p className="text-sm text-[var(--sea-ink-soft)]">{formatPrice(unitPrice)}</p>
+        <p className="text-sm text-muted-foreground">{formatPrice(unitPrice)}</p>
       </div>
 
       {/* Quantity controls */}
@@ -83,8 +84,8 @@ export function CartItemRow({
           type="button"
           aria-label="Decrease quantity"
           disabled={qty <= 1}
-          onClick={() => onUpdateQuantity(item.id, qty - 1)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--line)] text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-[var(--lagoon-deep)]"
+          onClick={() => onUpdateQuantity(id, qty - 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
         >
           −
         </button>
@@ -92,15 +93,15 @@ export function CartItemRow({
         <button
           type="button"
           aria-label="Increase quantity"
-          onClick={() => onUpdateQuantity(item.id, qty + 1)}
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--line)] text-sm font-bold hover:border-[var(--lagoon-deep)]"
+          onClick={() => onUpdateQuantity(id, qty + 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm font-bold hover:border-primary"
         >
           +
         </button>
       </div>
 
       {/* Line total */}
-      <p data-testid="line-total" className="w-20 text-right font-semibold text-[var(--sea-ink)]">
+      <p data-testid="line-total" className="w-20 text-right font-semibold text-foreground">
         {formatPrice(lineTotal)}
       </p>
 
@@ -108,8 +109,8 @@ export function CartItemRow({
       <button
         type="button"
         aria-label="Remove item"
-        onClick={() => onRemove(item.id)}
-        className="text-sm text-[var(--sea-ink-soft)] hover:text-[var(--sea-ink)]"
+        onClick={() => onRemove(id)}
+        className="text-sm text-muted-foreground hover:text-foreground"
       >
         ✕
       </button>
@@ -127,7 +128,7 @@ export default function CartPage() {
       <main className="page-wrap px-4 py-10">
         <div data-testid="cart-loading" className="flex flex-col gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-[rgba(79,184,178,0.08)]" />
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       </main>
@@ -151,7 +152,7 @@ export default function CartPage() {
 
   return (
     <main className="page-wrap px-4 py-10">
-      <h1 className="mb-8 text-2xl font-bold text-[var(--sea-ink)]">Your Cart</h1>
+      <h1 className="mb-8 text-2xl font-bold text-foreground">Your Cart</h1>
       <div className="flex flex-col">
         {items.map((item) => (
           <CartItemRow
@@ -162,17 +163,17 @@ export default function CartPage() {
           />
         ))}
       </div>
-      <div className="mt-8 flex items-center justify-between border-t border-[var(--line)] pt-6">
+      <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
         <div>
-          <p className="text-sm text-[var(--sea-ink-soft)]">Subtotal</p>
-          <p data-testid="cart-subtotal" className="text-xl font-bold text-[var(--sea-ink)]">
+          <p className="text-sm text-muted-foreground">Subtotal</p>
+          <p data-testid="cart-subtotal" className="text-xl font-bold text-foreground">
             {formatPrice(subtotal)}
           </p>
         </div>
         <button
           type="button"
           onClick={() => abandon()}
-          className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-semibold text-[var(--sea-ink-soft)] hover:border-[var(--lagoon-deep)] hover:text-[var(--sea-ink)]"
+          className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
         >
           Abandon cart
         </button>

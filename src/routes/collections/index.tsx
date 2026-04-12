@@ -26,13 +26,13 @@ export const Route = createFileRoute('/collections/')({
 
 export function CollectionCard({ collection }: { collection: CollectionSummaryResponse }) {
   return (
-    <div className="island-shell feature-card rounded-2xl border-[var(--line)]">
+    <div className="island-shell rounded-2xl border-border">
       <div className="flex flex-col items-center p-8 text-center">
-        <div className="mb-4 h-14 w-14 rounded-full bg-[rgba(79,184,178,0.2)]" />
-        <p className="mb-3 text-base font-bold text-[var(--sea-ink)]">{collection.title}</p>
+        <div className="mb-4 h-14 w-14 rounded-full bg-muted" />
+        <p className="mb-3 text-base font-bold text-foreground">{collection.title}</p>
         <a
           href={`/collections/${collection.handle}`}
-          className="text-sm font-semibold text-[var(--lagoon-deep)] no-underline hover:underline"
+          className="text-sm font-semibold text-primary no-underline hover:underline"
         >
           Browse →
         </a>
@@ -57,11 +57,11 @@ function CollectionsListPage() {
     <main className="page-wrap px-4 py-10">
       <header className="mb-6">
         <h1 className="display-title">Collections</h1>
-        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">{meta.total} collections</p>
+        <p className="text-sm text-muted-foreground mt-1">{meta.total} collections</p>
       </header>
       {collections.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-[var(--sea-ink-soft)]">No collections available.</p>
+          <p className="text-muted-foreground">No collections available.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

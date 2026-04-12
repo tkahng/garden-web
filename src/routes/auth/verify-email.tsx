@@ -34,7 +34,7 @@ export function VerifyEmailPage({ token }: { token: string | null }) {
   if (status === 'loading') {
     return (
       <main className="page-wrap py-16 text-center">
-        <p className="text-[var(--sea-ink-soft)]">Verifying your email…</p>
+        <p className="text-muted-foreground">Verifying your email…</p>
       </main>
     )
   }
@@ -42,8 +42,8 @@ export function VerifyEmailPage({ token }: { token: string | null }) {
   if (status === 'success') {
     return (
       <main className="page-wrap py-16 text-center">
-        <h1 className="text-2xl font-bold text-[var(--sea-ink)]">Email verified!</h1>
-        <p className="mt-2 text-[var(--sea-ink-soft)]">
+        <h1 className="text-2xl font-bold text-foreground">Email verified!</h1>
+        <p className="mt-2 text-muted-foreground">
           Your email has been verified. You can now sign in.
         </p>
       </main>
@@ -52,8 +52,8 @@ export function VerifyEmailPage({ token }: { token: string | null }) {
 
   return (
     <main className="page-wrap py-16 text-center">
-      <h1 className="text-2xl font-bold text-[var(--sea-ink)]">Verification failed</h1>
-      <p className="mt-2 text-[var(--sea-ink-soft)]">
+      <h1 className="text-2xl font-bold text-foreground">Verification failed</h1>
+      <p className="mt-2 text-muted-foreground">
         This link is invalid or expired. Please request a new verification email.
       </p>
     </main>

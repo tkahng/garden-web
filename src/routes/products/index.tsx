@@ -57,15 +57,15 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
         ) : (
           <div
             data-testid="card-placeholder"
-            className="w-full h-full bg-[var(--lagoon)] opacity-20"
+            className="w-full h-full bg-muted"
           />
         )}
       </div>
-      <p className="font-bold text-[var(--sea-ink)] text-sm leading-snug">
+      <p className="font-bold text-foreground text-sm leading-snug">
         {product.title}
       </p>
       {product.vendor && (
-        <p className="text-xs text-[var(--sea-ink-soft)] mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {product.vendor}
         </p>
       )}
@@ -78,7 +78,7 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
           </span>
           {product.compareAtPriceMin !== null &&
             product.compareAtPriceMin > product.priceMin && (
-              <span className="line-through text-[var(--sea-ink-soft)]">
+              <span className="line-through text-muted-foreground">
                 {formatPrice(product.compareAtPriceMin)}
               </span>
             )}
@@ -137,13 +137,13 @@ export function FilterBar({
         placeholder="Search products…"
         value={inputValue}
         onChange={handleInput}
-        className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+        className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
       />
       {search.vendor !== undefined && (
         <select
           value={search.vendor}
           onChange={handleVendor}
-          className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+          className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
         >
           <option value="">All vendors</option>
           <option value={search.vendor}>{search.vendor}</option>
@@ -153,7 +153,7 @@ export function FilterBar({
         <select
           value={search.type}
           onChange={handleType}
-          className="border border-[var(--line)] rounded px-3 py-1.5 text-sm"
+          className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
         >
           <option value="">All types</option>
           <option value={search.type}>{search.type}</option>
@@ -162,7 +162,7 @@ export function FilterBar({
       {hasFilters && (
         <a
           href="/products"
-          className="text-sm text-[var(--lagoon-deep)] underline self-center"
+          className="text-sm text-primary underline self-center"
         >
           Clear filters
         </a>
@@ -192,17 +192,17 @@ export function Pagination({
       <button
         onClick={() => onPage(page - 1)}
         disabled={page === 0}
-        className="px-4 py-2 border border-[var(--line)] rounded text-sm disabled:opacity-40"
+        className="px-4 py-2 border border-border rounded text-sm disabled:opacity-40"
       >
         Prev
       </button>
-      <span className="text-sm text-[var(--sea-ink-soft)]">
+      <span className="text-sm text-muted-foreground">
         Page {page + 1} of {totalPages}
       </span>
       <button
         onClick={() => onPage(page + 1)}
         disabled={page >= totalPages - 1}
-        className="px-4 py-2 border border-[var(--line)] rounded text-sm disabled:opacity-40"
+        className="px-4 py-2 border border-border rounded text-sm disabled:opacity-40"
       >
         Next
       </button>
@@ -231,17 +231,17 @@ function ProductListingPage() {
     <main className="page-wrap px-4 py-10">
       <header className="mb-6">
         <h1 className="display-title">Products</h1>
-        <p className="text-sm text-[var(--sea-ink-soft)] mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {meta.total} products
         </p>
       </header>
       <FilterBar search={search} onSearch={handleSearch} />
       {products.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-[var(--sea-ink-soft)]">No products found.</p>
+          <p className="text-muted-foreground">No products found.</p>
           <a
             href="/products"
-            className="text-sm text-[var(--lagoon-deep)] underline mt-2 inline-block"
+            className="text-sm text-primary underline mt-2 inline-block"
           >
             Clear filters
           </a>
