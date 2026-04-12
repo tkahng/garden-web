@@ -23,28 +23,8 @@ const mockCollections: CollectionSummaryResponse[] = [
 ]
 
 const mockProducts: ProductSummaryResponse[] = [
-  {
-    id: 'p1',
-    title: 'Heirloom Tomato Seeds',
-    handle: 'heirloom-tomato-seeds',
-    vendor: null,
-    featuredImageUrl: null,
-    priceMin: null,
-    priceMax: null,
-    compareAtPriceMin: null,
-    compareAtPriceMax: null,
-  },
-  {
-    id: 'p2',
-    title: 'Lavender Starter Pack',
-    handle: 'lavender-starter-pack',
-    vendor: null,
-    featuredImageUrl: null,
-    priceMin: null,
-    priceMax: null,
-    compareAtPriceMin: null,
-    compareAtPriceMax: null,
-  },
+  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
+  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
 ]
 
 describe('HeroSection', () => {

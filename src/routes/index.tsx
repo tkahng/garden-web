@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
-import { getPage, listCollections, listCollectionProducts, getProduct, productDetailToSummary } from '#/lib/api'
+import { getPage, listCollections, listProducts } from '#/lib/api'
+import { ProductCard } from '#/routes/products/index'
 import type {
   PageResponse,
   CollectionSummaryResponse,
@@ -12,35 +13,16 @@ import type {
 export const Route = createFileRoute('/')({
   loader: async () => {
     const collections = await listCollections(0, 20)
-    const firstHandle = collections.content[0]?.handle
 
-    const [homePage, collectionProducts] = await Promise.all([
+    const [homePage, featuredProducts] = await Promise.all([
       getPage('home').catch(() => null),
-      firstHandle
-        ? listCollectionProducts(firstHandle, 0, 4)
-        : Promise.resolve({ content: [], meta: { page: 0, pageSize: 4, total: 0 } }),
+      listProducts({ size: 4 }),
     ])
-
-    const featuredProducts = await Promise.all(
-      collectionProducts.content.map((cp) =>
-        getProduct(cp.handle).then(productDetailToSummary).catch(() => ({
-          id: cp.productId,
-          title: cp.title,
-          handle: cp.handle,
-          vendor: null,
-          featuredImageUrl: null,
-          priceMin: null,
-          priceMax: null,
-          compareAtPriceMin: null,
-          compareAtPriceMax: null,
-        } satisfies ProductSummaryResponse)),
-      ),
-    )
 
     return {
       homePage,
       collections: collections.content,
-      featuredProducts,
+      featuredProducts: featuredProducts.content,
     }
   },
   component: HomePage,
@@ -124,22 +106,7 @@ export function FeaturedCollection({
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => (
-          <a
-            key={product.id}
-            href={`/products/${product.handle}`}
-            className="no-underline"
-          >
-            <Card className="island-shell h-full rounded-2xl border-border transition hover:-translate-y-0.5">
-              <div className="flex h-36 items-center justify-center rounded-t-2xl bg-muted">
-                <div className="h-14 w-14 rounded-full bg-border" />
-              </div>
-              <CardContent className="p-4">
-                <p className="text-sm font-semibold text-foreground">
-                  {product.title}
-                </p>
-              </CardContent>
-            </Card>
-          </a>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </section>
