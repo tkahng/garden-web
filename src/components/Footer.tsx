@@ -2,13 +2,13 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-[var(--line)] bg-[var(--foam)] px-4 py-12">
+    <footer className="border-t border-border bg-background px-4 py-12">
       <div className="page-wrap">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           {/* Col 1 — Brand */}
           <div>
-            <p className="text-base font-bold text-[var(--sea-ink)]">The Garden Shop</p>
-            <p className="mt-2 text-sm text-[var(--sea-ink-soft)]">
+            <p className="text-base font-bold text-foreground">The Garden Shop</p>
+            <p className="mt-2 text-sm text-muted-foreground">
               Plants, seeds & tools for every garden.
             </p>
             <div className="mt-5 flex items-center gap-2">
@@ -17,7 +17,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Follow The Garden Shop on X"
-                className="rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true" width="18" height="18">
                   <path
@@ -31,7 +31,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="The Garden Shop on GitHub"
-                className="rounded-lg p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+                className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true" width="18" height="18">
                   <path
@@ -45,14 +45,14 @@ export default function Footer() {
 
           {/* Col 2 — Shop */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Shop
             </p>
             <ul className="mt-4 space-y-3">
               <li>
                 <a
                   href="/products"
-                  className="text-sm text-[var(--sea-ink)] no-underline transition hover:text-[var(--lagoon-deep)]"
+                  className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Products
                 </a>
@@ -60,7 +60,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/collections"
-                  className="text-sm text-[var(--sea-ink)] no-underline transition hover:text-[var(--lagoon-deep)]"
+                  className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Collections
                 </a>
@@ -70,14 +70,14 @@ export default function Footer() {
 
           {/* Col 3 — Company */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--sea-ink-soft)]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Company
             </p>
             <ul className="mt-4 space-y-3">
               <li>
                 <a
                   href="/about"
-                  className="text-sm text-[var(--sea-ink)] no-underline transition hover:text-[var(--lagoon-deep)]"
+                  className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   About
                 </a>
@@ -85,7 +85,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/"
-                  className="text-sm text-[var(--sea-ink)] no-underline transition hover:text-[var(--lagoon-deep)]"
+                  className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Home
                 </a>
@@ -95,8 +95,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 border-t border-[var(--line)] pt-6">
-          <p className="text-sm text-[var(--sea-ink-soft)]">
+        <div className="mt-10 border-t border-border pt-6">
+          <p className="text-sm text-muted-foreground">
             &copy; {year} The Garden Shop. All rights reserved.
           </p>
         </div>

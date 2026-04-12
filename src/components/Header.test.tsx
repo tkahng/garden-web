@@ -9,13 +9,15 @@ vi.mock('@tanstack/react-router', () => ({
     children,
     className,
     activeProps: _activeProps,
+    ...rest
   }: {
     to: string
     children: React.ReactNode
     className?: string
     activeProps?: unknown
+    [key: string]: unknown
   }) => (
-    <a href={to} className={className}>
+    <a href={to} className={className} {...rest}>
       {children}
     </a>
   ),
@@ -41,10 +43,17 @@ vi.mock('#/context/auth', () => ({
   }),
 }))
 
+let mockItemCount = 0
+
+vi.mock('#/context/cart', () => ({
+  useCart: () => ({ itemCount: mockItemCount }),
+}))
+
 describe('Header — guest state', () => {
   beforeEach(() => {
     mockUser = null
     mockIsAuthenticated = false
+    mockItemCount = 0
     mockOpenAuthModal.mockClear()
   })
 
@@ -55,10 +64,27 @@ describe('Header — guest state', () => {
     ).toBeInTheDocument()
   })
 
-  it('cart button opens auth modal with login tab', () => {
+  it('cart icon is a link to /cart', () => {
     render(<Header />)
-    fireEvent.click(screen.getByRole('button', { name: /open cart/i }))
-    expect(mockOpenAuthModal).toHaveBeenCalledWith('login')
+    expect(screen.getByRole('link', { name: /open cart/i })).toHaveAttribute('href', '/cart')
+  })
+
+  it('does not show badge when itemCount is 0', () => {
+    mockItemCount = 0
+    render(<Header />)
+    expect(screen.queryByTestId('cart-badge')).not.toBeInTheDocument()
+  })
+
+  it('shows badge with count when itemCount > 0', () => {
+    mockItemCount = 3
+    render(<Header />)
+    expect(screen.getByTestId('cart-badge')).toHaveTextContent('3')
+  })
+
+  it('shows 9+ in badge when itemCount exceeds 9', () => {
+    mockItemCount = 10
+    render(<Header />)
+    expect(screen.getByTestId('cart-badge')).toHaveTextContent('9+')
   })
 
   it('does not show user avatar', () => {
@@ -78,6 +104,7 @@ describe('Header — authenticated state', () => {
   beforeEach(() => {
     mockUser = { firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com' }
     mockIsAuthenticated = true
+    mockItemCount = 0
     mockLogout.mockClear()
   })
 
@@ -105,6 +132,7 @@ describe('Header — authenticated state', () => {
 
   it('mobile nav shows Sign out button instead of Sign in link', () => {
     render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /open navigation menu/i }))
     expect(
       screen.queryByRole('link', { name: /sign in/i }),
     ).not.toBeInTheDocument()

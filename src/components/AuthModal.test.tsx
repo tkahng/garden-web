@@ -4,6 +4,8 @@ import { AuthModalProvider, useAuthModal } from '#/context/auth-modal'
 import { AuthProvider } from '#/context/auth'
 import AuthModal from './AuthModal'
 
+import * as api from '#/lib/api'
+
 vi.mock('#/lib/api', () => ({
   authLogin: vi.fn(),
   authRegister: vi.fn(),
@@ -13,8 +15,6 @@ vi.mock('#/lib/api', () => ({
   createAuthFetch: vi.fn(() => vi.fn()),
   authRequestPasswordReset: vi.fn(),
 }))
-
-import * as api from '#/lib/api'
 
 function OpenModalButton({ tab }: { tab?: 'login' | 'register' | 'forgot-password' | 'verify-email' }) {
   const { openAuthModal } = useAuthModal()

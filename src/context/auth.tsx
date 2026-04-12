@@ -112,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       }),
     // tokens are the only fields createAuthFetch reads from state; including full state would recreate authFetch on every update
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [state.accessToken, state.refreshToken, openAuthModal],
   )
 

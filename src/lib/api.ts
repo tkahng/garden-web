@@ -14,6 +14,7 @@ export interface CollectionSummaryResponse {
   id: string
   title: string
   handle: string
+  featuredImageUrl: string | null
 }
 
 export interface CollectionDetailResponse {
@@ -30,6 +31,7 @@ export interface CollectionProductResponse {
   title: string
   handle: string
   position: number
+  featuredImageUrl: string | null
 }
 
 export interface PageMeta {
@@ -295,6 +297,7 @@ export function listCollectionProducts(
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
   return apiFetch(`/api/v1/products/${handle}`)
 }
+
 
 export function listProducts(params: {
   q?: string

@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { getProduct } from '#/lib/api'
+import { useCart } from '#/context/cart'
+import { useAuth } from '#/context/auth'
+import { useAuthModal } from '#/context/auth-modal'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -68,7 +71,7 @@ export function ProductGallery({
   const safeIndex = Math.min(activeIndex, images.length - 1)
   return (
     <div className="flex flex-col gap-3">
-      <div className="island-shell aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[rgba(79,184,178,0.08)]">
+      <div className="island-shell aspect-[4/5] w-full overflow-hidden rounded-2xl bg-muted">
         {images.length > 0 ? (
           <img
             data-testid="featured-image"
@@ -89,7 +92,7 @@ export function ProductGallery({
               aria-label={img.altText ?? `Image ${i + 1}`}
               className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition ${
                 i === activeIndex
-                  ? 'border-[var(--lagoon-deep)]'
+                  ? 'border-primary'
                   : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
@@ -113,11 +116,17 @@ export function ProductInfo({
   selectedOptions,
   setSelectedOptions,
   activeVariant,
+  onAddToCart,
+  isAddingToCart = false,
+  addError,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
   setSelectedOptions: (opts: Record<string, string>) => void
   activeVariant: ProductVariantResponse | undefined
+  onAddToCart?: () => void
+  isAddingToCart?: boolean
+  addError?: string | null
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -139,18 +148,18 @@ export function ProductInfo({
       )}
 
       {/* Title */}
-      <h1 className="display-title text-3xl font-bold leading-tight text-[var(--sea-ink)] sm:text-4xl">
+      <h1 className="display-title text-3xl font-bold leading-tight text-foreground sm:text-4xl">
         {product.title}
       </h1>
 
       {/* Price */}
       {activeVariant != null && (
         <div className="flex items-baseline gap-3">
-          <span className="text-2xl font-bold text-[var(--sea-ink)]">
+          <span className="text-2xl font-bold text-foreground">
             {formatPrice(activeVariant.price)}
           </span>
           {activeVariant.compareAtPrice != null && (
-            <span className="text-base text-[var(--sea-ink-soft)] line-through">
+            <span className="text-base text-muted-foreground line-through">
               {formatPrice(activeVariant.compareAtPrice)}
             </span>
           )}
@@ -162,7 +171,7 @@ export function ProductInfo({
         <div className="flex flex-col gap-4">
           {optionGroups.map(([name, values]) => (
             <div key={name}>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--sea-ink-soft)]">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {name}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -182,8 +191,8 @@ export function ProductInfo({
                       title={value}
                       className={`h-8 w-8 rounded-full border-2 transition ${
                         isSelected
-                          ? 'border-[var(--lagoon-deep)] ring-2 ring-[var(--lagoon-deep)] ring-offset-2'
-                          : 'border-[var(--line)] hover:border-[var(--lagoon-deep)]'
+                          ? 'border-primary ring-2 ring-primary ring-offset-2'
+                          : 'border-border hover:border-primary'
                       }`}
                       style={{ backgroundColor: resolveColor(value) }}
                     />
@@ -198,8 +207,8 @@ export function ProductInfo({
                       }
                       className={`rounded-lg border-2 px-3 py-1.5 text-sm font-semibold transition ${
                         isSelected
-                          ? 'border-[var(--lagoon-deep)] bg-[rgba(79,184,178,0.12)] text-[var(--sea-ink)]'
-                          : 'border-[var(--line)] bg-white text-[var(--sea-ink-soft)] hover:border-[var(--lagoon-deep)]'
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border bg-background text-muted-foreground hover:border-primary'
                       }`}
                     >
                       {value}
@@ -214,17 +223,23 @@ export function ProductInfo({
 
       {/* Add to Cart */}
       <button
-        disabled={activeVariant == null}
-        className="w-full rounded-full bg-[var(--lagoon-deep)] px-6 py-3.5 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        disabled={activeVariant == null || isAddingToCart}
+        onClick={onAddToCart}
+        className="w-full rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
       </button>
+      {addError != null && (
+        <p data-testid="add-error" className="text-sm text-red-600">
+          {addError}
+        </p>
+      )}
 
       {/* Description */}
       {product.description != null && (
         <div
           data-testid="product-description"
-          className="prose prose-sm max-w-none text-[var(--sea-ink-soft)]"
+          className="prose prose-sm max-w-none text-muted-foreground"
         >
           <ReactMarkdown>{product.description}</ReactMarkdown>
         </div>
@@ -236,7 +251,7 @@ export function ProductInfo({
           {product.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-[var(--line)] bg-[rgba(79,184,178,0.08)] px-3 py-1 text-xs font-medium text-[var(--sea-ink-soft)]"
+              className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
             >
               {tag}
             </span>
@@ -251,23 +266,38 @@ export function ProductInfo({
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
+  const { isAuthenticated } = useAuth()
+  const { openAuthModal } = useAuthModal()
+  const { addItem } = useCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string>
-  >(() =>
-    Object.fromEntries(
-      product.variants[0]?.optionValues.map((v) => [
-        v.optionName,
-        v.valueLabel,
-      ]) ?? [],
-    ),
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
+      ),
   )
+  const [isAdding, setIsAdding] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
     product.variants.find((v) =>
-      v.optionValues.every(
-        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
-      ),
+      v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
     ) ?? product.variants[0]
+
+  async function handleAddToCart() {
+    if (!isAuthenticated) {
+      openAuthModal('login')
+      return
+    }
+    setIsAdding(true)
+    setAddError(null)
+    try {
+      await addItem(activeVariant.id)
+    } catch {
+      setAddError('Failed to add item to cart. Please try again.')
+    } finally {
+      setIsAdding(false)
+    }
+  }
 
   return (
     <main className="page-wrap px-4 py-10">
@@ -282,6 +312,9 @@ function ProductDetailPage() {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           activeVariant={activeVariant}
+          onAddToCart={handleAddToCart}
+          isAddingToCart={isAdding}
+          addError={addError}
         />
       </div>
     </main>

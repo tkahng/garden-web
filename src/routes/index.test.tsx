@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import type {
   PageResponse,
   CollectionSummaryResponse,
-  CollectionProductResponse,
+  ProductSummaryResponse,
 } from '#/lib/api'
 import { HeroSection, FeaturedCollection, CollectionsGrid } from './index'
 
@@ -18,25 +18,13 @@ const mockPage: PageResponse = {
 }
 
 const mockCollections: CollectionSummaryResponse[] = [
-  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs' },
-  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies' },
+  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs', featuredImageUrl: null },
+  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies', featuredImageUrl: null },
 ]
 
-const mockProducts: CollectionProductResponse[] = [
-  {
-    id: 'cp1',
-    productId: 'p1',
-    title: 'Heirloom Tomato Seeds',
-    handle: 'heirloom-tomato-seeds',
-    position: 1,
-  },
-  {
-    id: 'cp2',
-    productId: 'p2',
-    title: 'Lavender Starter Pack',
-    handle: 'lavender-starter-pack',
-    position: 2,
-  },
+const mockProducts: ProductSummaryResponse[] = [
+  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
+  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
 ]
 
 describe('HeroSection', () => {

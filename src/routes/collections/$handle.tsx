@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getCollection, listCollectionProducts } from '#/lib/api'
-import type { CollectionDetailResponse, CollectionProductResponse } from '#/lib/api'
+import type { CollectionDetailResponse, CollectionProductResponse, ProductSummaryResponse } from '#/lib/api'
 import { Pagination, ProductCard } from '#/routes/products/index'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,13 +43,13 @@ export function CollectionHeader({ collection }: { collection: CollectionDetailR
           />
         </div>
       )}
-      <h1 className="display-title text-3xl font-bold text-[var(--sea-ink)] sm:text-4xl">
+      <h1 className="display-title text-3xl font-bold text-foreground sm:text-4xl">
         {collection.title}
       </h1>
       {collection.description && (
         <p
           data-testid="collection-description"
-          className="mt-3 text-base text-[var(--sea-ink-soft)]"
+          className="mt-3 text-base text-muted-foreground"
         >
           {collection.description}
         </p>
@@ -60,13 +60,13 @@ export function CollectionHeader({ collection }: { collection: CollectionDetailR
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toProductSummary(cp: CollectionProductResponse) {
+function toProductSummary(cp: CollectionProductResponse): ProductSummaryResponse {
   return {
     id: cp.productId,
     title: cp.title,
     handle: cp.handle,
     vendor: null,
-    featuredImageUrl: null,
+    featuredImageUrl: cp.featuredImageUrl,
     priceMin: null,
     priceMax: null,
     compareAtPriceMin: null,
@@ -91,10 +91,10 @@ function CollectionDetailPage() {
       <CollectionHeader collection={collection} />
       {content.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-[var(--sea-ink-soft)]">No products in this collection.</p>
+          <p className="text-muted-foreground">No products in this collection.</p>
           <a
             href="/collections"
-            className="text-sm text-[var(--lagoon-deep)] underline mt-2 inline-block"
+            className="text-sm text-primary underline mt-2 inline-block"
           >
             Back to collections
           </a>
