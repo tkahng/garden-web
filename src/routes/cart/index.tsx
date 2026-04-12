@@ -1,4 +1,5 @@
 import { createFileRoute, Link  } from '@tanstack/react-router'
+import { useState } from 'react'
 import { useCart } from '#/context/cart'
 import type { CartItemResponse } from '#/lib/cart-api'
 
@@ -121,7 +122,26 @@ export function CartItemRow({
 // ─── CartPage ─────────────────────────────────────────────────────────────────
 
 export default function CartPage() {
-  const { cart, isLoading, removeItem, updateQuantity, abandon } = useCart()
+  const { cart, isLoading, removeItem, updateQuantity, abandon, checkout } = useCart()
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
+
+  async function handleCheckout() {
+    setIsCheckingOut(true)
+    setCheckoutError(null)
+    try {
+      const result = await checkout()
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl
+      } else {
+        setCheckoutError('No checkout URL returned. Please try again.')
+      }
+    } catch {
+      setCheckoutError('Failed to start checkout. Please try again.')
+    } finally {
+      setIsCheckingOut(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -163,19 +183,32 @@ export default function CartPage() {
           />
         ))}
       </div>
-      <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
-        <div>
-          <p className="text-sm text-muted-foreground">Subtotal</p>
-          <p data-testid="cart-subtotal" className="text-xl font-bold text-foreground">
-            {formatPrice(subtotal)}
-          </p>
+      <div className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Subtotal</p>
+            <p data-testid="cart-subtotal" className="text-xl font-bold text-foreground">
+              {formatPrice(subtotal)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => abandon()}
+            className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+          >
+            Abandon cart
+          </button>
         </div>
+        {checkoutError && (
+          <p className="text-sm text-destructive">{checkoutError}</p>
+        )}
         <button
           type="button"
-          onClick={() => abandon()}
-          className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+          onClick={handleCheckout}
+          disabled={isCheckingOut}
+          className="w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Abandon cart
+          {isCheckingOut ? 'Processing…' : 'Proceed to Checkout'}
         </button>
       </div>
     </main>

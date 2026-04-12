@@ -18,6 +18,7 @@ import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -64,12 +65,18 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/cart/': typeof CartIndexRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/cart': typeof CartIndexRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/cart/': typeof CartIndexRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/return'
     | '/collections/$handle'
     | '/products/$handle'
     | '/cart/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/return'
     | '/collections/$handle'
     | '/products/$handle'
     | '/cart'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/return'
     | '/collections/$handle'
     | '/products/$handle'
     | '/cart/'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   CartIndexRoute: typeof CartIndexRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   CartIndexRoute: CartIndexRoute,

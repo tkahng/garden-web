@@ -9,7 +9,7 @@ import {
   useRef,
 } from 'react'
 import type { ReactNode } from 'react'
-import type { CartResponse } from '#/lib/cart-api'
+import type { CartResponse, CheckoutResponse } from '#/lib/cart-api'
 import { useAuth } from '#/context/auth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +22,7 @@ interface CartContextValue {
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   abandon: () => Promise<void>
+  checkout: () => Promise<CheckoutResponse>
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -84,13 +85,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart(null)
   }, [])
 
+  const checkout = useCallback(async (): Promise<CheckoutResponse> => {
+    return authFetchRef.current<CheckoutResponse>('/api/v1/checkout', { method: 'POST' })
+  }, [])
+
   const itemCount = useMemo(
     () => cart?.items?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) ?? 0,
     [cart],
   )
 
   return (
-    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon }}>
+    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon, checkout }}>
       {children}
     </CartContext.Provider>
   )
