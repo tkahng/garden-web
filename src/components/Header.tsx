@@ -98,8 +98,8 @@ export default function Header() {
             )}
           </Link>
 
-          {/* User avatar / dropdown (authenticated only) */}
-          {isAuthenticated && user && (
+          {/* User avatar / sign-in */}
+          {isAuthenticated && user ? (
             <div className="relative">
               <button
                 ref={avatarButtonRef}
@@ -146,28 +146,16 @@ export default function Header() {
                 </div>
               )}
             </div>
+          ) : (
+            <button
+              type="button"
+              aria-label="Sign in"
+              onClick={() => openAuthModal('login')}
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            >
+              Sign in
+            </button>
           )}
-
-          {/* Mobile sign-in / sign-out (visible on mobile, hidden on desktop) */}
-          <div className="md:hidden">
-            {isAuthenticated ? (
-              <button
-                type="button"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
-                onClick={() => logout()}
-              >
-                Sign out
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
-                onClick={() => openAuthModal('login')}
-              >
-                Sign in
-              </button>
-            )}
-          </div>
 
           <ThemeToggle />
 
@@ -213,13 +201,13 @@ export default function Header() {
                       Sign out
                     </button>
                   ) : (
-                    <Link
-                      to="/"
-                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground no-underline transition hover:bg-accent hover:text-foreground"
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"
                       onClick={() => openAuthModal('login')}
                     >
                       Sign in
-                    </Link>
+                    </button>
                   )}
                 </div>
               </nav>
