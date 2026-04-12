@@ -31,6 +31,7 @@ export interface CollectionProductResponse {
   title: string
   handle: string
   position: number
+  featuredImageUrl: string | null
 }
 
 export interface PageMeta {

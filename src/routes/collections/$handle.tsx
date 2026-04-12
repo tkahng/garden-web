@@ -66,7 +66,7 @@ function toProductSummary(cp: CollectionProductResponse): ProductSummaryResponse
     title: cp.title,
     handle: cp.handle,
     vendor: null,
-    featuredImageUrl: null,
+    featuredImageUrl: cp.featuredImageUrl,
     priceMin: null,
     priceMax: null,
     compareAtPriceMin: null,
