@@ -16,9 +16,9 @@ import { Route as CollectionsIndexRouteImport } from './routes/collections/index
 import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
-import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -55,6 +55,11 @@ const CollectionsHandleRoute = CollectionsHandleRouteImport.update({
   path: '/collections/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   id: '/auth/verify-email',
   path: '/auth/verify-email',
@@ -63,11 +68,6 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/auth/reset-password',
   path: '/auth/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -211,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollectionsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/verify-email': {
       id: '/auth/verify-email'
       path: '/auth/verify-email'
@@ -223,13 +230,6 @@ declare module '@tanstack/react-router' {
       path: '/auth/reset-password'
       fullPath: '/auth/reset-password'
       preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout/return': {
-      id: '/checkout/return'
-      path: '/checkout/return'
-      fullPath: '/checkout/return'
-      preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
