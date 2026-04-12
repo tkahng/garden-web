@@ -132,6 +132,7 @@ describe('Header — authenticated state', () => {
 
   it('mobile nav shows Sign out button instead of Sign in link', () => {
     render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /open navigation menu/i }))
     expect(
       screen.queryByRole('link', { name: /sign in/i }),
     ).not.toBeInTheDocument()
