@@ -25,7 +25,9 @@ function formatDate(iso: string) {
 }
 
 function formatPrice(amount: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
+    amount,
+  )
 }
 
 const ORDER_STATUS_CLASS: Record<string, string> = {
@@ -56,7 +58,7 @@ export function OrderRow({ order }: { order: OrderResponse }) {
     <Link
       to="/account/orders/$orderId"
       params={{ orderId: order.id! }}
-      className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:bg-muted/40 transition-colors"
+      className="flex items-center justify-between border border-border px-4 py-3 hover:bg-muted/40 transition-colors"
     >
       <span className="text-sm text-muted-foreground">
         {order.createdAt ? formatDate(order.createdAt) : '—'}
@@ -159,7 +161,9 @@ function OrdersPage() {
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Orders</h2>
-        <p className="text-sm text-muted-foreground">No orders yet. Start shopping!</p>
+        <p className="text-sm text-muted-foreground">
+          No orders yet. Start shopping!
+        </p>
       </div>
     )
   }

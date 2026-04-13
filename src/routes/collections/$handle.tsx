@@ -1,6 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getCollection, listCollectionProducts } from '#/lib/api'
-import type { CollectionDetailResponse, CollectionProductResponse, ProductSummaryResponse } from '#/lib/api'
+import type {
+  CollectionDetailResponse,
+  CollectionProductResponse,
+  ProductSummaryResponse,
+} from '#/lib/api'
 import { Pagination, ProductCard } from '#/routes/products/index'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -28,13 +32,17 @@ export const Route = createFileRoute('/collections/$handle')({
 
 // ─── CollectionHeader ─────────────────────────────────────────────────────────
 
-export function CollectionHeader({ collection }: { collection: CollectionDetailResponse }) {
+export function CollectionHeader({
+  collection,
+}: {
+  collection: CollectionDetailResponse
+}) {
   return (
     <div className="mb-8">
       {collection.featuredImageUrl && (
         <div
           data-testid="collection-banner"
-          className="island-shell mb-6 aspect-[3/1] w-full overflow-hidden rounded-2xl"
+          className="island-shell mb-6 aspect-[3/1] w-full overflow-hidden"
         >
           <img
             src={collection.featuredImageUrl}
@@ -60,7 +68,9 @@ export function CollectionHeader({ collection }: { collection: CollectionDetailR
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toProductSummary(cp: CollectionProductResponse): ProductSummaryResponse {
+function toProductSummary(
+  cp: CollectionProductResponse,
+): ProductSummaryResponse {
   return {
     id: cp.productId,
     title: cp.title,
@@ -91,7 +101,9 @@ function CollectionDetailPage() {
       <CollectionHeader collection={collection} />
       {content.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-muted-foreground">No products in this collection.</p>
+          <p className="text-muted-foreground">
+            No products in this collection.
+          </p>
           <a
             href="/collections"
             className="text-sm text-primary underline mt-2 inline-block"

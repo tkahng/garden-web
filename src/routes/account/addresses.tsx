@@ -67,7 +67,7 @@ export function AddressForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 rounded-xl border border-border p-4"
+      className="flex flex-col gap-3 border border-border p-4"
     >
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
@@ -124,7 +124,8 @@ export function AddressForm({
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="addrAddress2" className="text-sm font-medium">
-          Address line 2 <span className="text-muted-foreground">(optional)</span>
+          Address line 2{' '}
+          <span className="text-muted-foreground">(optional)</span>
         </label>
         <input
           id="addrAddress2"
@@ -150,7 +151,8 @@ export function AddressForm({
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="addrProvince" className="text-sm font-medium">
-            Province / State <span className="text-muted-foreground">(optional)</span>
+            Province / State{' '}
+            <span className="text-muted-foreground">(optional)</span>
           </label>
           <input
             id="addrProvince"
@@ -193,7 +195,9 @@ export function AddressForm({
         <input
           type="checkbox"
           checked={fields.isDefault ?? false}
-          onChange={(e) => setFields((prev) => ({ ...prev, isDefault: e.target.checked }))}
+          onChange={(e) =>
+            setFields((prev) => ({ ...prev, isDefault: e.target.checked }))
+          }
         />
         Set as default
       </label>
@@ -231,7 +235,7 @@ export function AddressCard({
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   return (
-    <div className="rounded-xl border border-border p-4">
+    <div className="border border-border p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5 text-sm">
           <p className="font-semibold">
@@ -242,7 +246,9 @@ export function AddressCard({
               </span>
             )}
           </p>
-          {address.company && <p className="text-muted-foreground">{address.company}</p>}
+          {address.company && (
+            <p className="text-muted-foreground">{address.company}</p>
+          )}
           <p>{address.address1}</p>
           {address.address2 && <p>{address.address2}</p>}
           <p>
@@ -384,7 +390,7 @@ export function AddressesPage() {
         <button
           type="button"
           onClick={() => setEditingId('new')}
-          className="self-start rounded-full border border-border px-5 py-2 text-sm font-semibold hover:bg-muted"
+          className="self-start border border-border px-5 py-2 text-sm font-semibold hover:bg-muted"
         >
           Add address
         </button>
