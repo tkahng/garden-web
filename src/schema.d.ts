@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/storefront/orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["cancelOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quote-cart/items/{itemId}": {
         parameters: {
             query?: never;
@@ -156,7 +172,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["cancelOrder"];
+        put: operations["cancelOrder_1"];
         post?: never;
         delete?: never;
         options?: never;
@@ -254,6 +270,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["handleStripeWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/storefront/orders/{id}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refundOrder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1156,6 +1188,38 @@ export interface paths {
         patch: operations["reorderImages_1"];
         trace?: never;
     };
+    "/api/v1/storefront/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/storefront/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes/{id}": {
         parameters: {
             query?: never;
@@ -1499,7 +1563,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["listOrders"];
+        get: operations["listOrders_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1515,7 +1579,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getOrder"];
+        get: operations["getOrder_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1743,6 +1807,33 @@ export interface components {
             emailVerifiedAt?: string;
             roles?: components["schemas"]["Role"][];
         };
+        ApiResponseOrderResponse: {
+            data?: components["schemas"]["OrderResponse"];
+            meta?: unknown;
+        };
+        OrderItemResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            variantId?: string;
+            /** Format: int32 */
+            quantity?: number;
+            unitPrice?: number;
+        };
+        OrderResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            /** @enum {string} */
+            status?: "PENDING_PAYMENT" | "PAID" | "CANCELLED" | "REFUNDED";
+            totalAmount?: number;
+            currency?: string;
+            stripeSessionId?: string;
+            items?: components["schemas"]["OrderItemResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+        };
         UpdateQuoteCartItemRequest: {
             /** Format: int32 */
             quantity?: number;
@@ -1952,33 +2043,6 @@ export interface components {
         ApiResponseAdminPageResponse: {
             data?: components["schemas"]["AdminPageResponse"];
             meta?: unknown;
-        };
-        ApiResponseOrderResponse: {
-            data?: components["schemas"]["OrderResponse"];
-            meta?: unknown;
-        };
-        OrderItemResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            variantId?: string;
-            /** Format: int32 */
-            quantity?: number;
-            unitPrice?: number;
-        };
-        OrderResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            userId?: string;
-            /** @enum {string} */
-            status?: "PENDING_PAYMENT" | "PAID" | "CANCELLED" | "REFUNDED";
-            totalAmount?: number;
-            currency?: string;
-            stripeSessionId?: string;
-            items?: components["schemas"]["OrderItemResponse"][];
-            /** Format: date-time */
-            createdAt?: string;
         };
         UpdateRoleRequest: {
             name?: string;
@@ -2504,6 +2568,7 @@ export interface components {
             handle?: string;
             /** Format: int32 */
             position?: number;
+            featuredImageUrl?: string;
         };
         CreateBlogRequest: {
             title: string;
@@ -2637,8 +2702,8 @@ export interface components {
             /** Format: int32 */
             position?: number;
         };
-        ApiResponsePagedResultQuoteRequestResponse: {
-            data?: components["schemas"]["PagedResultQuoteRequestResponse"];
+        ApiResponsePagedResultOrderResponse: {
+            data?: components["schemas"]["PagedResultOrderResponse"];
             meta?: unknown;
         };
         PageMeta: {
@@ -2648,6 +2713,14 @@ export interface components {
             pageSize?: number;
             /** Format: int64 */
             total?: number;
+        };
+        PagedResultOrderResponse: {
+            content?: components["schemas"]["OrderResponse"][];
+            meta?: components["schemas"]["PageMeta"];
+        };
+        ApiResponsePagedResultQuoteRequestResponse: {
+            data?: components["schemas"]["PagedResultQuoteRequestResponse"];
+            meta?: unknown;
         };
         PagedResultQuoteRequestResponse: {
             content?: components["schemas"]["QuoteRequestResponse"][];
@@ -2859,14 +2932,6 @@ export interface components {
             content?: components["schemas"]["AdminPageResponse"][];
             meta?: components["schemas"]["PageMeta"];
         };
-        ApiResponsePagedResultOrderResponse: {
-            data?: components["schemas"]["PagedResultOrderResponse"];
-            meta?: unknown;
-        };
-        PagedResultOrderResponse: {
-            content?: components["schemas"]["OrderResponse"][];
-            meta?: components["schemas"]["PageMeta"];
-        };
         ApiResponseListLocationResponse: {
             data?: components["schemas"]["LocationResponse"][];
             meta?: unknown;
@@ -2962,6 +3027,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    cancelOrder: {
+        parameters: {
+            query: {
+                user: components["schemas"]["User"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseOrderResponse"];
+                };
+            };
+        };
+    };
     updateItem: {
         parameters: {
             query: {
@@ -3348,7 +3437,7 @@ export interface operations {
             };
         };
     };
-    cancelOrder: {
+    cancelOrder_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3674,6 +3763,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    refundOrder: {
+        parameters: {
+            query: {
+                user: components["schemas"]["User"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseOrderResponse"];
+                };
             };
         };
     };
@@ -5569,6 +5682,54 @@ export interface operations {
             };
         };
     };
+    listOrders: {
+        parameters: {
+            query: {
+                user: components["schemas"]["User"];
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePagedResultOrderResponse"];
+                };
+            };
+        };
+    };
+    getOrder: {
+        parameters: {
+            query: {
+                user: components["schemas"]["User"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseOrderResponse"];
+                };
+            };
+        };
+    };
     get_5: {
         parameters: {
             query: {
@@ -6099,7 +6260,7 @@ export interface operations {
             };
         };
     };
-    listOrders: {
+    listOrders_1: {
         parameters: {
             query?: {
                 status?: "PENDING_PAYMENT" | "PAID" | "CANCELLED" | "REFUNDED";
@@ -6126,7 +6287,7 @@ export interface operations {
             };
         };
     };
-    getOrder: {
+    getOrder_1: {
         parameters: {
             query?: never;
             header?: never;
