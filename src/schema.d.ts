@@ -1811,6 +1811,13 @@ export interface components {
             data?: components["schemas"]["OrderResponse"];
             meta?: unknown;
         };
+        OrderItemProductInfo: {
+            /** Format: uuid */
+            productId?: string;
+            productTitle?: string;
+            variantTitle?: string;
+            imageUrl?: string;
+        };
         OrderItemResponse: {
             /** Format: uuid */
             id?: string;
@@ -1819,6 +1826,7 @@ export interface components {
             /** Format: int32 */
             quantity?: number;
             unitPrice?: number;
+            product?: components["schemas"]["OrderItemProductInfo"];
         };
         OrderResponse: {
             /** Format: uuid */
