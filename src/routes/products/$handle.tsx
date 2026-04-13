@@ -116,6 +116,8 @@ export function ProductInfo({
   selectedOptions,
   setSelectedOptions,
   activeVariant,
+  quantity,
+  onQuantityChange,
   onAddToCart,
   isAddingToCart = false,
   addError,
@@ -124,6 +126,8 @@ export function ProductInfo({
   selectedOptions: Record<string, string>
   setSelectedOptions: (opts: Record<string, string>) => void
   activeVariant: ProductVariantResponse | undefined
+  quantity: number
+  onQuantityChange: (qty: number) => void
   onAddToCart?: () => void
   isAddingToCart?: boolean
   addError?: string | null
@@ -221,6 +225,33 @@ export function ProductInfo({
         </div>
       )}
 
+      {/* Quantity */}
+      <div className="flex items-center gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Quantity
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
+            disabled={quantity <= 1}
+            onClick={() => onQuantityChange(quantity - 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
+          >
+            −
+          </button>
+          <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+          <button
+            type="button"
+            aria-label="Increase quantity"
+            onClick={() => onQuantityChange(quantity + 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold hover:border-primary"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
       {/* Add to Cart */}
       <button
         disabled={activeVariant == null || isAddingToCart}
@@ -276,6 +307,7 @@ function ProductDetailPage() {
         product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
       ),
   )
+  const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
@@ -291,7 +323,7 @@ function ProductDetailPage() {
     setIsAdding(true)
     setAddError(null)
     try {
-      await addItem(activeVariant.id)
+      await addItem(activeVariant.id, quantity)
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
     } finally {
@@ -312,6 +344,8 @@ function ProductDetailPage() {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           activeVariant={activeVariant}
+          quantity={quantity}
+          onQuantityChange={setQuantity}
           onAddToCart={handleAddToCart}
           isAddingToCart={isAdding}
           addError={addError}

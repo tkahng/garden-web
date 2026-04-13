@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import AddressesPage, { AddressSkeleton } from './addresses'
+import { AddressesPage, AddressSkeleton } from './addresses'
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (_config: unknown) => ({}),

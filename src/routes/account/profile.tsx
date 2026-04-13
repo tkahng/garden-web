@@ -34,7 +34,7 @@ export function ProfileSkeleton() {
 
 // ─── ProfilePage ──────────────────────────────────────────────────────────────
 
-function ProfilePage() {
+export function ProfilePage() {
   const { authFetch } = useAuth()
 
   const [account, setAccount] = useState<AccountResponse | null>(null)

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import CartPage, { CartItemRow, CartEmpty } from './index'
+import { CartPage, CartItemRow, CartEmpty } from './index'
 
 // Mock TanStack Router Link
 vi.mock('@tanstack/react-router', () => ({

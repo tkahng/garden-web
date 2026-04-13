@@ -21,7 +21,7 @@ import { OrderRow } from './orders/index'
 
 export const Route = createFileRoute('/account/')({
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: (search.tab as string) ?? 'profile',
+    tab: (search.tab as string | undefined) ?? 'profile',
   }),
   component: AccountPage,
 })
@@ -333,7 +333,7 @@ export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
 
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 
-function AccountPage() {
+export function AccountPage() {
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const navigate = Route.useNavigate()
@@ -348,7 +348,7 @@ function AccountPage() {
 
   if (!isAuthenticated) return null
 
-  const activeTab = tab ?? 'profile'
+  const activeTab = tab
 
   return (
     <main className="page-wrap px-4 py-10">

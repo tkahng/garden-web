@@ -119,6 +119,8 @@ const defaultProps = {
   selectedOptions: { Size: 'S', Color: 'Lagoon' },
   setSelectedOptions: vi.fn(),
   activeVariant: mockVariants[0],
+  quantity: 1,
+  onQuantityChange: vi.fn(),
 }
 
 describe('ProductInfo — static rendering', () => {

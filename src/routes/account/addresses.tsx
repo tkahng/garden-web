@@ -295,7 +295,7 @@ export function AddressCard({
 
 // ─── AddressesPage ────────────────────────────────────────────────────────────
 
-function AddressesPage() {
+export function AddressesPage() {
   const { authFetch } = useAuth()
 
   const [addresses, setAddresses] = useState<AddressResponse[]>([])
