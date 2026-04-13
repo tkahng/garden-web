@@ -1,7 +1,10 @@
 import { createFileRoute, Link  } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '#/context/cart'
+import { useAuth } from '#/context/auth'
+import { listAddresses } from '#/lib/account-api'
 import type { CartItemResponse } from '#/lib/cart-api'
+import type { AddressResponse } from '#/lib/account-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -119,12 +122,51 @@ export function CartItemRow({
   )
 }
 
+// ─── ShippingAddressSummary ───────────────────────────────────────────────────
+
+function ShippingAddressSummary({ address }: { address: AddressResponse }) {
+  return (
+    <div className="rounded-xl border border-border p-4 text-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5 text-muted-foreground">
+          <p className="font-semibold text-foreground">
+            {address.firstName} {address.lastName}
+          </p>
+          <p>{address.address1}</p>
+          {address.address2 && <p>{address.address2}</p>}
+          <p>
+            {address.city}
+            {address.province ? `, ${address.province}` : ''} {address.zip}
+          </p>
+          <p>{address.country}</p>
+        </div>
+        <Link
+          to="/account/addresses"
+          className="shrink-0 text-sm text-primary hover:underline"
+        >
+          Change
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 // ─── CartPage ─────────────────────────────────────────────────────────────────
 
 export function CartPage() {
   const { cart, isLoading, removeItem, updateQuantity, abandon, checkout } = useCart()
+  const { authFetch } = useAuth()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [defaultAddress, setDefaultAddress] = useState<AddressResponse | null | undefined>(undefined)
+
+  useEffect(() => {
+    listAddresses(authFetch)
+      .then((addresses) => {
+        setDefaultAddress(addresses.find((a) => a.isDefault) ?? null)
+      })
+      .catch(() => setDefaultAddress(null))
+  }, [authFetch])
 
   async function handleCheckout() {
     setIsCheckingOut(true)
@@ -199,13 +241,31 @@ export function CartPage() {
             Abandon cart
           </button>
         </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-foreground">Ship to</p>
+          {defaultAddress === undefined ? (
+            <div className="h-20 animate-pulse rounded-xl bg-muted" />
+          ) : defaultAddress ? (
+            <ShippingAddressSummary address={defaultAddress} />
+          ) : (
+            <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+              No shipping address on file.{' '}
+              <Link to="/account/addresses" className="font-semibold underline">
+                Add one
+              </Link>{' '}
+              before checking out.
+            </div>
+          )}
+        </div>
+
         {checkoutError && (
           <p className="text-sm text-destructive">{checkoutError}</p>
         )}
         <button
           type="button"
           onClick={handleCheckout}
-          disabled={isCheckingOut}
+          disabled={isCheckingOut || !defaultAddress}
           className="w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isCheckingOut ? 'Processing…' : 'Proceed to Checkout'}
