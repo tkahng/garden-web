@@ -373,7 +373,7 @@ export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
 
 // ─── AccountPage ──────────────────────────────────────────────────────────────
 
-export default function AccountPage() {
+function AccountPage() {
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const navigate = useNavigate()

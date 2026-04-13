@@ -121,7 +121,7 @@ export function CartItemRow({
 
 // ─── CartPage ─────────────────────────────────────────────────────────────────
 
-export default function CartPage() {
+function CartPage() {
   const { cart, isLoading, removeItem, updateQuantity, abandon, checkout } = useCart()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)

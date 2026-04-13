@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 
 // ─── AccountLayout ────────────────────────────────────────────────────────────
 
-export default function AccountLayout() {
+function AccountLayout() {
   const { isAuthenticated } = useAuth()
   const { openAuthModal } = useAuthModal()
   const navigate = Route.useNavigate()

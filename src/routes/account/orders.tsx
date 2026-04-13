@@ -137,7 +137,7 @@ export function OrderRow({
 
 // ─── OrdersPage ───────────────────────────────────────────────────────────────
 
-export default function OrdersPage() {
+function OrdersPage() {
   const { authFetch } = useAuth()
 
   const [orders, setOrders] = useState<OrderResponse[]>([])
