@@ -11,6 +11,7 @@ export type OrderResponse = components['schemas']['OrderResponse']
 export type OrderItemResponse = components['schemas']['OrderItemResponse']
 export type OrderItemProductInfo = components['schemas']['OrderItemProductInfo']
 export type PagedResultOrderResponse = components['schemas']['PagedResultOrderResponse']
+export type PageMeta = components['schemas']['PageMeta']
 
 // ─── Auth fetch type alias ────────────────────────────────────────────────────
 

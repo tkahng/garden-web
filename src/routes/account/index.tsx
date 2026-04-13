@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
@@ -12,11 +12,10 @@ import {
   updateAddress,
   deleteAddress,
   listOrders,
-  cancelOrder,
 } from '#/lib/account-api'
 import type { AccountResponse, AddressRequest, AddressResponse, OrderResponse } from '#/lib/account-api'
 import { AddressForm, AddressCard } from './addresses'
-import { OrderRow } from './orders'
+import { OrderRow } from './orders/index'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -294,20 +293,14 @@ export function OrderSkeleton() {
 export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
   const [orders, setOrders] = useState<OrderResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [page, setPage] = useState(0)
-  const [total, setTotal] = useState(0)
-  const [isCancelling, setIsCancelling] = useState(false)
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 5
 
   useEffect(() => {
     let cancelled = false
     setIsLoading(true)
     listOrders(authFetch, { page: 0, size: PAGE_SIZE })
       .then((data) => {
-        if (cancelled) return
-        setOrders(data.content ?? [])
-        setTotal(data.meta?.total ?? 0)
-        setPage(0)
+        if (!cancelled) setOrders(data.content ?? [])
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -316,25 +309,6 @@ export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
       cancelled = true
     }
   }, [authFetch])
-
-  async function handleLoadMore() {
-    const next = page + 1
-    const data = await listOrders(authFetch, { page: next, size: PAGE_SIZE })
-    setOrders((prev) => [...prev, ...(data.content ?? [])])
-    setPage(next)
-  }
-
-  async function handleCancel(id: string) {
-    setIsCancelling(true)
-    try {
-      const updated = await cancelOrder(authFetch, id)
-      setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)))
-    } finally {
-      setIsCancelling(false)
-    }
-  }
-
-  const hasMore = orders.length < total
 
   if (isLoading) return <OrderSkeleton />
 
@@ -348,25 +322,11 @@ export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
   }
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl">
+    <div className="flex flex-col gap-3 max-w-2xl">
       <h2 className="text-lg font-semibold">Orders</h2>
       {orders.map((order) => (
-        <OrderRow
-          key={order.id}
-          order={order}
-          onCancel={handleCancel}
-          isCancelling={isCancelling}
-        />
+        <OrderRow key={order.id} order={order} />
       ))}
-      {hasMore && (
-        <button
-          type="button"
-          onClick={handleLoadMore}
-          className="self-start rounded-full border border-border px-5 py-2 text-sm font-semibold hover:bg-muted"
-        >
-          Load more
-        </button>
-      )}
     </div>
   )
 }
@@ -376,8 +336,8 @@ export function OrdersTab({ authFetch }: { authFetch: AuthFetch }) {
 function AccountPage() {
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
-  const navigate = useNavigate()
-  const { tab } = useSearch({ strict: false }) as { tab?: string }
+  const navigate = Route.useNavigate()
+  const { tab } = Route.useSearch()
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -395,7 +355,7 @@ function AccountPage() {
       <h1 className="mb-8 text-2xl font-bold">Account</h1>
       <Tabs
         value={activeTab}
-        onValueChange={(v) => navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, tab: v }) })}
+        onValueChange={(v) => navigate({ search: { tab: v } })}
       >
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>

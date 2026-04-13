@@ -24,6 +24,8 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-passw
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
+import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
+import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
 
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
@@ -100,13 +102,23 @@ const AccountAddressesRoute = AccountAddressesRouteImport.update({
   path: '/addresses',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountOrdersRoute,
+} as any)
+const AccountOrdersOrderIdRoute = AccountOrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => AccountOrdersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
-  '/account/orders': typeof AccountOrdersRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -117,12 +129,13 @@ export interface FileRoutesByFullPath {
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/orders/': typeof AccountOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account/addresses': typeof AccountAddressesRoute
-  '/account/orders': typeof AccountOrdersRoute
   '/account/profile': typeof AccountProfileRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -133,6 +146,8 @@ export interface FileRoutesByTo {
   '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/orders': typeof AccountOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,7 +155,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
-  '/account/orders': typeof AccountOrdersRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -151,6 +166,8 @@ export interface FileRoutesById {
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/orders/': typeof AccountOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,12 +187,13 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/orders/$orderId'
+    | '/account/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/account/addresses'
-    | '/account/orders'
     | '/account/profile'
     | '/auth/reset-password'
     | '/auth/verify-email'
@@ -186,6 +204,8 @@ export interface FileRouteTypes {
     | '/cart'
     | '/collections'
     | '/products'
+    | '/account/orders/$orderId'
+    | '/account/orders'
   id:
     | '__root__'
     | '/'
@@ -203,6 +223,8 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/orders/$orderId'
+    | '/account/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -326,19 +348,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountAddressesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/orders/': {
+      id: '/account/orders/'
+      path: '/'
+      fullPath: '/account/orders/'
+      preLoaderRoute: typeof AccountOrdersIndexRouteImport
+      parentRoute: typeof AccountOrdersRoute
+    }
+    '/account/orders/$orderId': {
+      id: '/account/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/account/orders/$orderId'
+      preLoaderRoute: typeof AccountOrdersOrderIdRouteImport
+      parentRoute: typeof AccountOrdersRoute
+    }
   }
 }
 
+interface AccountOrdersRouteChildren {
+  AccountOrdersOrderIdRoute: typeof AccountOrdersOrderIdRoute
+  AccountOrdersIndexRoute: typeof AccountOrdersIndexRoute
+}
+
+const AccountOrdersRouteChildren: AccountOrdersRouteChildren = {
+  AccountOrdersOrderIdRoute: AccountOrdersOrderIdRoute,
+  AccountOrdersIndexRoute: AccountOrdersIndexRoute,
+}
+
+const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
+  AccountOrdersRouteChildren,
+)
+
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
-  AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountProfileRoute: typeof AccountProfileRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
-  AccountOrdersRoute: AccountOrdersRoute,
+  AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountProfileRoute: AccountProfileRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
