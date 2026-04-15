@@ -24,6 +24,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
+  loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>
   logout: () => Promise<void>
   refreshTokens: () => Promise<void>
   authFetch: ReturnType<typeof createAuthFetch>
@@ -77,6 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [setAndPersist],
   )
 
+  const loginWithTokens = useCallback(async (accessToken: string, refreshToken: string) => {
+    const user = await getAccount(accessToken)
+    setAndPersist({ user, accessToken, refreshToken })
+  }, [setAndPersist])
+
   const logout = useCallback(async () => {
     if (state.refreshToken) {
       try {
@@ -122,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!state.user,
         login,
         register,
+        loginWithTokens,
         logout,
         refreshTokens,
         authFetch,

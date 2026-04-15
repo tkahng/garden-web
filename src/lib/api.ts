@@ -170,6 +170,10 @@ export function createAuthFetch(config: AuthFetchConfig) {
   }
 }
 
+export function getGoogleOAuthUrl(): string {
+  return `${base()}/api/v1/auth/oauth2`
+}
+
 export async function authLogin(email: string, password: string): Promise<AuthTokens> {
   const res = await fetch(`${base()}/api/v1/auth/login`, {
     method: 'POST',

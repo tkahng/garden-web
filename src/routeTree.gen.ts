@@ -21,6 +21,7 @@ import { Route as CollectionsHandleRouteImport } from './routes/collections/$han
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
@@ -87,6 +88,11 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   path: '/auth/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/account/addresses': typeof AccountAddressesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/profile': typeof AccountProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/account/addresses': typeof AccountAddressesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/account/addresses'
     | '/account/orders'
     | '/account/profile'
+    | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/account/addresses'
     | '/account/profile'
+    | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/account/addresses'
     | '/account/orders'
     | '/account/profile'
+    | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -327,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
@@ -400,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
