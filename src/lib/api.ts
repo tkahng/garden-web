@@ -114,11 +114,16 @@ export interface AuthFetchConfig {
 }
 
 export function createAuthFetch(config: AuthFetchConfig) {
-  return async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  return async function authFetch<T>(
+    path: string,
+    options: RequestInit = {},
+  ): Promise<T> {
     const { accessToken, refreshToken } = config.getTokens()
 
     const headers: Record<string, string> = {
-      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.body !== undefined
+        ? { 'Content-Type': 'application/json' }
+        : {}),
       ...(options.headers as Record<string, string> | undefined),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     }
@@ -147,7 +152,10 @@ export function createAuthFetch(config: AuthFetchConfig) {
 
         const retryRes = await fetch(`${base()}${path}`, {
           ...options,
-          headers: { ...headers, Authorization: `Bearer ${newTokens.accessToken}` },
+          headers: {
+            ...headers,
+            Authorization: `Bearer ${newTokens.accessToken}`,
+          },
         })
         if (!retryRes.ok) {
           if (retryRes.status === 401) {
@@ -171,10 +179,13 @@ export function createAuthFetch(config: AuthFetchConfig) {
 }
 
 export function getGoogleOAuthUrl(): string {
-  return `${base()}/api/v1/auth/oauth2`
+  return `${base()}/api/v1/auth/oauth2/google`
 }
 
-export async function authLogin(email: string, password: string): Promise<AuthTokens> {
+export async function authLogin(
+  email: string,
+  password: string,
+): Promise<AuthTokens> {
   const res = await fetch(`${base()}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -182,7 +193,10 @@ export async function authLogin(email: string, password: string): Promise<AuthTo
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  return {
+    accessToken: json.data.accessToken,
+    refreshToken: json.data.refreshToken,
+  }
 }
 
 export async function authRegister(
@@ -198,7 +212,10 @@ export async function authRegister(
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  return {
+    accessToken: json.data.accessToken,
+    refreshToken: json.data.refreshToken,
+  }
 }
 
 export async function authLogout(refreshToken: string): Promise<void> {
@@ -218,7 +235,10 @@ export async function authRefresh(refreshToken: string): Promise<AuthTokens> {
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  return {
+    accessToken: json.data.accessToken,
+    refreshToken: json.data.refreshToken,
+  }
 }
 
 export async function authRequestPasswordReset(email: string): Promise<void> {
@@ -230,12 +250,18 @@ export async function authRequestPasswordReset(email: string): Promise<void> {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
-export async function authConfirmPasswordReset(token: string, newPassword: string): Promise<void> {
-  const res = await fetch(`${base()}/api/v1/auth/confirm-password-reset/${token}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newPassword }),
-  })
+export async function authConfirmPasswordReset(
+  token: string,
+  newPassword: string,
+): Promise<void> {
+  const res = await fetch(
+    `${base()}/api/v1/auth/confirm-password-reset/${token}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword }),
+    },
+  )
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
@@ -282,11 +308,16 @@ export function getPage(handle: string): Promise<PageResponse> {
   return apiFetch(`/api/v1/pages/${handle}`)
 }
 
-export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
+export function listCollections(
+  page: number,
+  size: number,
+): Promise<PagedResult<CollectionSummaryResponse>> {
   return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
 }
 
-export function getCollection(handle: string): Promise<CollectionDetailResponse> {
+export function getCollection(
+  handle: string,
+): Promise<CollectionDetailResponse> {
   return apiFetch(`/api/v1/collections/${handle}`)
 }
 
@@ -295,13 +326,14 @@ export function listCollectionProducts(
   page: number,
   size: number,
 ): Promise<PagedResult<CollectionProductResponse>> {
-  return apiFetch(`/api/v1/collections/${handle}/products?page=${page}&size=${size}`)
+  return apiFetch(
+    `/api/v1/collections/${handle}/products?page=${page}&size=${size}`,
+  )
 }
 
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
   return apiFetch(`/api/v1/products/${handle}`)
 }
-
 
 export function listProducts(params: {
   q?: string
