@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import CartPage, { CartItemRow, CartEmpty } from './index'
+import { CartPage, CartItemRow, CartEmpty } from './index'
 
 // Mock TanStack Router Link
 vi.mock('@tanstack/react-router', () => ({
@@ -16,6 +16,14 @@ let mockIsLoading = false
 const mockRemoveItem = vi.fn()
 const mockUpdateQuantity = vi.fn()
 const mockAbandon = vi.fn()
+
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({
+    authFetch: vi.fn().mockResolvedValue([]),
+    isAuthenticated: false,
+    user: null,
+  }),
+}))
 
 vi.mock('#/context/cart', () => ({
   useCart: () => ({

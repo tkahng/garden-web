@@ -71,7 +71,7 @@ export function ProductGallery({
   const safeIndex = Math.min(activeIndex, images.length - 1)
   return (
     <div className="flex flex-col gap-3">
-      <div className="island-shell aspect-[4/5] w-full overflow-hidden rounded-2xl bg-muted">
+      <div className="island-shell aspect-[4/5] w-full overflow-hidden bg-muted">
         {images.length > 0 ? (
           <img
             data-testid="featured-image"
@@ -90,7 +90,7 @@ export function ProductGallery({
               key={img.id}
               onClick={() => onSelect(i)}
               aria-label={img.altText ?? `Image ${i + 1}`}
-              className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition ${
+              className={`h-16 w-16 flex-shrink-0 overflow-hidden border-2 transition ${
                 i === activeIndex
                   ? 'border-primary'
                   : 'border-transparent opacity-60 hover:opacity-100'
@@ -116,6 +116,8 @@ export function ProductInfo({
   selectedOptions,
   setSelectedOptions,
   activeVariant,
+  quantity,
+  onQuantityChange,
   onAddToCart,
   isAddingToCart = false,
   addError,
@@ -124,6 +126,8 @@ export function ProductInfo({
   selectedOptions: Record<string, string>
   setSelectedOptions: (opts: Record<string, string>) => void
   activeVariant: ProductVariantResponse | undefined
+  quantity: number
+  onQuantityChange: (qty: number) => void
   onAddToCart?: () => void
   isAddingToCart?: boolean
   addError?: string | null
@@ -221,11 +225,40 @@ export function ProductInfo({
         </div>
       )}
 
+      {/* Quantity */}
+      <div className="flex items-center gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Quantity
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
+            disabled={quantity <= 1}
+            onClick={() => onQuantityChange(quantity - 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
+          >
+            −
+          </button>
+          <span className="w-8 text-center text-sm font-semibold">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            aria-label="Increase quantity"
+            onClick={() => onQuantityChange(quantity + 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold hover:border-primary"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
       {/* Add to Cart */}
       <button
         disabled={activeVariant == null || isAddingToCart}
         onClick={onAddToCart}
-        className="w-full rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {activeVariant == null ? 'Unavailable' : 'Add to cart'}
       </button>
@@ -270,17 +303,24 @@ function ProductDetailPage() {
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    () =>
-      Object.fromEntries(
-        product.variants[0]?.optionValues.map((v) => [v.optionName, v.valueLabel]) ?? [],
-      ),
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >(() =>
+    Object.fromEntries(
+      product.variants[0]?.optionValues.map((v) => [
+        v.optionName,
+        v.valueLabel,
+      ]) ?? [],
+    ),
   )
+  const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
     product.variants.find((v) =>
-      v.optionValues.every((ov) => selectedOptions[ov.optionName] === ov.valueLabel),
+      v.optionValues.every(
+        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
+      ),
     ) ?? product.variants[0]
 
   async function handleAddToCart() {
@@ -291,7 +331,7 @@ function ProductDetailPage() {
     setIsAdding(true)
     setAddError(null)
     try {
-      await addItem(activeVariant.id)
+      await addItem(activeVariant.id, quantity)
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
     } finally {
@@ -312,6 +352,8 @@ function ProductDetailPage() {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           activeVariant={activeVariant}
+          quantity={quantity}
+          onQuantityChange={setQuantity}
           onAddToCart={handleAddToCart}
           isAddingToCart={isAdding}
           addError={addError}

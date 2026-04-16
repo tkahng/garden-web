@@ -52,7 +52,7 @@ export function HeroSection({ page }: { page: PageResponse | null }) {
 
   return (
     <section className="page-wrap px-4 pt-12 pb-8">
-      <div className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
+      <div className="island-shell rise-in relative overflow-hidden px-6 py-10 sm:px-10 sm:py-14">
         <p className="island-kicker mb-3">The Garden Shop</p>
         <h1 className="display-title mb-4 max-w-2xl text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           {title}
@@ -140,7 +140,7 @@ export function CollectionsGrid({
         {collections.map((collection) => (
           <Card
             key={collection.id}
-            className="island-shell overflow-hidden rounded-2xl border-border"
+            className="island-shell overflow-hidden border-border"
           >
             {collection.featuredImageUrl && (
               <div className="h-32 w-full overflow-hidden">
