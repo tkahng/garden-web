@@ -17,6 +17,14 @@ const mockRemoveItem = vi.fn()
 const mockUpdateQuantity = vi.fn()
 const mockAbandon = vi.fn()
 
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({
+    authFetch: vi.fn().mockResolvedValue([]),
+    isAuthenticated: false,
+    user: null,
+  }),
+}))
+
 vi.mock('#/context/cart', () => ({
   useCart: () => ({
     cart: mockCart,
