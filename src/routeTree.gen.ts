@@ -31,6 +31,7 @@ import { Route as AccountAddressesRouteImport } from './routes/account/addresses
 import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
 import { Route as AccountInvoicesIndexRouteImport } from './routes/account/invoices/index'
+import { Route as AccountQuotesPendingApprovalsRouteImport } from './routes/account/quotes/pending-approvals'
 import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quotes/$quoteId'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
 import { Route as AccountInvoicesInvoiceIdRouteImport } from './routes/account/invoices/$invoiceId'
@@ -145,6 +146,12 @@ const AccountInvoicesIndexRoute = AccountInvoicesIndexRouteImport.update({
   path: '/invoices/',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountQuotesPendingApprovalsRoute =
+  AccountQuotesPendingApprovalsRouteImport.update({
+    id: '/quotes/pending-approvals',
+    path: '/quotes/pending-approvals',
+    getParentRoute: () => AccountRoute,
+  } as any)
 const AccountQuotesQuoteIdRoute = AccountQuotesQuoteIdRouteImport.update({
   id: '/quotes/$quoteId',
   path: '/quotes/$quoteId',
@@ -185,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
   '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
@@ -210,6 +218,7 @@ export interface FileRoutesByTo {
   '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
   '/account/invoices': typeof AccountInvoicesIndexRoute
   '/account/orders': typeof AccountOrdersIndexRoute
   '/account/quotes': typeof AccountQuotesIndexRoute
@@ -238,6 +247,7 @@ export interface FileRoutesById {
   '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
   '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
     | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
     | '/account/invoices'
     | '/account/orders'
     | '/account/quotes'
@@ -319,6 +331,7 @@ export interface FileRouteTypes {
     | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
     | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
@@ -496,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountInvoicesIndexRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/quotes/pending-approvals': {
+      id: '/account/quotes/pending-approvals'
+      path: '/quotes/pending-approvals'
+      fullPath: '/account/quotes/pending-approvals'
+      preLoaderRoute: typeof AccountQuotesPendingApprovalsRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/quotes/$quoteId': {
       id: '/account/quotes/$quoteId'
       path: '/quotes/$quoteId'
@@ -543,6 +563,7 @@ interface AccountRouteChildren {
   AccountIndexRoute: typeof AccountIndexRoute
   AccountInvoicesInvoiceIdRoute: typeof AccountInvoicesInvoiceIdRoute
   AccountQuotesQuoteIdRoute: typeof AccountQuotesQuoteIdRoute
+  AccountQuotesPendingApprovalsRoute: typeof AccountQuotesPendingApprovalsRoute
   AccountInvoicesIndexRoute: typeof AccountInvoicesIndexRoute
   AccountQuotesIndexRoute: typeof AccountQuotesIndexRoute
 }
@@ -556,6 +577,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountIndexRoute: AccountIndexRoute,
   AccountInvoicesInvoiceIdRoute: AccountInvoicesInvoiceIdRoute,
   AccountQuotesQuoteIdRoute: AccountQuotesQuoteIdRoute,
+  AccountQuotesPendingApprovalsRoute: AccountQuotesPendingApprovalsRoute,
   AccountInvoicesIndexRoute: AccountInvoicesIndexRoute,
   AccountQuotesIndexRoute: AccountQuotesIndexRoute,
 }

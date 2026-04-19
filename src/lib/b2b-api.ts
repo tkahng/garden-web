@@ -313,6 +313,33 @@ export async function cancelQuote(
   return fetch<QuoteRequestResponse>(`/api/v1/quotes/${id}/cancel`, { method: 'POST' })
 }
 
+export async function listPendingApprovals(
+  fetch: AuthFetch,
+  params?: { page?: number; size?: number },
+): Promise<PagedResultQuoteRequestResponse> {
+  const qs = new URLSearchParams()
+  if (params?.page !== undefined) qs.set('page', String(params.page))
+  if (params?.size !== undefined) qs.set('size', String(params.size))
+  const query = qs.toString()
+  return fetch<PagedResultQuoteRequestResponse>(
+    `/api/v1/quotes/pending-approvals${query ? `?${query}` : ''}`,
+  )
+}
+
+export async function approveQuote(
+  fetch: AuthFetch,
+  id: string,
+): Promise<QuoteAcceptResponse> {
+  return fetch<QuoteAcceptResponse>(`/api/v1/quotes/${id}/approve`, { method: 'POST' })
+}
+
+export async function rejectApproval(
+  fetch: AuthFetch,
+  id: string,
+): Promise<QuoteRequestResponse> {
+  return fetch<QuoteRequestResponse>(`/api/v1/quotes/${id}/reject-approval`, { method: 'POST' })
+}
+
 export function getQuotePdfUrl(id: string): string {
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
   return `${baseUrl}/api/v1/quotes/${id}/pdf`
