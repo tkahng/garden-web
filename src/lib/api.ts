@@ -54,7 +54,7 @@ export interface ProductVariantResponse {
   id: string
   title: string
   sku: string | null
-  price: number
+  price: number | null
   compareAtPrice: number | null
   optionValues: OptionValueLabel[]
   fulfillmentType: string

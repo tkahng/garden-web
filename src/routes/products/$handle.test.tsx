@@ -248,7 +248,7 @@ describe('ProductInfo — price and variant selection', () => {
 
   it('disables Add to cart button while isAddingToCart is true', () => {
     render(<ProductInfo {...defaultProps} onAddToCart={vi.fn()} isAddingToCart={true} />)
-    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /adding/i })).toBeDisabled()
   })
 
   it('shows error message when addError is provided', () => {
@@ -256,5 +256,53 @@ describe('ProductInfo — price and variant selection', () => {
     expect(screen.getByTestId('add-error')).toHaveTextContent(
       'Failed to add item to cart. Please try again.',
     )
+  })
+})
+
+describe('ProductInfo — Add to quote cart', () => {
+  it('shows "Add to quote cart" button alongside "Add to cart" for priced variants', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add to quote cart/i })).toBeInTheDocument()
+  })
+
+  it('calls onAddToQuoteCart when the button is clicked', () => {
+    const onAddToQuoteCart = vi.fn()
+    render(<ProductInfo {...defaultProps} onAddToQuoteCart={onAddToQuoteCart} />)
+    fireEvent.click(screen.getByRole('button', { name: /add to quote cart/i }))
+    expect(onAddToQuoteCart).toHaveBeenCalled()
+  })
+
+  it('disables the quote cart button while isAddingToQuoteCart is true', () => {
+    render(<ProductInfo {...defaultProps} isAddingToQuoteCart={true} />)
+    expect(screen.getAllByRole('button', { name: /adding/i })[0]).toBeDisabled()
+  })
+
+  it('shows only "Add to quote cart" as primary action for quote-only variants (null price)', () => {
+    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
+    expect(screen.getByRole('button', { name: /add to quote cart/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /add to cart/i })).not.toBeInTheDocument()
+  })
+
+  it('shows "quote only" notice for null-price variants', () => {
+    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
+    expect(screen.getByText(/quote only/i)).toBeInTheDocument()
+  })
+
+  it('shows "Unavailable" when activeVariant is undefined on quote-only product', () => {
+    const quoteOnlyProduct = {
+      ...mockProduct,
+      variants: [{ ...mockVariants[0], price: null }],
+    }
+    render(<ProductInfo {...defaultProps} product={quoteOnlyProduct} activeVariant={undefined} />)
+    expect(screen.getByRole('button', { name: /unavailable/i })).toBeDisabled()
+  })
+
+  it('hides price display for null-price variants', () => {
+    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
+    expect(screen.queryByText('$19.99')).not.toBeInTheDocument()
   })
 })

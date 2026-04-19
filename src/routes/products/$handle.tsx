@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { toast } from 'sonner'
 import { getProduct } from '#/lib/api'
 import { useCart } from '#/context/cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
+import { addToQuoteCart } from '#/lib/b2b-api'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -121,6 +123,8 @@ export function ProductInfo({
   onAddToCart,
   isAddingToCart = false,
   addError,
+  onAddToQuoteCart,
+  isAddingToQuoteCart = false,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
@@ -131,6 +135,8 @@ export function ProductInfo({
   onAddToCart?: () => void
   isAddingToCart?: boolean
   addError?: string | null
+  onAddToQuoteCart?: () => void
+  isAddingToQuoteCart?: boolean
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -157,7 +163,7 @@ export function ProductInfo({
       </h1>
 
       {/* Price */}
-      {activeVariant != null && (
+      {activeVariant != null && activeVariant.price != null && (
         <div className="flex items-baseline gap-3">
           <span className="text-2xl font-bold text-foreground">
             {formatPrice(activeVariant.price)}
@@ -254,14 +260,42 @@ export function ProductInfo({
         </div>
       </div>
 
-      {/* Add to Cart */}
-      <button
-        disabled={activeVariant == null || isAddingToCart}
-        onClick={onAddToCart}
-        className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {activeVariant == null ? 'Unavailable' : 'Add to cart'}
-      </button>
+      {/* Add to Cart / Add to Quote Cart */}
+      {activeVariant?.price != null ? (
+        <div className="flex flex-col gap-2">
+          <button
+            disabled={isAddingToCart}
+            onClick={onAddToCart}
+            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isAddingToCart ? 'Adding…' : 'Add to cart'}
+          </button>
+          <button
+            disabled={activeVariant == null || isAddingToQuoteCart}
+            onClick={onAddToQuoteCart}
+            className="w-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isAddingToQuoteCart ? 'Adding…' : 'Add to quote cart'}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <button
+            disabled={activeVariant == null || isAddingToQuoteCart}
+            onClick={onAddToQuoteCart}
+            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {activeVariant == null
+              ? 'Unavailable'
+              : isAddingToQuoteCart
+                ? 'Adding…'
+                : 'Add to quote cart'}
+          </button>
+          <p className="text-xs text-muted-foreground text-center">
+            This item is available by quote only.
+          </p>
+        </div>
+      )}
       {addError != null && (
         <p data-testid="add-error" className="text-sm text-red-600">
           {addError}
@@ -299,7 +333,7 @@ export function ProductInfo({
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
@@ -315,6 +349,7 @@ function ProductDetailPage() {
   )
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
+  const [isAddingToQuote, setIsAddingToQuote] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
     product.variants.find((v) =>
@@ -339,6 +374,27 @@ function ProductDetailPage() {
     }
   }
 
+  async function handleAddToQuoteCart() {
+    if (!isAuthenticated) {
+      openAuthModal('login')
+      return
+    }
+    setIsAddingToQuote(true)
+    try {
+      await addToQuoteCart(authFetch, { variantId: activeVariant.id, quantity })
+      toast.success('Added to quote cart', {
+        action: {
+          label: 'View cart',
+          onClick: () => { window.location.href = '/account/quote-cart' },
+        },
+      })
+    } catch {
+      toast.error('Failed to add to quote cart.')
+    } finally {
+      setIsAddingToQuote(false)
+    }
+  }
+
   return (
     <main className="page-wrap px-4 py-10">
       <div className="grid gap-12 lg:grid-cols-2">
@@ -357,6 +413,8 @@ function ProductDetailPage() {
           onAddToCart={handleAddToCart}
           isAddingToCart={isAdding}
           addError={addError}
+          onAddToQuoteCart={handleAddToQuoteCart}
+          isAddingToQuoteCart={isAddingToQuote}
         />
       </div>
     </main>
