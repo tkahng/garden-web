@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/context/auth'
 import { Button } from '#/components/ui/button'
 import { Skeleton } from '#/components/ui/skeleton'
@@ -39,6 +39,70 @@ const QUOTE_STATUS_CLASS: Record<string, string> = {
   REJECTED: 'bg-red-100 text-red-800',
   EXPIRED: 'bg-muted text-muted-foreground',
   CANCELLED: 'bg-muted text-muted-foreground',
+}
+
+// ─── Expiry countdown ─────────────────────────────────────────────────────────
+
+type Countdown = { days: number; hours: number; minutes: number; seconds: number; expired: boolean }
+
+function computeCountdown(expiresAt: string): Countdown {
+  const ms = Math.max(0, new Date(expiresAt).getTime() - Date.now())
+  const totalSeconds = Math.floor(ms / 1000)
+  return {
+    days: Math.floor(totalSeconds / 86400),
+    hours: Math.floor((totalSeconds % 86400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+    expired: ms === 0,
+  }
+}
+
+function useCountdown(expiresAt: string): Countdown {
+  const [count, setCount] = useState(() => computeCountdown(expiresAt))
+  const tick = useCallback(() => setCount(computeCountdown(expiresAt)), [expiresAt])
+  useEffect(() => {
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [tick])
+  return count
+}
+
+function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
+  const { days, hours, minutes, seconds, expired } = useCountdown(expiresAt)
+
+  if (expired) {
+    return (
+      <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium">
+        This offer has expired.
+      </div>
+    )
+  }
+
+  if (days === 0) {
+    return (
+      <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <span className="font-semibold">Offer expires soon — </span>
+        {hours > 0 && <span>{hours}h </span>}
+        <span>{minutes}m </span>
+        <span>{seconds}s</span>
+      </div>
+    )
+  }
+
+  if (days <= 3) {
+    return (
+      <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+        <span className="font-semibold">Offer expires in </span>
+        <span>{days}d {hours}h</span>
+      </div>
+    )
+  }
+
+  return (
+    <p className="text-xs text-muted-foreground">
+      Offer expires in {days} days ({formatDate(expiresAt)})
+    </p>
+  )
 }
 
 // ─── QuoteLineItem ────────────────────────────────────────────────────────────
@@ -220,8 +284,11 @@ export function QuoteDetailPage() {
 
       {/* Expiry */}
       {quote.expiresAt && quote.status === 'SENT' && (
+        <ExpiryCountdown expiresAt={quote.expiresAt} />
+      )}
+      {quote.expiresAt && quote.status === 'EXPIRED' && (
         <p className="text-xs text-muted-foreground">
-          Offer expires {formatDate(quote.expiresAt)}
+          Expired {formatDate(quote.expiresAt)}
         </p>
       )}
 

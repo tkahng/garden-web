@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 
 // ─── Router mock ─────────────────────────────────────────────────────────────
 
@@ -193,5 +193,89 @@ describe('QuoteDetailPage', () => {
     render(<QuoteDetailPage />)
     await waitFor(() => screen.getByText('Widget A'))
     expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument()
+  })
+
+  // ── Expiry countdown ────────────────────────────────────────────────────────
+
+  it('shows days countdown for SENT quote expiring in > 3 days', async () => {
+    // +1h buffer ensures Math.floor keeps days = 5 during the brief render delay
+    const expiresAt = new Date(Date.now() + 86400000 * 5 + 3600000).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, expiresAt })
+    render(<QuoteDetailPage />)
+    await waitFor(() =>
+      expect(screen.getByText(/offer expires in 5 days/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows amber warning for SENT quote expiring in 1–3 days', async () => {
+    // +1h buffer ensures days = 2
+    const expiresAt = new Date(Date.now() + 86400000 * 2 + 3600000).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, expiresAt })
+    render(<QuoteDetailPage />)
+    await waitFor(() =>
+      expect(screen.getByText(/offer expires in/i)).toBeInTheDocument(),
+    )
+    expect(screen.getByText(/2d/)).toBeInTheDocument()
+  })
+
+  it('shows red urgent banner for SENT quote expiring in < 24 hours', async () => {
+    // +30min buffer ensures hours = 2
+    const expiresAt = new Date(Date.now() + 3600000 * 2 + 1800000).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, expiresAt })
+    render(<QuoteDetailPage />)
+    await waitFor(() =>
+      expect(screen.getByText(/offer expires soon/i)).toBeInTheDocument(),
+    )
+    // hours span is a separate element — check container text content
+    await waitFor(() => {
+      const banner = screen.getByText(/offer expires soon/i).closest('div')!
+      expect(banner.textContent).toMatch(/2h/)
+    })
+  })
+
+  it('shows expired banner for SENT quote whose expiresAt is in the past', async () => {
+    const expiresAt = new Date(Date.now() - 1000).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, expiresAt })
+    render(<QuoteDetailPage />)
+    await waitFor(() =>
+      expect(screen.getByText(/this offer has expired/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows static expired date for EXPIRED status quote', async () => {
+    const expiresAt = new Date(Date.now() - 86400000 * 3).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, status: 'EXPIRED' as const, expiresAt })
+    render(<QuoteDetailPage />)
+    // "Expired April 16, 2026" matches; bare "expired" status badge does not
+    await waitFor(() =>
+      expect(screen.getByText(/^expired \w/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('does not show countdown for PENDING quote', async () => {
+    mockGetQuote.mockResolvedValue({
+      ...sentQuote,
+      status: 'PENDING' as const,
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    })
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByText('Widget A'))
+    expect(screen.queryByText(/offer expires/i)).not.toBeInTheDocument()
+  })
+
+  it('ticks the countdown every second', async () => {
+    // Fake only setInterval + Date so waitFor's internal setTimeout keeps working
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
+    const now = 1_000_000
+    vi.setSystemTime(now)
+    // exactly 90 seconds → 1m 30s → seconds = 30
+    const expiresAt = new Date(now + 90000).toISOString()
+    mockGetQuote.mockResolvedValue({ ...sentQuote, expiresAt })
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByText(/offer expires soon/i))
+    expect(screen.getByText(/30s/)).toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(5000) })
+    expect(screen.getByText(/25s/)).toBeInTheDocument()
+    vi.useRealTimers()
   })
 })
