@@ -77,6 +77,35 @@ export type CreateInvitationRequest = {
   spendingLimit?: number
 }
 
+export type InvoiceStatus = 'ISSUED' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'VOID'
+
+export type InvoicePaymentResponse = {
+  id?: string
+  invoiceId?: string
+  amount?: number
+  paymentReference?: string
+  notes?: string
+  paidAt?: string
+  createdAt?: string
+}
+
+export type InvoiceResponse = {
+  id?: string
+  companyId?: string
+  orderId?: string
+  quoteId?: string
+  status?: InvoiceStatus
+  totalAmount?: number
+  paidAmount?: number
+  outstandingAmount?: number
+  currency?: string
+  issuedAt?: string
+  dueAt?: string
+  payments?: InvoicePaymentResponse[]
+  createdAt?: string
+  updatedAt?: string
+}
+
 // ─── Auth fetch type alias ────────────────────────────────────────────────────
 
 type AuthFetch = ReturnType<typeof createAuthFetch>
@@ -288,3 +317,13 @@ export function getQuotePdfUrl(id: string): string {
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
   return `${baseUrl}/api/v1/quotes/${id}/pdf`
 }
+
+// ─── Invoices ─────────────────────────────────────────────────────────────────
+
+export async function listInvoices(
+  fetch: AuthFetch,
+  companyId: string,
+): Promise<InvoiceResponse[]> {
+  return fetch<InvoiceResponse[]>(`/api/v1/companies/${companyId}/invoices`)
+}
+

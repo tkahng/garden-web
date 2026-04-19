@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { to: '/account/addresses', label: 'Addresses' },
   { to: '/account/orders', label: 'Orders' },
   { to: '/account/company', label: 'Company' },
+  { to: '/account/invoices', label: 'Invoices' },
   { to: '/account/quotes', label: 'Quotes' },
   { to: '/account/quote-cart', label: 'Quote Cart' },
 ] as const

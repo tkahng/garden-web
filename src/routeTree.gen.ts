@@ -30,8 +30,10 @@ import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
 import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
+import { Route as AccountInvoicesIndexRouteImport } from './routes/account/invoices/index'
 import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quotes/$quoteId'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
+import { Route as AccountInvoicesInvoiceIdRouteImport } from './routes/account/invoices/$invoiceId'
 
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
@@ -138,6 +140,11 @@ const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AccountOrdersRoute,
 } as any)
+const AccountInvoicesIndexRoute = AccountInvoicesIndexRouteImport.update({
+  id: '/invoices/',
+  path: '/invoices/',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountQuotesQuoteIdRoute = AccountQuotesQuoteIdRouteImport.update({
   id: '/quotes/$quoteId',
   path: '/quotes/$quoteId',
@@ -148,6 +155,12 @@ const AccountOrdersOrderIdRoute = AccountOrdersOrderIdRouteImport.update({
   path: '/$orderId',
   getParentRoute: () => AccountOrdersRoute,
 } as any)
+const AccountInvoicesInvoiceIdRoute =
+  AccountInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -169,8 +182,10 @@ export interface FileRoutesByFullPath {
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
 }
@@ -192,8 +207,10 @@ export interface FileRoutesByTo {
   '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/invoices': typeof AccountInvoicesIndexRoute
   '/account/orders': typeof AccountOrdersIndexRoute
   '/account/quotes': typeof AccountQuotesIndexRoute
 }
@@ -218,8 +235,10 @@ export interface FileRoutesById {
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
 }
@@ -245,8 +264,10 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
   fileRoutesByTo: FileRoutesByTo
@@ -268,8 +289,10 @@ export interface FileRouteTypes {
     | '/cart'
     | '/collections'
     | '/products'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/invoices'
     | '/account/orders'
     | '/account/quotes'
   id:
@@ -293,8 +316,10 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
+    | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
   fileRoutesById: FileRoutesById
@@ -464,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersIndexRouteImport
       parentRoute: typeof AccountOrdersRoute
     }
+    '/account/invoices/': {
+      id: '/account/invoices/'
+      path: '/invoices'
+      fullPath: '/account/invoices/'
+      preLoaderRoute: typeof AccountInvoicesIndexRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/quotes/$quoteId': {
       id: '/account/quotes/$quoteId'
       path: '/quotes/$quoteId'
@@ -477,6 +509,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/account/orders/$orderId'
       preLoaderRoute: typeof AccountOrdersOrderIdRouteImport
       parentRoute: typeof AccountOrdersRoute
+    }
+    '/account/invoices/$invoiceId': {
+      id: '/account/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/account/invoices/$invoiceId'
+      preLoaderRoute: typeof AccountInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AccountRoute
     }
   }
 }
@@ -502,7 +541,9 @@ interface AccountRouteChildren {
   AccountProfileRoute: typeof AccountProfileRoute
   AccountQuoteCartRoute: typeof AccountQuoteCartRoute
   AccountIndexRoute: typeof AccountIndexRoute
+  AccountInvoicesInvoiceIdRoute: typeof AccountInvoicesInvoiceIdRoute
   AccountQuotesQuoteIdRoute: typeof AccountQuotesQuoteIdRoute
+  AccountInvoicesIndexRoute: typeof AccountInvoicesIndexRoute
   AccountQuotesIndexRoute: typeof AccountQuotesIndexRoute
 }
 
@@ -513,7 +554,9 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountProfileRoute: AccountProfileRoute,
   AccountQuoteCartRoute: AccountQuoteCartRoute,
   AccountIndexRoute: AccountIndexRoute,
+  AccountInvoicesInvoiceIdRoute: AccountInvoicesInvoiceIdRoute,
   AccountQuotesQuoteIdRoute: AccountQuotesQuoteIdRoute,
+  AccountInvoicesIndexRoute: AccountInvoicesIndexRoute,
   AccountQuotesIndexRoute: AccountQuotesIndexRoute,
 }
 
