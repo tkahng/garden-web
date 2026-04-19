@@ -25,6 +25,7 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-passw
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AccountQuoteCartRouteImport } from './routes/account/quote-cart'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
+import { Route as AccountPricingRouteImport } from './routes/account/pricing'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
 import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
@@ -116,6 +117,11 @@ const AccountProfileRoute = AccountProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountPricingRoute = AccountPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/account/addresses'
     | '/account/company'
     | '/account/orders'
+    | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
     | '/auth/callback'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/account/addresses'
     | '/account/company'
+    | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
     | '/auth/callback'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/account/addresses'
     | '/account/company'
     | '/account/orders'
+    | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
     | '/auth/callback'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountProfileRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/pricing': {
+      id: '/account/pricing'
+      path: '/pricing'
+      fullPath: '/account/pricing'
+      preLoaderRoute: typeof AccountPricingRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/orders': {
       id: '/account/orders'
       path: '/orders'
@@ -558,6 +577,7 @@ interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountCompanyRoute: typeof AccountCompanyRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
+  AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
   AccountQuoteCartRoute: typeof AccountQuoteCartRoute
   AccountIndexRoute: typeof AccountIndexRoute
@@ -572,6 +592,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountCompanyRoute: AccountCompanyRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
+  AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,
   AccountQuoteCartRoute: AccountQuoteCartRoute,
   AccountIndexRoute: AccountIndexRoute,

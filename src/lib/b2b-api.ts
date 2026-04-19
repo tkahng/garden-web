@@ -345,6 +345,48 @@ export function getQuotePdfUrl(id: string): string {
   return `${baseUrl}/api/v1/quotes/${id}/pdf`
 }
 
+// ─── Price lists ─────────────────────────────────────────────────────────────
+
+export type PriceListResponse = {
+  id?: string
+  companyId?: string
+  name?: string
+  currency?: string
+  priority?: number
+  startsAt?: string
+  endsAt?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type CustomerPriceEntryResponse = {
+  variantId?: string
+  productTitle?: string
+  productHandle?: string
+  variantTitle?: string
+  sku?: string
+  retailPrice?: number
+  contractPrice?: number
+  minQty?: number
+}
+
+export async function listPriceLists(
+  fetch: AuthFetch,
+  companyId: string,
+): Promise<PriceListResponse[]> {
+  return fetch<PriceListResponse[]>(`/api/v1/companies/${companyId}/price-lists`)
+}
+
+export async function listPriceListEntries(
+  fetch: AuthFetch,
+  companyId: string,
+  priceListId: string,
+): Promise<CustomerPriceEntryResponse[]> {
+  return fetch<CustomerPriceEntryResponse[]>(
+    `/api/v1/companies/${companyId}/price-lists/${priceListId}/entries`,
+  )
+}
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export async function listInvoices(
