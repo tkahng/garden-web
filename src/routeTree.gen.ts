@@ -17,15 +17,20 @@ import { Route as CollectionsIndexRouteImport } from './routes/collections/index
 import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
+import { Route as InvitationsTokenRouteImport } from './routes/invitations/$token'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AccountQuoteCartRouteImport } from './routes/account/quote-cart'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
+import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
+import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
+import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quotes/$quoteId'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
 
 const AccountRoute = AccountRouteImport.update({
@@ -68,6 +73,11 @@ const ProductsHandleRoute = ProductsHandleRouteImport.update({
   path: '/products/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
+  id: '/invitations/$token',
+  path: '/invitations/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CollectionsHandleRoute = CollectionsHandleRouteImport.update({
   id: '/collections/$handle',
   path: '/collections/$handle',
@@ -93,6 +103,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountQuoteCartRoute = AccountQuoteCartRouteImport.update({
+  id: '/quote-cart',
+  path: '/quote-cart',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -103,15 +118,30 @@ const AccountOrdersRoute = AccountOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountCompanyRoute = AccountCompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountAddressesRoute = AccountAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountQuotesIndexRoute = AccountQuotesIndexRouteImport.update({
+  id: '/quotes/',
+  path: '/quotes/',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AccountOrdersRoute,
+} as any)
+const AccountQuotesQuoteIdRoute = AccountQuotesQuoteIdRouteImport.update({
+  id: '/quotes/$quoteId',
+  path: '/quotes/$quoteId',
+  getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersOrderIdRoute = AccountOrdersOrderIdRouteImport.update({
   id: '/$orderId',
@@ -124,38 +154,48 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
+  '/account/quotes/': typeof AccountQuotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account': typeof AccountIndexRoute
   '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/orders': typeof AccountOrdersIndexRoute
+  '/account/quotes': typeof AccountQuotesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -163,20 +203,25 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
+  '/account/quotes/': typeof AccountQuotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -185,58 +230,73 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/account/addresses'
+    | '/account/company'
     | '/account/orders'
     | '/account/profile'
+    | '/account/quote-cart'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
     | '/cart/'
     | '/collections/'
     | '/products/'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
     | '/account/orders/'
+    | '/account/quotes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/account/addresses'
+    | '/account/company'
     | '/account/profile'
+    | '/account/quote-cart'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account'
     | '/cart'
     | '/collections'
     | '/products'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
     | '/account/orders'
+    | '/account/quotes'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/account'
     | '/account/addresses'
+    | '/account/company'
     | '/account/orders'
     | '/account/profile'
+    | '/account/quote-cart'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
     | '/cart/'
     | '/collections/'
     | '/products/'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
     | '/account/orders/'
+    | '/account/quotes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,6 +308,7 @@ export interface RootRouteChildren {
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
+  InvitationsTokenRoute: typeof InvitationsTokenRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   CartIndexRoute: typeof CartIndexRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
@@ -312,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invitations/$token': {
+      id: '/invitations/$token'
+      path: '/invitations/$token'
+      fullPath: '/invitations/$token'
+      preLoaderRoute: typeof InvitationsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/collections/$handle': {
       id: '/collections/$handle'
       path: '/collections/$handle'
@@ -347,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/quote-cart': {
+      id: '/account/quote-cart'
+      path: '/quote-cart'
+      fullPath: '/account/quote-cart'
+      preLoaderRoute: typeof AccountQuoteCartRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
@@ -361,11 +436,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/company': {
+      id: '/account/company'
+      path: '/company'
+      fullPath: '/account/company'
+      preLoaderRoute: typeof AccountCompanyRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/addresses': {
       id: '/account/addresses'
       path: '/addresses'
       fullPath: '/account/addresses'
       preLoaderRoute: typeof AccountAddressesRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quotes/': {
+      id: '/account/quotes/'
+      path: '/quotes'
+      fullPath: '/account/quotes/'
+      preLoaderRoute: typeof AccountQuotesIndexRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/orders/': {
@@ -374,6 +463,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/account/orders/'
       preLoaderRoute: typeof AccountOrdersIndexRouteImport
       parentRoute: typeof AccountOrdersRoute
+    }
+    '/account/quotes/$quoteId': {
+      id: '/account/quotes/$quoteId'
+      path: '/quotes/$quoteId'
+      fullPath: '/account/quotes/$quoteId'
+      preLoaderRoute: typeof AccountQuotesQuoteIdRouteImport
+      parentRoute: typeof AccountRoute
     }
     '/account/orders/$orderId': {
       id: '/account/orders/$orderId'
@@ -401,16 +497,24 @@ const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountCompanyRoute: typeof AccountCompanyRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountProfileRoute: typeof AccountProfileRoute
+  AccountQuoteCartRoute: typeof AccountQuoteCartRoute
   AccountIndexRoute: typeof AccountIndexRoute
+  AccountQuotesQuoteIdRoute: typeof AccountQuotesQuoteIdRoute
+  AccountQuotesIndexRoute: typeof AccountQuotesIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
+  AccountCompanyRoute: AccountCompanyRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountProfileRoute: AccountProfileRoute,
+  AccountQuoteCartRoute: AccountQuoteCartRoute,
   AccountIndexRoute: AccountIndexRoute,
+  AccountQuotesQuoteIdRoute: AccountQuotesQuoteIdRoute,
+  AccountQuotesIndexRoute: AccountQuotesIndexRoute,
 }
 
 const AccountRouteWithChildren =
@@ -425,6 +529,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
+  InvitationsTokenRoute: InvitationsTokenRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   CartIndexRoute: CartIndexRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
