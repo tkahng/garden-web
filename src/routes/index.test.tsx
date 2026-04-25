@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type {
   PageResponse,
@@ -6,6 +6,39 @@ import type {
   ProductSummaryResponse,
 } from '#/lib/api'
 import { HeroSection, FeaturedCollection, CollectionsGrid } from './index'
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    ...rest
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    [key: string]: unknown
+  }) => (
+    <a href={to} className={className} {...rest}>
+      {children}
+    </a>
+  ),
+  useNavigate: () => vi.fn(),
+  lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
+  createFileRoute: () => (_config: unknown) => ({}),
+}))
+
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+}))
+
+vi.mock('#/context/auth-modal', () => ({
+  useAuthModal: () => ({ openAuthModal: vi.fn() }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
 
 const mockPage: PageResponse = {
   id: '1',

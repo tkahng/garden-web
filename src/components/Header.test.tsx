@@ -21,6 +21,7 @@ vi.mock('@tanstack/react-router', () => ({
       {children}
     </a>
   ),
+  useNavigate: () => vi.fn(),
 }))
 
 const mockOpenAuthModal = vi.fn()
@@ -49,6 +50,14 @@ vi.mock('#/context/cart', () => ({
   useCart: () => ({ itemCount: mockItemCount }),
 }))
 
+vi.mock('#/context/guest-cart', () => ({
+  useGuestCart: () => ({ itemCount: mockItemCount, cart: null, sessionId: 'session-123' }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
+
 describe('Header — guest state', () => {
   beforeEach(() => {
     mockUser = null
@@ -64,9 +73,9 @@ describe('Header — guest state', () => {
     ).toBeInTheDocument()
   })
 
-  it('cart icon is a link to /cart', () => {
+  it('cart icon is a button that opens the cart drawer', () => {
     render(<Header />)
-    expect(screen.getByRole('link', { name: /open cart/i })).toHaveAttribute('href', '/cart')
+    expect(screen.getByRole('button', { name: /open cart/i })).toBeInTheDocument()
   })
 
   it('does not show badge when itemCount is 0', () => {

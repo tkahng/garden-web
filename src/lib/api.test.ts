@@ -147,6 +147,7 @@ describe('getProduct', () => {
       variants: [],
       images: [],
       tags: ['organic'],
+      reviewSummary: null,
     }
     vi.stubGlobal('fetch', mockFetch({ data: product }))
 

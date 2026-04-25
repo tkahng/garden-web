@@ -13,6 +13,7 @@ vi.mock('@tanstack/react-router', () => ({
 // Cart context mock state
 let mockCart: ReturnType<typeof buildCart> | null = null
 let mockIsLoading = false
+let mockIsAuthenticated = true
 const mockRemoveItem = vi.fn()
 const mockUpdateQuantity = vi.fn()
 const mockAbandon = vi.fn()
@@ -20,8 +21,20 @@ const mockAbandon = vi.fn()
 vi.mock('#/context/auth', () => ({
   useAuth: () => ({
     authFetch: vi.fn().mockResolvedValue([]),
-    isAuthenticated: false,
+    isAuthenticated: mockIsAuthenticated,
     user: null,
+  }),
+}))
+
+vi.mock('#/context/guest-cart', () => ({
+  useGuestCart: () => ({
+    cart: null,
+    isLoading: false,
+    itemCount: 0,
+    sessionId: 'session-123',
+    removeItem: vi.fn(),
+    updateQuantity: vi.fn(),
+    clearCart: vi.fn(),
   }),
 }))
 
@@ -62,6 +75,7 @@ function buildCart(overrides = {}) {
 beforeEach(() => {
   mockCart = null
   mockIsLoading = false
+  mockIsAuthenticated = true
   mockRemoveItem.mockClear()
   mockUpdateQuantity.mockClear()
   mockAbandon.mockClear()

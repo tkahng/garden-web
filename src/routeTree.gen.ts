@@ -23,6 +23,7 @@ import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AccountWishlistRouteImport } from './routes/account/wishlist'
 import { Route as AccountQuoteCartRouteImport } from './routes/account/quote-cart'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountPricingRouteImport } from './routes/account/pricing'
@@ -107,6 +108,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountWishlistRoute = AccountWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountQuoteCartRoute = AccountQuoteCartRouteImport.update({
   id: '/quote-cart',
   path: '/quote-cart',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/account/pricing'
     | '/account/profile'
     | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
@@ -465,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/wishlist': {
+      id: '/account/wishlist'
+      path: '/wishlist'
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountWishlistRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/quote-cart': {
       id: '/account/quote-cart'
       path: '/quote-cart'
@@ -580,6 +599,7 @@ interface AccountRouteChildren {
   AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
   AccountQuoteCartRoute: typeof AccountQuoteCartRoute
+  AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
   AccountInvoicesInvoiceIdRoute: typeof AccountInvoicesInvoiceIdRoute
   AccountQuotesQuoteIdRoute: typeof AccountQuotesQuoteIdRoute
@@ -595,6 +615,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,
   AccountQuoteCartRoute: AccountQuoteCartRoute,
+  AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
   AccountInvoicesInvoiceIdRoute: AccountInvoicesInvoiceIdRoute,
   AccountQuotesQuoteIdRoute: AccountQuotesQuoteIdRoute,

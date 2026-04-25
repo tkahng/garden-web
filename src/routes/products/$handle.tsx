@@ -8,6 +8,9 @@ import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
 import { addToQuoteCart } from '#/lib/b2b-api'
+import { WishlistButton } from '#/components/WishlistButton'
+import { ProductReviews } from '#/components/ProductReviews'
+import { RelatedProducts } from '#/components/RelatedProducts'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -303,6 +306,12 @@ export function ProductInfo({
         </p>
       )}
 
+      {/* Wishlist */}
+      <div className="flex items-center gap-2">
+        <WishlistButton productId={product.id} />
+        <span className="text-sm text-muted-foreground">Save to wishlist</span>
+      </div>
+
       {/* Description */}
       {product.description != null && (
         <div
@@ -419,6 +428,8 @@ function ProductDetailPage() {
           isAddingToQuoteCart={isAddingToQuote}
         />
       </div>
+      <ProductReviews productId={product.id} reviewSummary={product.reviewSummary} />
+      <RelatedProducts handle={product.handle} />
     </main>
   )
 }

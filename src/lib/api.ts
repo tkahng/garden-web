@@ -69,6 +69,11 @@ export interface ProductImageResponse {
   position: number
 }
 
+export interface ReviewSummaryResponse {
+  averageRating: number | null
+  reviewCount: number
+}
+
 export interface ProductDetailResponse {
   id: string
   title: string
@@ -79,6 +84,7 @@ export interface ProductDetailResponse {
   variants: ProductVariantResponse[]
   images: ProductImageResponse[]
   tags: string[]
+  reviewSummary: ReviewSummaryResponse | null
 }
 
 export interface ProductSummaryResponse {
@@ -289,14 +295,16 @@ export async function getAccount(accessToken: string): Promise<User> {
 
 // Internal helpers
 
-function base(): string {
+export function base(): string {
   const url = import.meta.env.VITE_API_BASE_URL
   if (!url) throw new Error('VITE_API_BASE_URL is not set')
   return url
 }
 
-async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${base()}${path}`)
+export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = options
+    ? await fetch(`${base()}${path}`, options)
+    : await fetch(`${base()}${path}`)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
   return json.data as T
@@ -350,4 +358,11 @@ export function listProducts(params: {
   if (params.size !== undefined) qs.set('size', String(params.size))
   const query = qs.toString()
   return apiFetch(`/api/v1/products${query ? `?${query}` : ''}`)
+}
+
+export function getRelatedProducts(
+  handle: string,
+  limit = 4,
+): Promise<ProductSummaryResponse[]> {
+  return apiFetch(`/api/v1/products/${handle}/related?limit=${limit}`)
 }

@@ -8,6 +8,7 @@ import { AuthModalProvider } from '#/context/auth-modal'
 import { AuthProvider } from '#/context/auth'
 import { CartProvider } from '#/context/cart'
 import { GuestCartProvider } from '#/context/guest-cart'
+import { WishlistProvider } from '#/context/wishlist'
 
 import '../styles.css'
 
@@ -20,6 +21,7 @@ function RootComponent() {
     <AuthModalProvider>
       <AuthProvider>
         <CartProvider>
+          <WishlistProvider>
           <GuestCartProvider>
             <div className="flex min-h-screen flex-col">
               <Header />
@@ -34,6 +36,7 @@ function RootComponent() {
               plugins={[{ name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> }]}
             />
           </GuestCartProvider>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </AuthModalProvider>

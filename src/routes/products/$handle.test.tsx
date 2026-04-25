@@ -7,6 +7,18 @@ import type {
 } from '#/lib/api'
 import { ProductGallery, ProductInfo } from './$handle'
 
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+}))
+
+vi.mock('#/context/auth-modal', () => ({
+  useAuthModal: () => ({ openAuthModal: vi.fn() }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
+
 const mockImages: ProductImageResponse[] = [
   {
     id: 'img1',
@@ -112,6 +124,7 @@ const mockProduct: ProductDetailResponse = {
   variants: mockVariants,
   images: mockImages,
   tags: ['organic', 'heirloom'],
+  reviewSummary: null,
 }
 
 const defaultProps = {

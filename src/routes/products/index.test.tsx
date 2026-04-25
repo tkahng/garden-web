@@ -3,6 +3,39 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import type { ProductSummaryResponse } from '#/lib/api'
 import { ProductCard, FilterBar, Pagination } from './index'
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    ...rest
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    [key: string]: unknown
+  }) => (
+    <a href={to} className={className} {...rest}>
+      {children}
+    </a>
+  ),
+  useNavigate: () => vi.fn(),
+  lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
+  createFileRoute: () => (_config: unknown) => ({}),
+}))
+
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+}))
+
+vi.mock('#/context/auth-modal', () => ({
+  useAuthModal: () => ({ openAuthModal: vi.fn() }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
+
 const base: ProductSummaryResponse = {
   id: 'p1',
   title: 'Heirloom Tomato Seeds',
