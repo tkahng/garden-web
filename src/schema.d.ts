@@ -1838,6 +1838,7 @@ export interface components {
             totalAmount?: number;
             currency?: string;
             stripeSessionId?: string;
+            taxAmount?: number | null;
             items?: components["schemas"]["OrderItemResponse"][];
             /** Format: date-time */
             createdAt?: string;

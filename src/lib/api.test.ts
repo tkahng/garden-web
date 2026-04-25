@@ -120,6 +120,8 @@ describe('getCollection', () => {
       handle: 'seeds-bulbs',
       description: 'All your seed needs.',
       featuredImageUrl: 'https://cdn.example.com/seeds.jpg',
+      metaTitle: null,
+      metaDescription: null,
     }
     vi.stubGlobal('fetch', mockFetch({ data: collection }))
 
@@ -148,6 +150,8 @@ describe('getProduct', () => {
       images: [],
       tags: ['organic'],
       reviewSummary: null,
+      metaTitle: null,
+      metaDescription: null,
     }
     vi.stubGlobal('fetch', mockFetch({ data: product }))
 

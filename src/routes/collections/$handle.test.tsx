@@ -9,6 +9,8 @@ const baseCollection: CollectionDetailResponse = {
   handle: 'seeds-bulbs',
   description: null,
   featuredImageUrl: null,
+  metaTitle: null,
+  metaDescription: null,
 }
 
 describe('CollectionHeader', () => {

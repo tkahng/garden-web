@@ -125,6 +125,8 @@ const mockProduct: ProductDetailResponse = {
   images: mockImages,
   tags: ['organic', 'heirloom'],
   reviewSummary: null,
+  metaTitle: null,
+  metaDescription: null,
 }
 
 const defaultProps = {

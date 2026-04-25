@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
+import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import ReactMarkdown from 'react-markdown'
 import { toast } from 'sonner'
 import { getProduct } from '#/lib/api'
@@ -343,6 +344,7 @@ export function ProductInfo({
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
+  useDocumentMeta(product.metaTitle ?? product.title, product.metaDescription)
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()

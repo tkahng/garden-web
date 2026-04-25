@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from '@tanstack/react-router'
-import { ListIcon } from '@phosphor-icons/react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { ListIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 import ThemeToggle from './ThemeToggle'
 import {
   Sheet,
@@ -31,8 +31,25 @@ export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { openAuthModal } = useAuthModal()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const avatarButtonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus()
+  }, [searchOpen])
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const q = searchValue.trim()
+    if (!q) return
+    setSearchOpen(false)
+    setSearchValue('')
+    void navigate({ to: '/search', search: { q } })
+  }
 
   useEffect(() => {
     function handleMouseDown(e: MouseEvent) {
@@ -80,6 +97,31 @@ export default function Header() {
 
         {/* Right — actions */}
         <div className="flex items-center gap-2">
+          {/* Search */}
+          {searchOpen ? (
+            <form onSubmit={handleSearchSubmit} className="flex items-center">
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && setSearchOpen(false)}
+                onBlur={() => { if (!searchValue) setSearchOpen(false) }}
+                placeholder="Search…"
+                className="w-44 rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </form>
+          ) : (
+            <button
+              type="button"
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
+              className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            >
+              <MagnifyingGlassIcon size={20} />
+            </button>
+          )}
+
           {/* Cart drawer */}
           <CartDrawer />
 

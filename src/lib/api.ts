@@ -23,6 +23,8 @@ export interface CollectionDetailResponse {
   handle: string
   description: string | null
   featuredImageUrl: string | null
+  metaTitle: string | null
+  metaDescription: string | null
 }
 
 export interface CollectionProductResponse {
@@ -85,6 +87,8 @@ export interface ProductDetailResponse {
   images: ProductImageResponse[]
   tags: string[]
   reviewSummary: ReviewSummaryResponse | null
+  metaTitle: string | null
+  metaDescription: string | null
 }
 
 export interface ProductSummaryResponse {
@@ -365,4 +369,42 @@ export function getRelatedProducts(
   limit = 4,
 ): Promise<ProductSummaryResponse[]> {
   return apiFetch(`/api/v1/products/${handle}/related?limit=${limit}`)
+}
+
+export interface SearchArticleResult {
+  id: string
+  blogId: string
+  blogHandle: string | null
+  title: string
+  handle: string
+  excerpt: string | null
+  publishedAt: string | null
+}
+
+export interface SearchPageResult {
+  id: string
+  title: string
+  handle: string
+  publishedAt: string | null
+}
+
+export interface SearchResponse {
+  products: PagedResult<ProductSummaryResponse> | null
+  collections: PagedResult<CollectionSummaryResponse> | null
+  articles: PagedResult<SearchArticleResult> | null
+  pages: PagedResult<SearchPageResult> | null
+}
+
+export function search(params: {
+  q: string
+  types?: string[]
+  page?: number
+  size?: number
+}): Promise<SearchResponse> {
+  const qs = new URLSearchParams()
+  qs.set('q', params.q)
+  if (params.types) params.types.forEach((t) => qs.append('types', t))
+  if (params.page !== undefined) qs.set('page', String(params.page))
+  if (params.size !== undefined) qs.set('size', String(params.size))
+  return apiFetch(`/api/v1/search?${qs.toString()}`)
 }

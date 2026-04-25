@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { getCollection, listCollectionProducts } from '#/lib/api'
+import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import type {
   CollectionDetailResponse,
   CollectionProductResponse,
@@ -88,6 +89,7 @@ function toProductSummary(
 
 function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
+  useDocumentMeta(collection.metaTitle ?? collection.title, collection.metaDescription)
   const navigate = useNavigate({ from: '/collections/$handle' })
 
   function handlePage(page: number) {

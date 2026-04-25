@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -38,6 +39,11 @@ import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quote
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
 import { Route as AccountInvoicesInvoiceIdRouteImport } from './routes/account/invoices/$invoiceId'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
@@ -214,6 +221,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
   '/account/pricing': typeof AccountPricingRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/search'
     | '/account/addresses'
     | '/account/company'
     | '/account/orders'
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/search'
     | '/account/addresses'
     | '/account/company'
     | '/account/pricing'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/search'
     | '/account/addresses'
     | '/account/company'
     | '/account/orders'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
+  SearchRoute: typeof SearchRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
@@ -379,6 +392,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account': {
       id: '/account'
       path: '/account'
@@ -631,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
+  SearchRoute: SearchRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
