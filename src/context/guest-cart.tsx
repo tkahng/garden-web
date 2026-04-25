@@ -1,4 +1,3 @@
-// src/context/cart.tsx
 import {
   createContext,
   useContext,
@@ -9,87 +8,88 @@ import {
   useRef,
 } from 'react'
 import type { ReactNode } from 'react'
-import type { CartResponse, CheckoutResponse } from '#/lib/cart-api'
+import type { CartResponse } from '#/lib/cart-api'
+import {
+  getOrCreateGuestSessionId,
+  getGuestCart,
+  addGuestCartItem,
+  updateGuestCartItem,
+  removeGuestCartItem,
+  abandonGuestCart,
+} from '#/lib/guest-cart-api'
 import { useAuth } from '#/context/auth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface CartContextValue {
+interface GuestCartContextValue {
   cart: CartResponse | null
   isLoading: boolean
   itemCount: number
+  sessionId: string
   addItem: (variantId: string, qty?: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   abandon: () => Promise<void>
-  checkout: (shippingRateId?: string) => Promise<CheckoutResponse>
+  refresh: () => Promise<void>
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
-const CartContext = createContext<CartContextValue | null>(null)
+const GuestCartContext = createContext<GuestCartContextValue | null>(null)
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, authFetch } = useAuth()
-  // authFetch identity changes when tokens refresh (it depends on accessToken in auth state).
-  // We use a ref so mutation callbacks always call the latest authFetch without
-  // needing to be recreated on every token change.
-  const authFetchRef = useRef(authFetch)
-  authFetchRef.current = authFetch  // sync latest on every render
+export function GuestCartProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth()
+  const sessionId = useRef(getOrCreateGuestSessionId())
 
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  const load = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const data = await getGuestCart(sessionId.current)
+      setCart(data)
+    } catch {
+      setCart(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (isAuthenticated) {
       setCart(null)
       return
     }
-
     let cancelled = false
     setIsLoading(true)
-
-    authFetchRef.current<CartResponse>('/api/v1/cart')
+    getGuestCart(sessionId.current)
       .then((data) => { if (!cancelled) setCart(data) })
       .catch(() => { if (!cancelled) setCart(null) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
-
     return () => { cancelled = true }
   }, [isAuthenticated])
 
   const addItem = useCallback(async (variantId: string, qty = 1) => {
-    const updated = await authFetchRef.current<CartResponse>('/api/v1/cart/items', {
-      method: 'POST',
-      body: JSON.stringify({ variantId, quantity: qty }),
-    })
+    const updated = await addGuestCartItem(sessionId.current, variantId, qty)
     setCart(updated)
   }, [])
 
   const removeItem = useCallback(async (itemId: string) => {
-    const updated = await authFetchRef.current<CartResponse>(`/api/v1/cart/items/${itemId}`, { method: 'DELETE' })
+    const updated = await removeGuestCartItem(sessionId.current, itemId)
     setCart(updated)
   }, [])
 
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
-    const updated = await authFetchRef.current<CartResponse>(`/api/v1/cart/items/${itemId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ quantity: qty }),
-    })
+    const updated = await updateGuestCartItem(sessionId.current, itemId, qty)
     setCart(updated)
   }, [])
 
   const abandon = useCallback(async () => {
-    await authFetchRef.current<void>('/api/v1/cart', { method: 'DELETE' })
+    await abandonGuestCart(sessionId.current)
     setCart(null)
-  }, [])
-
-  const checkout = useCallback(async (shippingRateId?: string): Promise<CheckoutResponse> => {
-    return authFetchRef.current<CheckoutResponse>('/api/v1/checkout', {
-      method: 'POST',
-      body: JSON.stringify({ shippingRateId: shippingRateId ?? null }),
-    })
   }, [])
 
   const itemCount = useMemo(
@@ -98,16 +98,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon, checkout }}>
+    <GuestCartContext.Provider
+      value={{
+        cart,
+        isLoading,
+        itemCount,
+        sessionId: sessionId.current,
+        addItem,
+        removeItem,
+        updateQuantity,
+        abandon,
+        refresh: load,
+      }}
+    >
       {children}
-    </CartContext.Provider>
+    </GuestCartContext.Provider>
   )
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used within CartProvider')
+export function useGuestCart() {
+  const ctx = useContext(GuestCartContext)
+  if (!ctx) throw new Error('useGuestCart must be used within GuestCartProvider')
   return ctx
 }

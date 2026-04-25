@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { useAuth } from '#/context/auth'
 import type { CheckoutReturnResponse } from '#/lib/cart-api'
 
 export const Route = createFileRoute('/checkout/return')({
@@ -16,7 +15,6 @@ function CheckoutReturnRoute() {
 }
 
 export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) {
-  const { authFetch } = useAuth()
   const [status, setStatus] = useState<'loading' | 'success' | 'cancelled' | 'error'>(
     sessionId ? 'loading' : 'error',
   )
@@ -26,16 +24,22 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
     if (!sessionId) return
     let cancelled = false
 
-    authFetch<CheckoutReturnResponse>(`/api/v1/checkout/return?session_id=${encodeURIComponent(sessionId)}`)
-      .then((data) => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL ?? ''
+    fetch(`${apiBase}/api/v1/checkout/return?session_id=${encodeURIComponent(sessionId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then((json) => {
         if (cancelled) return
+        const data = json.data as CheckoutReturnResponse
         setOrder(data)
         if (data.status === 'PAID') {
           setStatus('success')
         } else if (data.status === 'CANCELLED') {
           setStatus('cancelled')
         } else {
-          setStatus('success') // PENDING_PAYMENT or REFUNDED — show confirmation
+          setStatus('success')
         }
       })
       .catch(() => {
@@ -43,7 +47,7 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
       })
 
     return () => { cancelled = true }
-  }, [sessionId, authFetch])
+  }, [sessionId])
 
   if (status === 'loading') {
     return (

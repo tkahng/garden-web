@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
 import { useCart } from '#/context/cart'
+import { useGuestCart } from '#/context/guest-cart'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -30,7 +31,9 @@ const navLinkActiveClass =
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
   const { openAuthModal } = useAuthModal()
-  const { itemCount } = useCart()
+  const { itemCount: authItemCount } = useCart()
+  const { itemCount: guestItemCount } = useGuestCart()
+  const itemCount = isAuthenticated ? authItemCount : guestItemCount
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const avatarButtonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)

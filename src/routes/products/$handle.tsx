@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import { toast } from 'sonner'
 import { getProduct } from '#/lib/api'
 import { useCart } from '#/context/cart'
+import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
 import { addToQuoteCart } from '#/lib/b2b-api'
@@ -336,6 +337,7 @@ function ProductDetailPage() {
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
+  const { addItem: addGuestItem } = useGuestCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
@@ -359,14 +361,14 @@ function ProductDetailPage() {
     ) ?? product.variants[0]
 
   async function handleAddToCart() {
-    if (!isAuthenticated) {
-      openAuthModal('login')
-      return
-    }
     setIsAdding(true)
     setAddError(null)
     try {
-      await addItem(activeVariant.id, quantity)
+      if (isAuthenticated) {
+        await addItem(activeVariant.id, quantity)
+      } else {
+        await addGuestItem(activeVariant.id, quantity)
+      }
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
     } finally {

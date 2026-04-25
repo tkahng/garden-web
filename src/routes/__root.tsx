@@ -7,6 +7,7 @@ import AuthModal from '#/components/AuthModal'
 import { AuthModalProvider } from '#/context/auth-modal'
 import { AuthProvider } from '#/context/auth'
 import { CartProvider } from '#/context/cart'
+import { GuestCartProvider } from '#/context/guest-cart'
 
 import '../styles.css'
 
@@ -19,25 +20,20 @@ function RootComponent() {
     <AuthModalProvider>
       <AuthProvider>
         <CartProvider>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <div className="flex-1">
-              <Outlet />
+          <GuestCartProvider>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <div className="flex-1">
+                <Outlet />
+              </div>
+              <Footer />
             </div>
-            <Footer />
-          </div>
-          <AuthModal />
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'TanStack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
+            <AuthModal />
+            <TanStackDevtools
+              config={{ position: 'bottom-right' }}
+              plugins={[{ name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> }]}
+            />
+          </GuestCartProvider>
         </CartProvider>
       </AuthProvider>
     </AuthModalProvider>
