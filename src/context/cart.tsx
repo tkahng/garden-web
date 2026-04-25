@@ -22,7 +22,7 @@ interface CartContextValue {
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   abandon: () => Promise<void>
-  checkout: (shippingRateId?: string) => Promise<CheckoutResponse>
+  checkout: (shippingRateId?: string, discountCode?: string) => Promise<CheckoutResponse>
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -85,10 +85,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart(null)
   }, [])
 
-  const checkout = useCallback(async (shippingRateId?: string): Promise<CheckoutResponse> => {
+  const checkout = useCallback(async (shippingRateId?: string, discountCode?: string): Promise<CheckoutResponse> => {
     return authFetchRef.current<CheckoutResponse>('/api/v1/checkout', {
       method: 'POST',
-      body: JSON.stringify({ shippingRateId: shippingRateId ?? null }),
+      body: JSON.stringify({
+        shippingRateId: shippingRateId ?? null,
+        discountCode: discountCode || null,
+      }),
     })
   }, [])
 

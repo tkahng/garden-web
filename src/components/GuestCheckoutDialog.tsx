@@ -150,6 +150,13 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
   const [ratesLoading, setRatesLoading] = useState(false)
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null)
 
+  // Discount state
+  const [discountInput, setDiscountInput] = useState('')
+  const [appliedCode, setAppliedCode] = useState<string | null>(null)
+  const [discountAmount, setDiscountAmount] = useState<number | null>(null)
+  const [discountError, setDiscountError] = useState<string | null>(null)
+  const [discountLoading, setDiscountLoading] = useState(false)
+
   // Submit state
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -196,6 +203,34 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
     setAddress((prev) => ({ ...prev, [field]: value }))
   }
 
+  async function applyDiscount() {
+    const code = discountInput.trim().toUpperCase()
+    if (!code) return
+    setDiscountLoading(true)
+    setDiscountError(null)
+    try {
+      const subtotal = cart.items?.reduce(
+        (sum, item) => sum + (item.unitPrice ?? 0) * (item.quantity ?? 1), 0,
+      ) ?? 0
+      const res = await fetch(
+        `/api/v1/storefront/discounts/validate?code=${encodeURIComponent(code)}&orderAmount=${subtotal}`,
+      )
+      const json = await res.json() as { data?: { valid: boolean; discountedAmount?: number; message?: string } }
+      const data = json.data
+      if (data?.valid) {
+        setAppliedCode(code)
+        setDiscountAmount(data.discountedAmount ?? 0)
+        setDiscountInput('')
+      } else {
+        setDiscountError(data?.message ?? 'Invalid discount code')
+      }
+    } catch {
+      setDiscountError('Could not apply discount code')
+    } finally {
+      setDiscountLoading(false)
+    }
+  }
+
   const emailValid = email.trim().length > 0 && email.includes('@') && !emailExists
   const addressValid =
     address.firstName.trim() &&
@@ -220,6 +255,7 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
           province: address.province || undefined,
         },
         shippingRateId: selectedRateId,
+        discountCode: appliedCode ?? undefined,
       })
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
@@ -405,6 +441,50 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
             )}
           </div>
 
+          {/* ── Discount code ── */}
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-foreground">Discount code</p>
+            {appliedCode ? (
+              <div className="flex items-center justify-between rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm dark:border-green-700 dark:bg-green-950/30">
+                <span className="font-mono font-semibold text-green-700 dark:text-green-400">
+                  {appliedCode}
+                  {discountAmount != null && discountAmount > 0 && (
+                    <span className="ml-2 font-normal text-green-600">−{formatPrice(discountAmount)}</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { setAppliedCode(null); setDiscountAmount(null); setDiscountError(null) }}
+                  className="ml-3 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter code"
+                  value={discountInput}
+                  onChange={(e) => { setDiscountInput(e.target.value.toUpperCase()); setDiscountError(null) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void applyDiscount() } }}
+                  className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+                <button
+                  type="button"
+                  onClick={() => void applyDiscount()}
+                  disabled={!discountInput.trim() || discountLoading}
+                  className="rounded-lg border border-input px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {discountLoading ? '…' : 'Apply'}
+                </button>
+              </div>
+            )}
+            {discountError && (
+              <p className="text-xs text-destructive">{discountError}</p>
+            )}
+          </div>
+
           {/* ── Order total preview ── */}
           {selectedRateId && (() => {
             const rate = rates.find((r) => r.id === selectedRateId)
@@ -413,6 +493,7 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
               0,
             ) ?? 0
             const shipping = rate?.price ?? 0
+            const discount = discountAmount ?? 0
             return (
               <div className="flex flex-col gap-1 rounded-lg bg-muted/40 px-4 py-3 text-sm">
                 <div className="flex justify-between">
@@ -423,9 +504,15 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
                   <span className="text-muted-foreground">Shipping</span>
                   <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({appliedCode})</span>
+                    <span>−{formatPrice(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-border pt-1 font-semibold">
                   <span>Total</span>
-                  <span>{formatPrice(subtotal + shipping)}</span>
+                  <span>{formatPrice(Math.max(0, subtotal + shipping - discount))}</span>
                 </div>
               </div>
             )
