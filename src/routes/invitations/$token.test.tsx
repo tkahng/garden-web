@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
+import { InvitationPage } from './$token'
+
 // ─── Router mock ─────────────────────────────────────────────────────────────
 
 const mockNavigate = vi.fn()
@@ -37,8 +39,6 @@ vi.mock('#/lib/b2b-api', () => ({
   acceptInvitation: (...a: unknown[]) => mockAcceptInvitation(...a),
 }))
 
-import { InvitationPage } from './$token'
-
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const pendingInvitation = {
@@ -61,15 +61,21 @@ describe('InvitationPage', () => {
     mockGetInvitation.mockRejectedValue(new Error('404'))
     render(<InvitationPage />)
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: /invitation not found/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole('heading', { name: /invitation not found/i }),
+      ).toBeInTheDocument(),
     )
   })
 
   it('shows company name and accept button for pending invitation', async () => {
     mockGetInvitation.mockResolvedValue(pendingInvitation)
     render(<InvitationPage />)
-    await waitFor(() => expect(screen.getByText('Acme Corp')).toBeInTheDocument())
-    expect(screen.getByRole('button', { name: /accept invitation/i })).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText('Acme Corp')).toBeInTheDocument(),
+    )
+    expect(
+      screen.getByRole('button', { name: /accept invitation/i }),
+    ).toBeInTheDocument()
   })
 
   it('shows email and role in detail rows', async () => {
@@ -81,21 +87,34 @@ describe('InvitationPage', () => {
   })
 
   it('hides accept button and shows expired message for cancelled invitation', async () => {
-    mockGetInvitation.mockResolvedValue({ ...pendingInvitation, status: 'CANCELLED' as const })
+    mockGetInvitation.mockResolvedValue({
+      ...pendingInvitation,
+      status: 'CANCELLED' as const,
+    })
     render(<InvitationPage />)
     await waitFor(() => screen.getByText('Acme Corp'))
-    expect(screen.queryByRole('button', { name: /accept/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /accept/i }),
+    ).not.toBeInTheDocument()
     expect(screen.getByText(/no longer valid/i)).toBeInTheDocument()
   })
 
   it('calls acceptInvitation with the token from the route', async () => {
     mockGetInvitation.mockResolvedValue(pendingInvitation)
-    mockAcceptInvitation.mockResolvedValue({ ...pendingInvitation, status: 'ACCEPTED' })
+    mockAcceptInvitation.mockResolvedValue({
+      ...pendingInvitation,
+      status: 'ACCEPTED',
+    })
     render(<InvitationPage />)
-    await waitFor(() => screen.getByRole('button', { name: /accept invitation/i }))
+    await waitFor(() =>
+      screen.getByRole('button', { name: /accept invitation/i }),
+    )
     fireEvent.click(screen.getByRole('button', { name: /accept invitation/i }))
     await waitFor(() =>
-      expect(mockAcceptInvitation).toHaveBeenCalledWith(mockAuthFetch, 'test-token-uuid'),
+      expect(mockAcceptInvitation).toHaveBeenCalledWith(
+        mockAuthFetch,
+        'test-token-uuid',
+      ),
     )
   })
 
@@ -103,7 +122,9 @@ describe('InvitationPage', () => {
     mockGetInvitation.mockResolvedValue(pendingInvitation)
     mockAcceptInvitation.mockReturnValue(new Promise(() => {}))
     render(<InvitationPage />)
-    await waitFor(() => screen.getByRole('button', { name: /accept invitation/i }))
+    await waitFor(() =>
+      screen.getByRole('button', { name: /accept invitation/i }),
+    )
     fireEvent.click(screen.getByRole('button', { name: /accept invitation/i }))
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /accepting/i })).toBeDisabled(),
@@ -111,7 +132,10 @@ describe('InvitationPage', () => {
   })
 
   it('does not call acceptInvitation for expired invitation', async () => {
-    mockGetInvitation.mockResolvedValue({ ...pendingInvitation, status: 'EXPIRED' as const })
+    mockGetInvitation.mockResolvedValue({
+      ...pendingInvitation,
+      status: 'EXPIRED' as const,
+    })
     render(<InvitationPage />)
     await waitFor(() => screen.getByText('Acme Corp'))
     expect(mockAcceptInvitation).not.toHaveBeenCalled()
