@@ -28,7 +28,7 @@ function ProductCard({ item }: { item: ProductSummaryResponse }) {
   return (
     <Link
       to="/products/$handle"
-      params={{ handle: item.handle }}
+      params={{ handle: item.handle ?? '' }}
       className="flex items-center gap-3 rounded-xl border border-border p-3 hover:bg-accent transition"
     >
       <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -52,7 +52,7 @@ function CollectionCard({ item }: { item: CollectionSummaryResponse }) {
   return (
     <Link
       to="/collections/$handle"
-      params={{ handle: item.handle }}
+      params={{ handle: item.handle ?? '' }}
       search={{ page: 0 }}
       className="flex items-center gap-3 rounded-xl border border-border p-3 hover:bg-accent transition"
     >
@@ -146,10 +146,10 @@ function SearchPage() {
   }
 
   const totalResults =
-    (results?.products?.meta.total ?? 0) +
-    (results?.collections?.meta.total ?? 0) +
-    (results?.articles?.meta.total ?? 0) +
-    (results?.pages?.meta.total ?? 0)
+    (results?.products?.meta?.total ?? 0) +
+    (results?.collections?.meta?.total ?? 0) +
+    (results?.articles?.meta?.total ?? 0) +
+    (results?.pages?.meta?.total ?? 0)
 
   return (
     <main className="page-wrap px-4 py-10 max-w-2xl">
@@ -189,20 +189,20 @@ function SearchPage() {
       {/* Results */}
       {!isLoading && results && totalResults > 0 && (
         <div className="flex flex-col gap-8">
-          <Section title="Products" count={results.products?.meta.total ?? 0}>
-            {results.products?.content.map((p) => <ProductCard key={p.id} item={p} />)}
+          <Section title="Products" count={results.products?.meta?.total ?? 0}>
+            {results.products?.content?.map((p) => <ProductCard key={p.id} item={p} />)}
           </Section>
 
-          <Section title="Collections" count={results.collections?.meta.total ?? 0}>
-            {results.collections?.content.map((c) => <CollectionCard key={c.id} item={c} />)}
+          <Section title="Collections" count={results.collections?.meta?.total ?? 0}>
+            {results.collections?.content?.map((c) => <CollectionCard key={c.id} item={c} />)}
           </Section>
 
-          <Section title="Articles" count={results.articles?.meta.total ?? 0}>
-            {results.articles?.content.map((a) => <ArticleCard key={a.id} item={a} />)}
+          <Section title="Articles" count={results.articles?.meta?.total ?? 0}>
+            {results.articles?.content?.map((a) => <ArticleCard key={a.id} item={a} />)}
           </Section>
 
-          <Section title="Pages" count={results.pages?.meta.total ?? 0}>
-            {results.pages?.content.map((p) => <PageCard key={p.id} item={p} />)}
+          <Section title="Pages" count={results.pages?.meta?.total ?? 0}>
+            {results.pages?.content?.map((p) => <PageCard key={p.id} item={p} />)}
           </Section>
         </div>
       )}

@@ -8,7 +8,7 @@ import type {
 import { ProductGallery, ProductInfo } from './$handle'
 
 vi.mock('#/context/auth', () => ({
-  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+  useAuth: () => ({ isAuthenticated: false, authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() } }),
 }))
 
 vi.mock('#/context/auth-modal', () => ({
@@ -94,7 +94,7 @@ const mockVariants: ProductVariantResponse[] = [
       { optionName: 'Size', valueLabel: 'S' },
       { optionName: 'Color', valueLabel: 'Lagoon' },
     ],
-    fulfillmentType: 'PHYSICAL',
+    fulfillmentType: 'IN_STOCK',
     inventoryPolicy: 'DENY',
     leadTimeDays: 0,
   },
@@ -103,12 +103,12 @@ const mockVariants: ProductVariantResponse[] = [
     title: 'M / Lagoon',
     sku: 'SKU-002',
     price: 21.99,
-    compareAtPrice: null,
+    compareAtPrice: undefined,
     optionValues: [
       { optionName: 'Size', valueLabel: 'M' },
       { optionName: 'Color', valueLabel: 'Lagoon' },
     ],
-    fulfillmentType: 'PHYSICAL',
+    fulfillmentType: 'IN_STOCK',
     inventoryPolicy: 'DENY',
     leadTimeDays: 0,
   },
@@ -124,9 +124,9 @@ const mockProduct: ProductDetailResponse = {
   variants: mockVariants,
   images: mockImages,
   tags: ['organic', 'heirloom'],
-  reviewSummary: null,
-  metaTitle: null,
-  metaDescription: null,
+  reviewSummary: undefined,
+  metaTitle: undefined,
+  metaDescription: undefined,
 }
 
 const defaultProps = {
@@ -156,7 +156,7 @@ describe('ProductInfo — static rendering', () => {
   it('omits the kicker when vendor and productType are both null', () => {
     const props = {
       ...defaultProps,
-      product: { ...mockProduct, vendor: null, productType: null },
+      product: { ...mockProduct, vendor: undefined, productType: undefined },
     }
     render(<ProductInfo {...props} />)
     expect(screen.queryByTestId('product-kicker')).not.toBeInTheDocument()
@@ -173,7 +173,7 @@ describe('ProductInfo — static rendering', () => {
   it('omits the description section when description is null', () => {
     const props = {
       ...defaultProps,
-      product: { ...mockProduct, description: null },
+      product: { ...mockProduct, description: undefined },
     }
     render(<ProductInfo {...props} />)
     expect(screen.queryByTestId('product-description')).not.toBeInTheDocument()
@@ -294,14 +294,14 @@ describe('ProductInfo — Add to quote cart', () => {
   })
 
   it('shows only "Add to quote cart" as primary action for quote-only variants (null price)', () => {
-    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    const quoteOnlyVariant = { ...mockVariants[0], price: undefined }
     render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
     expect(screen.getByRole('button', { name: /add to quote cart/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /add to cart/i })).not.toBeInTheDocument()
   })
 
   it('shows "quote only" notice for null-price variants', () => {
-    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    const quoteOnlyVariant = { ...mockVariants[0], price: undefined }
     render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
     expect(screen.getByText(/quote only/i)).toBeInTheDocument()
   })
@@ -309,14 +309,14 @@ describe('ProductInfo — Add to quote cart', () => {
   it('shows "Unavailable" when activeVariant is undefined on quote-only product', () => {
     const quoteOnlyProduct = {
       ...mockProduct,
-      variants: [{ ...mockVariants[0], price: null }],
+      variants: [{ ...mockVariants[0], price: undefined }],
     }
     render(<ProductInfo {...defaultProps} product={quoteOnlyProduct} activeVariant={undefined} />)
     expect(screen.getByRole('button', { name: /unavailable/i })).toBeDisabled()
   })
 
   it('hides price display for null-price variants', () => {
-    const quoteOnlyVariant = { ...mockVariants[0], price: null }
+    const quoteOnlyVariant = { ...mockVariants[0], price: undefined }
     render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
     expect(screen.queryByText('$19.99')).not.toBeInTheDocument()
   })

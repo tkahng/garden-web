@@ -18,8 +18,8 @@ function ReviewCard({ review }: { review: ReviewResponse }) {
   return (
     <div className="border-b border-border py-5 flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <StarRating rating={review.rating} size={14} />
-        <span className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</span>
+        <StarRating rating={review.rating ?? 0} size={14} />
+        <span className="text-xs text-muted-foreground">{formatDate(review.createdAt ?? '')}</span>
       </div>
       {review.title && (
         <p className="text-sm font-semibold text-foreground">{review.title}</p>
@@ -129,7 +129,7 @@ export function ProductReviews({
     try {
       const data = await getProductReviews(productId, p, pageSize)
       setReviews(data.content)
-      setTotal(data.meta.total)
+      setTotal(data.meta.total ?? 0)
       setPage(p)
     } catch {
       // silent

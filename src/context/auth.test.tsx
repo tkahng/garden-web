@@ -5,6 +5,14 @@ import { AuthProvider, useAuth } from './auth'
 
 import * as api from '#/lib/api'
 
+const mockApiClient = {
+  GET: vi.fn(),
+  POST: vi.fn(),
+  PUT: vi.fn(),
+  DELETE: vi.fn(),
+  PATCH: vi.fn(),
+}
+
 // Stub api module
 vi.mock('#/lib/api', () => ({
   authLogin: vi.fn(),
@@ -12,7 +20,7 @@ vi.mock('#/lib/api', () => ({
   authLogout: vi.fn(),
   authRefresh: vi.fn(),
   getAccount: vi.fn(),
-  createAuthFetch: vi.fn(() => vi.fn()),
+  createAuthClient: vi.fn(() => mockApiClient),
 }))
 
 const STORAGE_KEY = 'garden:auth'

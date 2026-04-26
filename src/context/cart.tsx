@@ -10,6 +10,14 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 import type { CartResponse, CheckoutResponse } from '#/lib/cart-api'
+import {
+  getCart,
+  addCartItem,
+  removeCartItem,
+  updateCartItem,
+  abandonCart,
+  checkout,
+} from '#/lib/cart-api'
 import { useAuth } from '#/context/auth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,11 +41,10 @@ const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, authFetch } = useAuth()
-  // authFetch identity changes when tokens refresh (it depends on accessToken in auth state).
-  // We use a ref so mutation callbacks always call the latest authFetch without
-  // needing to be recreated on every token change.
+  // authFetch identity changes when tokens refresh. We use a ref so mutation
+  // callbacks always call the latest client without needing to be recreated.
   const authFetchRef = useRef(authFetch)
-  authFetchRef.current = authFetch  // sync latest on every render
+  authFetchRef.current = authFetch
 
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -51,7 +58,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     setIsLoading(true)
 
-    authFetchRef.current<CartResponse>('/api/v1/cart')
+    getCart(authFetchRef.current)
       .then((data) => { if (!cancelled) setCart(data) })
       .catch(() => { if (!cancelled) setCart(null) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
@@ -60,38 +67,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated])
 
   const addItem = useCallback(async (variantId: string, qty = 1) => {
-    const updated = await authFetchRef.current<CartResponse>('/api/v1/cart/items', {
-      method: 'POST',
-      body: JSON.stringify({ variantId, quantity: qty }),
-    })
+    const updated = await addCartItem(authFetchRef.current, variantId, qty)
     setCart(updated)
   }, [])
 
   const removeItem = useCallback(async (itemId: string) => {
-    const updated = await authFetchRef.current<CartResponse>(`/api/v1/cart/items/${itemId}`, { method: 'DELETE' })
+    const updated = await removeCartItem(authFetchRef.current, itemId)
     setCart(updated)
   }, [])
 
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
-    const updated = await authFetchRef.current<CartResponse>(`/api/v1/cart/items/${itemId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ quantity: qty }),
-    })
+    const updated = await updateCartItem(authFetchRef.current, itemId, qty)
     setCart(updated)
   }, [])
 
   const abandon = useCallback(async () => {
-    await authFetchRef.current<void>('/api/v1/cart', { method: 'DELETE' })
+    await abandonCart(authFetchRef.current)
     setCart(null)
   }, [])
 
-  const checkout = useCallback(async (shippingRateId?: string, discountCode?: string): Promise<CheckoutResponse> => {
-    return authFetchRef.current<CheckoutResponse>('/api/v1/checkout', {
-      method: 'POST',
-      body: JSON.stringify({
-        shippingRateId: shippingRateId ?? null,
-        discountCode: discountCode || null,
-      }),
+  const checkoutFn = useCallback(async (shippingRateId?: string, discountCode?: string): Promise<CheckoutResponse> => {
+    return checkout(authFetchRef.current, {
+      shippingRateId: shippingRateId ?? undefined,
+      discountCode: discountCode || undefined,
     })
   }, [])
 
@@ -101,7 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon, checkout }}>
+    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon, checkout: checkoutFn }}>
       {children}
     </CartContext.Provider>
   )

@@ -20,7 +20,7 @@ const mockAbandon = vi.fn()
 
 vi.mock('#/context/auth', () => ({
   useAuth: () => ({
-    authFetch: vi.fn().mockResolvedValue([]),
+    authFetch: { GET: vi.fn().mockResolvedValue({ data: { data: [] } }), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() },
     isAuthenticated: mockIsAuthenticated,
     user: null,
   }),

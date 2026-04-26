@@ -24,12 +24,12 @@ function RelatedProductCard({ product }: { product: ProductSummaryResponse }) {
           )}
         </div>
         <p className="text-sm font-semibold text-foreground leading-snug">{product.title}</p>
-        {product.priceMin !== null && (
-          <p className="text-sm text-muted-foreground mt-0.5">{formatPrice(product.priceMin)}</p>
+        {product.priceMin != null && (
+          <p className="text-sm text-muted-foreground mt-0.5">{formatPrice(product.priceMin ?? 0)}</p>
         )}
       </a>
       <div className="absolute top-2 right-2">
-        <WishlistButton productId={product.id} className="bg-background/80 backdrop-blur-sm shadow-sm" />
+        <WishlistButton productId={product.id ?? ''} className="bg-background/80 backdrop-blur-sm shadow-sm" />
       </div>
     </div>
   )

@@ -4,26 +4,27 @@ import { render, screen, act } from '@testing-library/react'
 import { CartProvider, useCart } from './cart'
 
 let mockIsAuthenticated = false
-let mockGetCart: ReturnType<typeof vi.fn>
-let mockAddCartItem: ReturnType<typeof vi.fn>
-let mockUpdateCartItem: ReturnType<typeof vi.fn>
-let mockRemoveCartItem: ReturnType<typeof vi.fn>
-let mockAbandonCart: ReturnType<typeof vi.fn>
 
+// Mock auth context — authFetch just needs to look like an ApiClient
 vi.mock('#/context/auth', () => ({
   useAuth: () => ({
     isAuthenticated: mockIsAuthenticated,
-    authFetch: vi.fn().mockImplementation((path: string, init?: RequestInit) => {
-      const method = (init?.method ?? 'GET').toUpperCase()
-      if (method === 'GET' && path === '/api/v1/cart') return mockGetCart()
-      if (method === 'POST' && path === '/api/v1/cart/items') return mockAddCartItem()
-      if (method === 'PUT' && path.startsWith('/api/v1/cart/items/')) return mockUpdateCartItem()
-      if (method === 'DELETE' && path.startsWith('/api/v1/cart/items/')) return mockRemoveCartItem()
-      if (method === 'DELETE' && path === '/api/v1/cart') return mockAbandonCart()
-      return Promise.resolve(null)
-    }),
+    authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() },
   }),
 }))
+
+// Mock cart-api functions so we control return values per test
+vi.mock('#/lib/cart-api', () => ({
+  getCart: vi.fn(),
+  addCartItem: vi.fn(),
+  updateCartItem: vi.fn(),
+  removeCartItem: vi.fn(),
+  abandonCart: vi.fn(),
+  validateDiscount: vi.fn(),
+  checkout: vi.fn(),
+}))
+
+import * as cartApi from '#/lib/cart-api'
 
 const mockCart = {
   id: 'cart-1',
@@ -34,7 +35,7 @@ const mockCart = {
       variantId: 'v1',
       quantity: 2,
       unitPrice: 9.99,
-      product: { productId: 'p1', productTitle: 'Tomato Seeds', variantTitle: 'Small', imageUrl: null },
+      product: { productId: 'p1', productTitle: 'Tomato Seeds', variantTitle: 'Small', imageUrl: undefined },
     },
   ],
   createdAt: '2026-04-10T00:00:00Z',
@@ -85,11 +86,14 @@ function Harness() {
 
 beforeEach(() => {
   mockIsAuthenticated = false
-  mockGetCart = vi.fn().mockResolvedValue(mockCart)
-  mockAddCartItem = vi.fn().mockResolvedValue({ ...mockCart, id: 'cart-updated' })
-  mockUpdateCartItem = vi.fn().mockResolvedValue({ ...mockCart, items: [{ ...mockCart.items[0], quantity: 5 }] })
-  mockRemoveCartItem = vi.fn().mockResolvedValue({ ...mockCart, items: [] })
-  mockAbandonCart = vi.fn().mockResolvedValue(undefined)
+  vi.mocked(cartApi.getCart).mockResolvedValue(mockCart)
+  vi.mocked(cartApi.addCartItem).mockResolvedValue({ ...mockCart, id: 'cart-updated' })
+  vi.mocked(cartApi.updateCartItem).mockResolvedValue({
+    ...mockCart,
+    items: [{ ...mockCart.items[0], quantity: 5 }],
+  })
+  vi.mocked(cartApi.removeCartItem).mockResolvedValue({ ...mockCart, items: [] })
+  vi.mocked(cartApi.abandonCart).mockResolvedValue(undefined as never)
 })
 
 afterEach(() => {
@@ -116,41 +120,41 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('item-count').textContent).toBe('2')
   })
 
-  it('addItem calls authFetch POST and updates cart', async () => {
+  it('addItem calls addCartItem and updates cart', async () => {
     mockIsAuthenticated = true
     await act(async () => { render(<Harness />) })
     await act(async () => { screen.getByText('add').click() })
-    expect(mockAddCartItem).toHaveBeenCalled()
+    expect(cartApi.addCartItem).toHaveBeenCalled()
     expect(screen.getByTestId('cart-id').textContent).toBe('cart-updated')
   })
 
-  it('removeItem calls authFetch DELETE and updates cart', async () => {
+  it('removeItem calls removeCartItem and updates cart', async () => {
     mockIsAuthenticated = true
     await act(async () => { render(<Harness />) })
     await act(async () => { screen.getByText('remove').click() })
-    expect(mockRemoveCartItem).toHaveBeenCalled()
+    expect(cartApi.removeCartItem).toHaveBeenCalled()
     expect(screen.getByTestId('item-count').textContent).toBe('0')
   })
 
-  it('updateQuantity calls authFetch PUT and updates cart', async () => {
+  it('updateQuantity calls updateCartItem and updates cart', async () => {
     mockIsAuthenticated = true
     await act(async () => { render(<Harness />) })
     await act(async () => { screen.getByText('update').click() })
-    expect(mockUpdateCartItem).toHaveBeenCalled()
+    expect(cartApi.updateCartItem).toHaveBeenCalled()
     expect(screen.getByTestId('item-count').textContent).toBe('5')
   })
 
-  it('abandon calls authFetch DELETE on /api/v1/cart and clears cart', async () => {
+  it('abandon calls abandonCart and clears cart', async () => {
     mockIsAuthenticated = true
     await act(async () => { render(<Harness />) })
     await act(async () => { screen.getByText('abandon').click() })
-    expect(mockAbandonCart).toHaveBeenCalled()
+    expect(cartApi.abandonCart).toHaveBeenCalled()
     expect(screen.getByTestId('cart-id').textContent).toBe('none')
   })
 
   it('sets cart to null and stops loading when fetch fails', async () => {
     mockIsAuthenticated = true
-    mockGetCart = vi.fn().mockRejectedValue(new Error('Network error'))
+    vi.mocked(cartApi.getCart).mockRejectedValue(new Error('Network error'))
 
     await act(async () => { render(<Harness />) })
 

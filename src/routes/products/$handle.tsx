@@ -55,10 +55,12 @@ function buildOptionGroups(
 ): [string, string[]][] {
   const map = new Map<string, string[]>()
   for (const variant of variants) {
-    for (const ov of variant.optionValues) {
-      if (!map.has(ov.optionName)) map.set(ov.optionName, [])
-      const values = map.get(ov.optionName)!
-      if (!values.includes(ov.valueLabel)) values.push(ov.valueLabel)
+    for (const ov of variant.optionValues ?? []) {
+      const name = ov.optionName ?? ''
+      const label = ov.valueLabel ?? ''
+      if (!map.has(name)) map.set(name, [])
+      const values = map.get(name)!
+      if (!values.includes(label)) values.push(label)
     }
   }
   return Array.from(map.entries())
@@ -149,7 +151,7 @@ export function ProductInfo({
     .join(' · ')
 
   const optionGroups = useMemo(
-    () => buildOptionGroups(product.variants),
+    () => buildOptionGroups(product.variants ?? []),
     [product.variants],
   )
 
@@ -309,7 +311,7 @@ export function ProductInfo({
 
       {/* Wishlist */}
       <div className="flex items-center gap-2">
-        <WishlistButton productId={product.id} />
+        <WishlistButton productId={product.id ?? ''} />
         <span className="text-sm text-muted-foreground">Save to wishlist</span>
       </div>
 
@@ -324,9 +326,9 @@ export function ProductInfo({
       )}
 
       {/* Tags */}
-      {product.tags.length > 0 && (
+      {(product.tags ?? []).length > 0 && (
         <div data-testid="product-tags" className="flex flex-wrap gap-2">
-          {product.tags.map((tag) => (
+          {(product.tags ?? []).map((tag) => (
             <span
               key={tag}
               className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
@@ -354,10 +356,10 @@ function ProductDetailPage() {
     Record<string, string>
   >(() =>
     Object.fromEntries(
-      product.variants[0]?.optionValues.map((v) => [
-        v.optionName,
-        v.valueLabel,
-      ]) ?? [],
+      (product.variants?.[0]?.optionValues ?? []).map((v) => [
+        v.optionName ?? '',
+        v.valueLabel ?? '',
+      ]),
     ),
   )
   const [quantity, setQuantity] = useState(1)
@@ -365,20 +367,20 @@ function ProductDetailPage() {
   const [isAddingToQuote, setIsAddingToQuote] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
-    product.variants.find((v) =>
-      v.optionValues.every(
-        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
+    (product.variants ?? []).find((v) =>
+      (v.optionValues ?? []).every(
+        (ov) => selectedOptions[ov.optionName ?? ''] === ov.valueLabel,
       ),
-    ) ?? product.variants[0]
+    ) ?? product.variants?.[0]
 
   async function handleAddToCart() {
     setIsAdding(true)
     setAddError(null)
     try {
       if (isAuthenticated) {
-        await addItem(activeVariant.id, quantity)
+        await addItem(activeVariant?.id ?? '', quantity)
       } else {
-        await addGuestItem(activeVariant.id, quantity)
+        await addGuestItem(activeVariant?.id ?? '', quantity)
       }
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
@@ -394,7 +396,7 @@ function ProductDetailPage() {
     }
     setIsAddingToQuote(true)
     try {
-      await addToQuoteCart(authFetch, { variantId: activeVariant.id, quantity })
+      await addToQuoteCart(authFetch, { variantId: activeVariant?.id ?? '', quantity })
       toast.success('Added to quote cart', {
         action: {
           label: 'View cart',
@@ -412,7 +414,7 @@ function ProductDetailPage() {
     <main className="page-wrap px-4 py-10">
       <div className="grid gap-12 lg:grid-cols-2">
         <ProductGallery
-          images={product.images}
+          images={product.images ?? []}
           activeIndex={activeGalleryIndex}
           onSelect={setActiveGalleryIndex}
         />
@@ -430,8 +432,8 @@ function ProductDetailPage() {
           isAddingToQuoteCart={isAddingToQuote}
         />
       </div>
-      <ProductReviews productId={product.id} reviewSummary={product.reviewSummary} />
-      <RelatedProducts handle={product.handle} />
+      <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />
+      <RelatedProducts handle={product.handle ?? ''} />
     </main>
   )
 }

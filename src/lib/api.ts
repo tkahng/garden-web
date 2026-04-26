@@ -1,107 +1,30 @@
-// Response types — mirror the backend DTOs exactly
+import type { components } from '#/schema'
+import { createPublicClient, callApi } from '#/lib/client'
+export { createAuthClient } from '#/lib/client'
+export type { ApiClient, AuthClientConfig } from '#/lib/client'
 
-export interface PageResponse {
-  id: string
-  title: string
-  handle: string
-  body: string
-  metaTitle: string | null
-  metaDescription: string | null
-  publishedAt: string
-}
+// ─── Re-exported schema types ─────────────────────────────────────────────────
 
-export interface CollectionSummaryResponse {
-  id: string
-  title: string
-  handle: string
-  featuredImageUrl: string | null
-}
-
-export interface CollectionDetailResponse {
-  id: string
-  title: string
-  handle: string
-  description: string | null
-  featuredImageUrl: string | null
-  metaTitle: string | null
-  metaDescription: string | null
-}
-
-export interface CollectionProductResponse {
-  id: string
-  productId: string
-  title: string
-  handle: string
-  position: number
-  featuredImageUrl: string | null
-}
-
-export interface PageMeta {
-  page: number
-  pageSize: number
-  total: number
-}
+export type PageResponse = components['schemas']['PageResponse']
+export type CollectionSummaryResponse = components['schemas']['CollectionSummaryResponse']
+export type CollectionDetailResponse = components['schemas']['CollectionDetailResponse']
+export type CollectionProductResponse = components['schemas']['CollectionProductResponse']
+export type PageMeta = components['schemas']['PageMeta']
+export type ProductVariantResponse = components['schemas']['ProductVariantResponse']
+export type ProductImageResponse = components['schemas']['ProductImageResponse']
+export type ReviewSummaryResponse = components['schemas']['ReviewSummaryResponse']
+export type ProductDetailResponse = components['schemas']['ProductDetailResponse']
+export type ProductSummaryResponse = components['schemas']['ProductSummaryResponse']
+export type SearchResponse = components['schemas']['SearchResponse']
+export type SearchArticleResult = components['schemas']['SearchArticleResult']
+export type SearchPageResult = components['schemas']['SearchPageResult']
 
 export interface PagedResult<T> {
   content: T[]
   meta: PageMeta
 }
 
-export interface OptionValueLabel {
-  optionName: string
-  valueLabel: string
-}
-
-export interface ProductVariantResponse {
-  id: string
-  title: string
-  sku: string | null
-  price: number | null
-  compareAtPrice: number | null
-  optionValues: OptionValueLabel[]
-  fulfillmentType: string
-  inventoryPolicy: string
-  leadTimeDays: number
-}
-
-export interface ProductImageResponse {
-  id: string
-  url: string
-  altText: string | null
-  position: number
-}
-
-export interface ReviewSummaryResponse {
-  averageRating: number | null
-  reviewCount: number
-}
-
-export interface ProductDetailResponse {
-  id: string
-  title: string
-  description: string | null
-  handle: string
-  vendor: string | null
-  productType: string | null
-  variants: ProductVariantResponse[]
-  images: ProductImageResponse[]
-  tags: string[]
-  reviewSummary: ReviewSummaryResponse | null
-  metaTitle: string | null
-  metaDescription: string | null
-}
-
-export interface ProductSummaryResponse {
-  id: string
-  title: string
-  handle: string
-  vendor: string | null
-  featuredImageUrl: string | null
-  priceMin: number | null
-  priceMax: number | null
-  compareAtPriceMin: number | null
-  compareAtPriceMax: number | null
-}
+// ─── Auth types ───────────────────────────────────────────────────────────────
 
 export interface User {
   id: string
@@ -117,85 +40,13 @@ export interface AuthTokens {
   refreshToken: string
 }
 
-export interface AuthFetchConfig {
-  getTokens: () => { accessToken: string | null; refreshToken: string | null }
-  onTokensRefreshed: (tokens: AuthTokens) => void
-  onAuthFailure: () => void
-}
-
-export function createAuthFetch(config: AuthFetchConfig) {
-  return async function authFetch<T>(
-    path: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    const { accessToken, refreshToken } = config.getTokens()
-
-    const headers: Record<string, string> = {
-      ...(options.body !== undefined
-        ? { 'Content-Type': 'application/json' }
-        : {}),
-      ...(options.headers as Record<string, string> | undefined),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    }
-
-    const res = await fetch(`${base()}${path}`, { ...options, headers })
-
-    if (res.status === 401) {
-      if (refreshToken) {
-        const refreshRes = await fetch(`${base()}/api/v1/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        })
-
-        if (!refreshRes.ok) {
-          config.onAuthFailure()
-          throw new Error('Session expired')
-        }
-
-        const refreshJson = await refreshRes.json()
-        const newTokens: AuthTokens = {
-          accessToken: refreshJson.data.accessToken,
-          refreshToken: refreshJson.data.refreshToken,
-        }
-        config.onTokensRefreshed(newTokens)
-
-        const retryRes = await fetch(`${base()}${path}`, {
-          ...options,
-          headers: {
-            ...headers,
-            Authorization: `Bearer ${newTokens.accessToken}`,
-          },
-        })
-        if (!retryRes.ok) {
-          if (retryRes.status === 401) {
-            config.onAuthFailure()
-            throw new Error('Session expired')
-          }
-          throw new Error(`HTTP ${retryRes.status}`)
-        }
-        const retryJson = await retryRes.json()
-        return retryJson.data as T
-      } else {
-        config.onAuthFailure()
-        throw new Error('Session expired')
-      }
-    }
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const json = await res.json()
-    return json.data as T
-  }
-}
+// ─── Auth functions (raw fetch — used for login bootstrap before auth client) ─
 
 export function getGoogleOAuthUrl(): string {
   return `${base()}/api/v1/auth/oauth2/google`
 }
 
-export async function authLogin(
-  email: string,
-  password: string,
-): Promise<AuthTokens> {
+export async function authLogin(email: string, password: string): Promise<AuthTokens> {
   const res = await fetch(`${base()}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -203,10 +54,7 @@ export async function authLogin(
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return {
-    accessToken: json.data.accessToken,
-    refreshToken: json.data.refreshToken,
-  }
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
 }
 
 export async function authRegister(
@@ -222,10 +70,7 @@ export async function authRegister(
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return {
-    accessToken: json.data.accessToken,
-    refreshToken: json.data.refreshToken,
-  }
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
 }
 
 export async function authLogout(refreshToken: string): Promise<void> {
@@ -245,10 +90,7 @@ export async function authRefresh(refreshToken: string): Promise<AuthTokens> {
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  return {
-    accessToken: json.data.accessToken,
-    refreshToken: json.data.refreshToken,
-  }
+  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
 }
 
 export async function authRequestPasswordReset(email: string): Promise<void> {
@@ -264,14 +106,11 @@ export async function authConfirmPasswordReset(
   token: string,
   newPassword: string,
 ): Promise<void> {
-  const res = await fetch(
-    `${base()}/api/v1/auth/confirm-password-reset/${token}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newPassword }),
-    },
-  )
+  const res = await fetch(`${base()}/api/v1/auth/confirm-password-reset/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword }),
+  })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
@@ -280,6 +119,7 @@ export async function authVerifyEmail(token: string): Promise<void> {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
+// Used during login bootstrap (before auth client is initialized)
 export async function getAccount(accessToken: string): Promise<User> {
   const res = await fetch(`${base()}/api/v1/account`, {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -297,40 +137,24 @@ export async function getAccount(accessToken: string): Promise<User> {
   }
 }
 
-// Internal helpers
-
-export function base(): string {
-  const url = import.meta.env.VITE_API_BASE_URL
-  if (!url) throw new Error('VITE_API_BASE_URL is not set')
-  return url
-}
-
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = options
-    ? await fetch(`${base()}${path}`, options)
-    : await fetch(`${base()}${path}`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return json.data as T
-}
-
-// Public API functions
+// ─── Public API functions ─────────────────────────────────────────────────────
 
 export function getPage(handle: string): Promise<PageResponse> {
-  return apiFetch(`/api/v1/pages/${handle}`)
+  return callApi(createPublicClient().GET('/api/v1/pages/{handle}', {
+    params: { path: { handle } },
+  }))
 }
 
-export function listCollections(
-  page: number,
-  size: number,
-): Promise<PagedResult<CollectionSummaryResponse>> {
-  return apiFetch(`/api/v1/collections?page=${page}&size=${size}`)
+export function listCollections(page: number, size: number): Promise<PagedResult<CollectionSummaryResponse>> {
+  return callApi(createPublicClient().GET('/api/v1/collections', {
+    params: { query: { page, size } },
+  })) as Promise<PagedResult<CollectionSummaryResponse>>
 }
 
-export function getCollection(
-  handle: string,
-): Promise<CollectionDetailResponse> {
-  return apiFetch(`/api/v1/collections/${handle}`)
+export function getCollection(handle: string): Promise<CollectionDetailResponse> {
+  return callApi(createPublicClient().GET('/api/v1/collections/{handle}', {
+    params: { path: { handle } },
+  }))
 }
 
 export function listCollectionProducts(
@@ -338,13 +162,15 @@ export function listCollectionProducts(
   page: number,
   size: number,
 ): Promise<PagedResult<CollectionProductResponse>> {
-  return apiFetch(
-    `/api/v1/collections/${handle}/products?page=${page}&size=${size}`,
-  )
+  return callApi(createPublicClient().GET('/api/v1/collections/{handle}/products', {
+    params: { path: { handle }, query: { page, size } },
+  })) as Promise<PagedResult<CollectionProductResponse>>
 }
 
 export function getProduct(handle: string): Promise<ProductDetailResponse> {
-  return apiFetch(`/api/v1/products/${handle}`)
+  return callApi(createPublicClient().GET('/api/v1/products/{handle}', {
+    params: { path: { handle } },
+  }))
 }
 
 export function listProducts(params: {
@@ -354,45 +180,23 @@ export function listProducts(params: {
   page?: number
   size?: number
 }): Promise<PagedResult<ProductSummaryResponse>> {
-  const qs = new URLSearchParams()
-  if (params.q !== undefined) qs.set('titleContains', params.q)
-  if (params.vendor !== undefined) qs.set('vendor', params.vendor)
-  if (params.type !== undefined) qs.set('productType', params.type)
-  if (params.page !== undefined) qs.set('page', String(params.page))
-  if (params.size !== undefined) qs.set('size', String(params.size))
-  const query = qs.toString()
-  return apiFetch(`/api/v1/products${query ? `?${query}` : ''}`)
+  return callApi(createPublicClient().GET('/api/v1/products', {
+    params: {
+      query: {
+        titleContains: params.q,
+        vendor: params.vendor,
+        productType: params.type,
+        page: params.page,
+        size: params.size,
+      },
+    },
+  })) as Promise<PagedResult<ProductSummaryResponse>>
 }
 
-export function getRelatedProducts(
-  handle: string,
-  limit = 4,
-): Promise<ProductSummaryResponse[]> {
-  return apiFetch(`/api/v1/products/${handle}/related?limit=${limit}`)
-}
-
-export interface SearchArticleResult {
-  id: string
-  blogId: string
-  blogHandle: string | null
-  title: string
-  handle: string
-  excerpt: string | null
-  publishedAt: string | null
-}
-
-export interface SearchPageResult {
-  id: string
-  title: string
-  handle: string
-  publishedAt: string | null
-}
-
-export interface SearchResponse {
-  products: PagedResult<ProductSummaryResponse> | null
-  collections: PagedResult<CollectionSummaryResponse> | null
-  articles: PagedResult<SearchArticleResult> | null
-  pages: PagedResult<SearchPageResult> | null
+export function getRelatedProducts(handle: string, limit = 4): Promise<ProductSummaryResponse[]> {
+  return callApi(createPublicClient().GET('/api/v1/products/{handle}/related', {
+    params: { path: { handle }, query: { limit } },
+  })) as Promise<ProductSummaryResponse[]>
 }
 
 export function search(params: {
@@ -401,10 +205,22 @@ export function search(params: {
   page?: number
   size?: number
 }): Promise<SearchResponse> {
-  const qs = new URLSearchParams()
-  qs.set('q', params.q)
-  if (params.types) params.types.forEach((t) => qs.append('types', t))
-  if (params.page !== undefined) qs.set('page', String(params.page))
-  if (params.size !== undefined) qs.set('size', String(params.size))
-  return apiFetch(`/api/v1/search?${qs.toString()}`)
+  return callApi(createPublicClient().GET('/api/v1/search', {
+    params: {
+      query: {
+        q: params.q,
+        types: params.types,
+        page: params.page,
+        size: params.size,
+      },
+    },
+  }))
+}
+
+// ─── Internal ─────────────────────────────────────────────────────────────────
+
+function base(): string {
+  const url = import.meta.env.VITE_API_BASE_URL
+  if (!url) throw new Error('VITE_API_BASE_URL is not set')
+  return url
 }

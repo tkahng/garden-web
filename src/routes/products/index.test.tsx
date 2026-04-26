@@ -25,7 +25,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('#/context/auth', () => ({
-  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+  useAuth: () => ({ isAuthenticated: false, authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() } }),
 }))
 
 vi.mock('#/context/auth-modal', () => ({
@@ -41,11 +41,11 @@ const base: ProductSummaryResponse = {
   title: 'Heirloom Tomato Seeds',
   handle: 'heirloom-tomato-seeds',
   vendor: 'Garden Co',
-  featuredImageUrl: null,
-  priceMin: null,
-  priceMax: null,
-  compareAtPriceMin: null,
-  compareAtPriceMax: null,
+  featuredImageUrl: undefined,
+  priceMin: undefined,
+  priceMax: undefined,
+  compareAtPriceMin: undefined,
+  compareAtPriceMax: undefined,
 }
 
 describe('ProductCard', () => {
@@ -76,7 +76,7 @@ describe('ProductCard', () => {
   })
 
   it('omits vendor when null', () => {
-    render(<ProductCard product={{ ...base, vendor: null }} />)
+    render(<ProductCard product={{ ...base, vendor: undefined }} />)
     expect(screen.queryByText('Garden Co')).not.toBeInTheDocument()
   })
 

@@ -37,7 +37,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     getWishlist(authFetchRef.current)
       .then((data) => {
         if (!cancelled) {
-          setWishlistProductIds(new Set(data.items.map((i) => i.productId)))
+          setWishlistProductIds(new Set((data.items ?? []).map((i) => i.productId ?? '')))
         }
       })
       .catch(() => {
@@ -57,10 +57,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const toggleWishlist = useCallback(async (productId: string) => {
     if (wishlistProductIds.has(productId)) {
       const updated = await removeWishlistItem(productId, authFetchRef.current)
-      setWishlistProductIds(new Set(updated.items.map((i) => i.productId)))
+      setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
     } else {
       const updated = await addWishlistItem(productId, authFetchRef.current)
-      setWishlistProductIds(new Set(updated.items.map((i) => i.productId)))
+      setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
     }
   }, [wishlistProductIds])
 

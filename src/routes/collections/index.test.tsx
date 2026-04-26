@@ -7,7 +7,7 @@ const mockCollection: CollectionSummaryResponse = {
   id: 'c1',
   title: 'Seeds & Bulbs',
   handle: 'seeds-bulbs',
-  featuredImageUrl: null,
+  featuredImageUrl: undefined,
 }
 
 describe('CollectionCard', () => {

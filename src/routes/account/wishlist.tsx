@@ -23,7 +23,7 @@ function WishlistItemCard({
 }) {
   return (
     <div className="flex items-start gap-4 border-b border-border py-5">
-      <Link to="/products/$handle" params={{ handle: item.handle }} className="flex-shrink-0">
+      <Link to="/products/$handle" params={{ handle: item.handle ?? '' }} className="flex-shrink-0">
         <div className="h-24 w-24 overflow-hidden rounded-xl bg-muted">
           {item.featuredImageUrl ? (
             <img
@@ -39,13 +39,13 @@ function WishlistItemCard({
       <div className="flex flex-1 flex-col gap-1 min-w-0">
         <Link
           to="/products/$handle"
-          params={{ handle: item.handle }}
+          params={{ handle: item.handle ?? '' }}
           className="font-semibold text-foreground hover:underline"
         >
           {item.title}
         </Link>
-        {item.priceMin !== null && (
-          <p className="text-sm text-muted-foreground">{formatPrice(item.priceMin)}</p>
+        {item.priceMin != null && (
+          <p className="text-sm text-muted-foreground">{formatPrice(item.priceMin ?? 0)}</p>
         )}
         <div className="mt-2 flex items-center gap-3">
           <button
@@ -78,7 +78,7 @@ export function WishlistPage() {
     setIsLoading(true)
     try {
       const data = await getWishlist(authFetch)
-      setItems(data.items)
+      setItems(data.items ?? [])
     } catch {
       setItems([])
     } finally {
@@ -138,7 +138,7 @@ export function WishlistPage() {
             <WishlistItemCard
               key={item.id}
               item={item}
-              onRemove={() => handleRemove(item.productId)}
+              onRemove={() => handleRemove(item.productId ?? '')}
               onAddToCart={() => handleAddToCart(item)}
             />
           ))}

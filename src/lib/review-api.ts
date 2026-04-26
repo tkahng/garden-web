@@ -1,34 +1,27 @@
-import { apiFetch } from '#/lib/api'
+import type { components } from '#/schema'
+import type { ApiClient } from '#/lib/client'
+import { callApi, createPublicClient } from '#/lib/client'
 import type { PagedResult } from '#/lib/api'
 
-export interface ReviewResponse {
-  id: string
-  productId: string
-  userId: string
-  reviewerName: string
-  rating: number
-  title: string | null
-  body: string | null
-  verifiedPurchase: boolean
-  status: 'PUBLISHED' | 'HIDDEN'
-  createdAt: string
-}
+export type ReviewResponse = components['schemas']['ReviewResponse']
 
 export function getProductReviews(
   productId: string,
   page = 0,
   size = 10,
 ): Promise<PagedResult<ReviewResponse>> {
-  return apiFetch(`/api/v1/products/${productId}/reviews?page=${page}&size=${size}`)
+  return callApi(createPublicClient().GET('/api/v1/products/{productId}/reviews', {
+    params: { path: { productId }, query: { page, size } },
+  })) as Promise<PagedResult<ReviewResponse>>
 }
 
-export async function createReview(
+export function createReview(
   productId: string,
   req: { rating: number; title?: string; body?: string },
-  authFetch: <T>(path: string, options?: RequestInit) => Promise<T>,
+  client: ApiClient,
 ): Promise<ReviewResponse> {
-  return authFetch<ReviewResponse>(`/api/v1/products/${productId}/reviews`, {
-    method: 'POST',
-    body: JSON.stringify(req),
-  })
+  return callApi(client.POST('/api/v1/products/{productId}/reviews', {
+    params: { path: { productId } },
+    body: req,
+  }))
 }

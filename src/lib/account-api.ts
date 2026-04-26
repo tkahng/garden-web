@@ -1,5 +1,6 @@
 import type { components } from '#/schema'
-import type { createAuthFetch } from '#/lib/api'
+import type { ApiClient } from '#/lib/client'
+import { callApi } from '#/lib/client'
 
 // ─── Exported types ───────────────────────────────────────────────────────────
 
@@ -13,76 +14,65 @@ export type OrderItemProductInfo = components['schemas']['OrderItemProductInfo']
 export type PagedResultOrderResponse = components['schemas']['PagedResultOrderResponse']
 export type PageMeta = components['schemas']['PageMeta']
 
-// ─── Auth fetch type alias ────────────────────────────────────────────────────
-
-type AuthFetch = ReturnType<typeof createAuthFetch>
-
 // ─── Account ──────────────────────────────────────────────────────────────────
 
-export async function getAccount(fetch: AuthFetch): Promise<AccountResponse> {
-  return fetch<AccountResponse>('/api/v1/account')
+export function getAccount(client: ApiClient): Promise<AccountResponse> {
+  return callApi(client.GET('/api/v1/account'))
 }
 
-export async function updateAccount(
-  fetch: AuthFetch,
+export function updateAccount(
+  client: ApiClient,
   data: UpdateAccountRequest,
 ): Promise<AccountResponse> {
-  return fetch<AccountResponse>('/api/v1/account', {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.PUT('/api/v1/account', { body: data }))
 }
 
 // ─── Addresses ────────────────────────────────────────────────────────────────
 
-export async function listAddresses(fetch: AuthFetch): Promise<AddressResponse[]> {
-  return fetch<AddressResponse[]>('/api/v1/account/addresses')
+export function listAddresses(client: ApiClient): Promise<AddressResponse[]> {
+  return callApi(client.GET('/api/v1/account/addresses')) as Promise<AddressResponse[]>
 }
 
-export async function createAddress(
-  fetch: AuthFetch,
-  data: AddressRequest,
-): Promise<AddressResponse> {
-  return fetch<AddressResponse>('/api/v1/account/addresses', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+export function createAddress(client: ApiClient, data: AddressRequest): Promise<AddressResponse> {
+  return callApi(client.POST('/api/v1/account/addresses', { body: data }))
 }
 
-export async function updateAddress(
-  fetch: AuthFetch,
+export function updateAddress(
+  client: ApiClient,
   id: string,
   data: AddressRequest,
 ): Promise<AddressResponse> {
-  return fetch<AddressResponse>(`/api/v1/account/addresses/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.PUT('/api/v1/account/addresses/{id}', {
+    params: { path: { id } },
+    body: data,
+  }))
 }
 
-export async function deleteAddress(fetch: AuthFetch, id: string): Promise<void> {
-  return fetch<void>(`/api/v1/account/addresses/${id}`, { method: 'DELETE' })
+export function deleteAddress(client: ApiClient, id: string): Promise<void> {
+  return callApi(client.DELETE('/api/v1/account/addresses/{id}', {
+    params: { path: { id } },
+  })) as Promise<void>
 }
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-export async function listOrders(
-  fetch: AuthFetch,
+export function listOrders(
+  client: ApiClient,
   params?: { page?: number; size?: number },
 ): Promise<PagedResultOrderResponse> {
-  const qs = new URLSearchParams()
-  if (params?.page !== undefined) qs.set('page', String(params.page))
-  if (params?.size !== undefined) qs.set('size', String(params.size))
-  const query = qs.toString()
-  return fetch<PagedResultOrderResponse>(
-    `/api/v1/storefront/orders${query ? `?${query}` : ''}`,
-  )
+  return callApi(client.GET('/api/v1/storefront/orders', {
+    params: { query: { page: params?.page, size: params?.size } },
+  }))
 }
 
-export async function getOrder(fetch: AuthFetch, id: string): Promise<OrderResponse> {
-  return fetch<OrderResponse>(`/api/v1/storefront/orders/${id}`)
+export function getOrder(client: ApiClient, id: string): Promise<OrderResponse> {
+  return callApi(client.GET('/api/v1/storefront/orders/{id}', {
+    params: { path: { id } },
+  }))
 }
 
-export async function cancelOrder(fetch: AuthFetch, id: string): Promise<OrderResponse> {
-  return fetch<OrderResponse>(`/api/v1/storefront/orders/${id}/cancel`, { method: 'PUT' })
+export function cancelOrder(client: ApiClient, id: string): Promise<OrderResponse> {
+  return callApi(client.PUT('/api/v1/storefront/orders/{id}/cancel', {
+    params: { path: { id } },
+  }))
 }

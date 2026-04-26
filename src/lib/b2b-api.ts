@@ -1,5 +1,6 @@
 import type { components } from '#/schema'
-import type { createAuthFetch } from '#/lib/api'
+import type { ApiClient } from '#/lib/client'
+import { callApi, createPublicClient } from '#/lib/client'
 
 // ─── Types from schema ────────────────────────────────────────────────────────
 
@@ -7,6 +8,7 @@ export type CompanyResponse = components['schemas']['CompanyResponse']
 export type CreateCompanyRequest = components['schemas']['CreateCompanyRequest']
 export type UpdateCompanyRequest = components['schemas']['UpdateCompanyRequest']
 export type AddMemberRequest = components['schemas']['AddMemberRequest']
+export type CompanyMemberResponse = components['schemas']['CompanyMemberResponse']
 export type QuoteCartResponse = components['schemas']['QuoteCartResponse']
 export type QuoteCartItemResponse = components['schemas']['QuoteCartItemResponse']
 export type AddQuoteCartItemRequest = components['schemas']['AddQuoteCartItemRequest']
@@ -17,11 +19,17 @@ export type QuoteRequestResponse = Omit<
 > & { status?: QuoteStatus }
 export type QuoteItemResponse = components['schemas']['QuoteItemResponse']
 export type SubmitQuoteRequest = components['schemas']['SubmitQuoteRequest']
-// Extended from schema — backend adds invoiceId and pendingApproval in newer versions
 export type QuoteAcceptResponse = components['schemas']['QuoteAcceptResponse'] & {
   invoiceId?: string
   pendingApproval?: boolean
 }
+export type PagedResultQuoteRequestResponse =
+  components['schemas']['PagedResultQuoteRequestResponse']
+export type InvitationResponse = components['schemas']['InvitationResponse']
+export type PriceListResponse = components['schemas']['PriceListResponse']
+export type CustomerPriceEntryResponse = components['schemas']['CustomerPriceEntryResponse']
+export type InvoiceResponse = components['schemas']['InvoiceResponse']
+export type InvoicePaymentResponse = components['schemas']['InvoicePaymentResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -35,40 +43,11 @@ export type QuoteStatus =
   | 'EXPIRED'
   | 'CANCELLED'
   | 'PENDING_APPROVAL'
-export type PagedResultQuoteRequestResponse =
-  components['schemas']['PagedResultQuoteRequestResponse']
-
-// ─── Types not yet in generated schema ───────────────────────────────────────
-
-export type CompanyMemberResponse = {
-  membershipId?: string
-  userId?: string
-  email?: string
-  firstName?: string
-  lastName?: string
-  role?: 'OWNER' | 'MANAGER' | 'MEMBER'
-  spendingLimit?: number
-  joinedAt?: string
-}
-
-export type UpdateMemberRoleRequest = {
-  role: 'MANAGER' | 'MEMBER'
-}
 
 export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'CANCELLED' | 'EXPIRED'
 
-export type InvitationResponse = {
-  id?: string
-  companyId?: string
-  companyName?: string
-  email?: string
-  role?: 'MANAGER' | 'MEMBER'
-  spendingLimit?: number
-  token?: string
-  invitedBy?: string
-  status?: InvitationStatus
-  expiresAt?: string
-  createdAt?: string
+export type UpdateMemberRoleRequest = {
+  role: 'MANAGER' | 'MEMBER'
 }
 
 export type CreateInvitationRequest = {
@@ -77,322 +56,234 @@ export type CreateInvitationRequest = {
   spendingLimit?: number
 }
 
-export type InvoiceStatus = 'ISSUED' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'VOID'
-
-export type InvoicePaymentResponse = {
-  id?: string
-  invoiceId?: string
-  amount?: number
-  paymentReference?: string
-  notes?: string
-  paidAt?: string
-  createdAt?: string
-}
-
-export type InvoiceResponse = {
-  id?: string
-  companyId?: string
-  orderId?: string
-  quoteId?: string
-  status?: InvoiceStatus
-  totalAmount?: number
-  paidAmount?: number
-  outstandingAmount?: number
-  currency?: string
-  issuedAt?: string
-  dueAt?: string
-  payments?: InvoicePaymentResponse[]
-  createdAt?: string
-  updatedAt?: string
-}
-
-// ─── Auth fetch type alias ────────────────────────────────────────────────────
-
-type AuthFetch = ReturnType<typeof createAuthFetch>
-
 // ─── Company ──────────────────────────────────────────────────────────────────
 
-export async function listCompanies(fetch: AuthFetch): Promise<CompanyResponse[]> {
-  return fetch<CompanyResponse[]>('/api/v1/companies')
+export function listCompanies(client: ApiClient): Promise<CompanyResponse[]> {
+  return callApi(client.GET('/api/v1/companies')) as Promise<CompanyResponse[]>
 }
 
-export async function getCompany(fetch: AuthFetch, id: string): Promise<CompanyResponse> {
-  return fetch<CompanyResponse>(`/api/v1/companies/${id}`)
+export function getCompany(client: ApiClient, id: string): Promise<CompanyResponse> {
+  return callApi(client.GET('/api/v1/companies/{id}', { params: { path: { id } } }))
 }
 
-export async function createCompany(
-  fetch: AuthFetch,
+export function createCompany(
+  client: ApiClient,
   data: CreateCompanyRequest,
 ): Promise<CompanyResponse> {
-  return fetch<CompanyResponse>('/api/v1/companies', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.POST('/api/v1/companies', { body: data }))
 }
 
-export async function updateCompany(
-  fetch: AuthFetch,
+export function updateCompany(
+  client: ApiClient,
   id: string,
   data: UpdateCompanyRequest,
 ): Promise<CompanyResponse> {
-  return fetch<CompanyResponse>(`/api/v1/companies/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.PUT('/api/v1/companies/{id}', { params: { path: { id } }, body: data }))
 }
 
 // ─── Members ──────────────────────────────────────────────────────────────────
 
-export async function listMembers(
-  fetch: AuthFetch,
+export function listMembers(
+  client: ApiClient,
   companyId: string,
 ): Promise<CompanyMemberResponse[]> {
-  return fetch<CompanyMemberResponse[]>(`/api/v1/companies/${companyId}/members`)
+  return callApi(client.GET('/api/v1/companies/{id}/members', {
+    params: { path: { id: companyId } },
+  })) as Promise<CompanyMemberResponse[]>
 }
 
-export async function addMember(
-  fetch: AuthFetch,
+export function addMember(
+  client: ApiClient,
   companyId: string,
   data: AddMemberRequest,
 ): Promise<CompanyMemberResponse> {
-  return fetch<CompanyMemberResponse>(`/api/v1/companies/${companyId}/members`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.POST('/api/v1/companies/{id}/members', {
+    params: { path: { id: companyId } },
+    body: data,
+  }))
 }
 
-export async function updateMemberRole(
-  fetch: AuthFetch,
+export function updateMemberRole(
+  client: ApiClient,
   companyId: string,
   userId: string,
   data: UpdateMemberRoleRequest,
 ): Promise<CompanyMemberResponse> {
-  return fetch<CompanyMemberResponse>(
-    `/api/v1/companies/${companyId}/members/${userId}/role`,
-    { method: 'PUT', body: JSON.stringify(data) },
-  )
+  return callApi(client.PUT('/api/v1/companies/{id}/members/{userId}/role', {
+    params: { path: { id: companyId, userId } },
+    body: data,
+  }))
 }
 
-export async function removeMember(
-  fetch: AuthFetch,
+export function removeMember(
+  client: ApiClient,
   companyId: string,
   userId: string,
 ): Promise<void> {
-  return fetch<void>(`/api/v1/companies/${companyId}/members/${userId}`, {
-    method: 'DELETE',
-  })
+  return callApi(client.DELETE('/api/v1/companies/{id}/members/{userId}', {
+    params: { path: { id: companyId, userId } },
+  })) as Promise<void>
 }
 
 // ─── Invitations ──────────────────────────────────────────────────────────────
 
-export async function listInvitations(
-  fetch: AuthFetch,
+export function listInvitations(
+  client: ApiClient,
   companyId: string,
 ): Promise<InvitationResponse[]> {
-  return fetch<InvitationResponse[]>(`/api/v1/companies/${companyId}/invitations`)
+  return callApi(client.GET('/api/v1/companies/{id}/invitations', {
+    params: { path: { id: companyId } },
+  })) as Promise<InvitationResponse[]>
 }
 
-export async function sendInvitation(
-  fetch: AuthFetch,
+export function sendInvitation(
+  client: ApiClient,
   companyId: string,
   data: CreateInvitationRequest,
 ): Promise<InvitationResponse> {
-  return fetch<InvitationResponse>(`/api/v1/companies/${companyId}/invitations`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.POST('/api/v1/companies/{id}/invitations', {
+    params: { path: { id: companyId } },
+    body: data,
+  }))
 }
 
-export async function cancelInvitation(
-  fetch: AuthFetch,
+export function cancelInvitation(
+  client: ApiClient,
   companyId: string,
   invitationId: string,
 ): Promise<InvitationResponse> {
-  return fetch<InvitationResponse>(
-    `/api/v1/companies/${companyId}/invitations/${invitationId}`,
-    { method: 'DELETE' },
-  )
+  return callApi(client.DELETE('/api/v1/companies/{id}/invitations/{invitationId}', {
+    params: { path: { id: companyId, invitationId } },
+  }))
 }
 
-export async function getInvitationByToken(token: string): Promise<InvitationResponse> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-  const res = await fetch(`${baseUrl}/api/v1/invitations/${token}`)
-  if (!res.ok) throw new Error(String(res.status))
-  const json = await res.json()
-  return json.data
+export function getInvitationByToken(token: string): Promise<InvitationResponse> {
+  return callApi(createPublicClient().GET('/api/v1/invitations/{token}', {
+    params: { path: { token } },
+  }))
 }
 
-export async function acceptInvitation(
-  fetch: AuthFetch,
+export function acceptInvitation(
+  client: ApiClient,
   token: string,
 ): Promise<InvitationResponse> {
-  return fetch<InvitationResponse>(`/api/v1/invitations/${token}/accept`, {
-    method: 'POST',
-  })
+  return callApi(client.POST('/api/v1/invitations/{token}/accept', {
+    params: { path: { token } },
+  }))
 }
 
 // ─── Quote cart ───────────────────────────────────────────────────────────────
 
-export async function getQuoteCart(fetch: AuthFetch): Promise<QuoteCartResponse> {
-  return fetch<QuoteCartResponse>('/api/v1/quote-cart')
+export function getQuoteCart(client: ApiClient): Promise<QuoteCartResponse> {
+  return callApi(client.GET('/api/v1/quote-cart'))
 }
 
-export async function addToQuoteCart(
-  fetch: AuthFetch,
+export function addToQuoteCart(
+  client: ApiClient,
   data: AddQuoteCartItemRequest,
 ): Promise<QuoteCartResponse> {
-  return fetch<QuoteCartResponse>('/api/v1/quote-cart/items', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.POST('/api/v1/quote-cart/items', { body: data }))
 }
 
-export async function updateQuoteCartItem(
-  fetch: AuthFetch,
+export function updateQuoteCartItem(
+  client: ApiClient,
   itemId: string,
   data: UpdateQuoteCartItemRequest,
 ): Promise<QuoteCartResponse> {
-  return fetch<QuoteCartResponse>(`/api/v1/quote-cart/items/${itemId}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.PUT('/api/v1/quote-cart/items/{itemId}', {
+    params: { path: { itemId } },
+    body: data,
+  }))
 }
 
-export async function removeQuoteCartItem(
-  fetch: AuthFetch,
+export function removeQuoteCartItem(
+  client: ApiClient,
   itemId: string,
 ): Promise<QuoteCartResponse> {
-  return fetch<QuoteCartResponse>(`/api/v1/quote-cart/items/${itemId}`, {
-    method: 'DELETE',
-  })
+  return callApi(client.DELETE('/api/v1/quote-cart/items/{itemId}', {
+    params: { path: { itemId } },
+  }))
 }
 
 // ─── Quotes ───────────────────────────────────────────────────────────────────
 
-export async function listQuotes(
-  fetch: AuthFetch,
+export function listQuotes(
+  client: ApiClient,
   params?: { page?: number; size?: number },
 ): Promise<PagedResultQuoteRequestResponse> {
-  const qs = new URLSearchParams()
-  if (params?.page !== undefined) qs.set('page', String(params.page))
-  if (params?.size !== undefined) qs.set('size', String(params.size))
-  const query = qs.toString()
-  return fetch<PagedResultQuoteRequestResponse>(
-    `/api/v1/quotes${query ? `?${query}` : ''}`,
-  )
+  return callApi(client.GET('/api/v1/quotes', {
+    params: { query: { page: params?.page, size: params?.size } },
+  }))
 }
 
-export async function getQuote(
-  fetch: AuthFetch,
-  id: string,
-): Promise<QuoteRequestResponse> {
-  return fetch<QuoteRequestResponse>(`/api/v1/quotes/${id}`)
+export function getQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
+  return callApi(client.GET('/api/v1/quotes/{id}', { params: { path: { id } } }))
 }
 
-export async function submitQuote(
-  fetch: AuthFetch,
+export function submitQuote(
+  client: ApiClient,
   data: SubmitQuoteRequest,
 ): Promise<QuoteRequestResponse> {
-  return fetch<QuoteRequestResponse>('/api/v1/quotes', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return callApi(client.POST('/api/v1/quotes', { body: data }))
 }
 
-export async function acceptQuote(
-  fetch: AuthFetch,
-  id: string,
-): Promise<QuoteAcceptResponse> {
-  return fetch<QuoteAcceptResponse>(`/api/v1/quotes/${id}/accept`, { method: 'POST' })
+export function acceptQuote(client: ApiClient, id: string): Promise<QuoteAcceptResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/accept', { params: { path: { id } } }))
 }
 
-export async function cancelQuote(
-  fetch: AuthFetch,
-  id: string,
-): Promise<QuoteRequestResponse> {
-  return fetch<QuoteRequestResponse>(`/api/v1/quotes/${id}/cancel`, { method: 'POST' })
+export function cancelQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/cancel', { params: { path: { id } } }))
 }
 
-export async function listPendingApprovals(
-  fetch: AuthFetch,
+export function listPendingApprovals(
+  client: ApiClient,
   params?: { page?: number; size?: number },
 ): Promise<PagedResultQuoteRequestResponse> {
-  const qs = new URLSearchParams()
-  if (params?.page !== undefined) qs.set('page', String(params.page))
-  if (params?.size !== undefined) qs.set('size', String(params.size))
-  const query = qs.toString()
-  return fetch<PagedResultQuoteRequestResponse>(
-    `/api/v1/quotes/pending-approvals${query ? `?${query}` : ''}`,
-  )
+  return callApi(client.GET('/api/v1/quotes/pending-approvals', {
+    params: { query: { page: params?.page, size: params?.size } },
+  }))
 }
 
-export async function approveQuote(
-  fetch: AuthFetch,
-  id: string,
-): Promise<QuoteAcceptResponse> {
-  return fetch<QuoteAcceptResponse>(`/api/v1/quotes/${id}/approve`, { method: 'POST' })
+export function approveQuote(client: ApiClient, id: string): Promise<QuoteAcceptResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/approve', { params: { path: { id } } }))
 }
 
-export async function rejectApproval(
-  fetch: AuthFetch,
-  id: string,
-): Promise<QuoteRequestResponse> {
-  return fetch<QuoteRequestResponse>(`/api/v1/quotes/${id}/reject-approval`, { method: 'POST' })
+export function rejectApproval(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', { params: { path: { id } } }))
 }
 
 export function getQuotePdfUrl(id: string): string {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-  return `${baseUrl}/api/v1/quotes/${id}/pdf`
+  return `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/v1/quotes/${id}/pdf`
 }
 
-// ─── Price lists ─────────────────────────────────────────────────────────────
+// ─── Price lists ──────────────────────────────────────────────────────────────
 
-export type PriceListResponse = {
-  id?: string
-  companyId?: string
-  name?: string
-  currency?: string
-  priority?: number
-  startsAt?: string
-  endsAt?: string
-  createdAt?: string
-  updatedAt?: string
-}
-
-export type CustomerPriceEntryResponse = {
-  variantId?: string
-  productTitle?: string
-  productHandle?: string
-  variantTitle?: string
-  sku?: string
-  retailPrice?: number
-  contractPrice?: number
-  minQty?: number
-}
-
-export async function listPriceLists(
-  fetch: AuthFetch,
+export function listPriceLists(
+  client: ApiClient,
   companyId: string,
 ): Promise<PriceListResponse[]> {
-  return fetch<PriceListResponse[]>(`/api/v1/companies/${companyId}/price-lists`)
+  return callApi(client.GET('/api/v1/companies/{id}/price-lists', {
+    params: { path: { id: companyId } },
+  })) as Promise<PriceListResponse[]>
 }
 
-export async function listPriceListEntries(
-  fetch: AuthFetch,
+export function listPriceListEntries(
+  client: ApiClient,
   companyId: string,
   priceListId: string,
 ): Promise<CustomerPriceEntryResponse[]> {
-  return fetch<CustomerPriceEntryResponse[]>(
-    `/api/v1/companies/${companyId}/price-lists/${priceListId}/entries`,
-  )
+  return callApi(client.GET('/api/v1/companies/{id}/price-lists/{priceListId}/entries', {
+    params: { path: { id: companyId, priceListId } },
+  })) as Promise<CustomerPriceEntryResponse[]>
 }
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
-export async function listInvoices(
-  fetch: AuthFetch,
+export function listInvoices(
+  client: ApiClient,
   companyId: string,
 ): Promise<InvoiceResponse[]> {
-  return fetch<InvoiceResponse[]>(`/api/v1/companies/${companyId}/invoices`)
+  return callApi(client.GET('/api/v1/companies/{id}/invoices', {
+    params: { path: { id: companyId } },
+  })) as Promise<InvoiceResponse[]>
 }
-

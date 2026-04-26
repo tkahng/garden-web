@@ -6,9 +6,9 @@ import {
   authLogout,
   authRefresh,
   getAccount,
-  createAuthFetch,
+  createAuthClient,
 } from '#/lib/api'
-import type { User, AuthTokens } from '#/lib/api'
+import type { User, AuthTokens, ApiClient } from '#/lib/api'
 import { useAuthModal } from '#/context/auth-modal'
 
 const STORAGE_KEY = 'garden:auth'
@@ -27,7 +27,7 @@ interface AuthContextValue {
   loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>
   logout: () => Promise<void>
   refreshTokens: () => Promise<void>
-  authFetch: ReturnType<typeof createAuthFetch>
+  authFetch: ApiClient
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const authFetch = useMemo(
     () =>
-      createAuthFetch({
+      createAuthClient({
         getTokens: () => ({ accessToken: state.accessToken, refreshToken: state.refreshToken }),
         onTokensRefreshed: (tokens: AuthTokens) => {
           setState(prev => {
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           openAuthModal('login')
         },
       }),
-    // tokens are the only fields createAuthFetch reads from state; including full state would recreate authFetch on every update
+    // tokens are the only fields createAuthClient reads from state; including full state would recreate authFetch on every update
     [state.accessToken, state.refreshToken, openAuthModal],
   )
 

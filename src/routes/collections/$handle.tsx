@@ -76,12 +76,12 @@ function toProductSummary(
     id: cp.productId,
     title: cp.title,
     handle: cp.handle,
-    vendor: null,
+    vendor: undefined,
     featuredImageUrl: cp.featuredImageUrl,
-    priceMin: null,
-    priceMax: null,
-    compareAtPriceMin: null,
-    compareAtPriceMax: null,
+    priceMin: undefined,
+    priceMax: undefined,
+    compareAtPriceMin: undefined,
+    compareAtPriceMax: undefined,
   }
 }
 
@@ -121,9 +121,9 @@ function CollectionDetailPage() {
         </div>
       )}
       <Pagination
-        page={meta.page}
-        total={meta.total}
-        pageSize={meta.pageSize}
+        page={meta.page ?? 0}
+        total={meta.total ?? 0}
+        pageSize={meta.pageSize ?? 20}
         onPage={handlePage}
       />
     </main>

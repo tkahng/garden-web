@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { ApiClient } from '#/lib/client'
 import {
   getAccount,
   updateAccount,
@@ -11,7 +12,49 @@ import {
   cancelOrder,
 } from './account-api'
 
-const BASE = 'http://localhost:8080'
+// Wraps payload the way callApi expects: { data: { data: payload } }
+function wrap<T>(payload: T) {
+  return Promise.resolve({ data: { data: payload } })
+}
+
+function makeClient(payload: unknown, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'): ApiClient {
+  const mock = vi.fn().mockImplementation(() => wrap(payload))
+  return {
+    GET: method === 'GET' ? mock : vi.fn(),
+    POST: method === 'POST' ? mock : vi.fn(),
+    PUT: method === 'PUT' ? mock : vi.fn(),
+    DELETE: method === 'DELETE' ? mock : vi.fn(),
+    PATCH: vi.fn(),
+    HEAD: vi.fn(),
+    OPTIONS: vi.fn(),
+    TRACE: vi.fn(),
+    _mock: mock,
+  } as unknown as ApiClient & { _mock: ReturnType<typeof vi.fn> }
+}
+
+function makeFailingClient(): ApiClient & { _mock: ReturnType<typeof vi.fn> } {
+  const mock = vi.fn().mockImplementation(() => Promise.resolve({ error: new Error('HTTP 401') }))
+  return {
+    GET: mock,
+    POST: mock,
+    PUT: mock,
+    DELETE: mock,
+    PATCH: vi.fn(),
+    HEAD: vi.fn(),
+    OPTIONS: vi.fn(),
+    TRACE: vi.fn(),
+    _mock: mock,
+  } as unknown as ApiClient & { _mock: ReturnType<typeof vi.fn> }
+}
+
+beforeEach(() => {
+  vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080')
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.restoreAllMocks()
+})
 
 const mockAccount = {
   id: 'user-1',
@@ -44,74 +87,56 @@ const mockOrder = {
   createdAt: '2026-04-01T00:00:00Z',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeAuthFetch(body: unknown): any {
-  return vi.fn().mockResolvedValue(body)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function makeFailingAuthFetch(message: string): any {
-  return vi.fn().mockRejectedValue(new Error(message))
-}
-
-beforeEach(() => {
-  vi.stubEnv('VITE_API_BASE_URL', BASE)
-})
-
-afterEach(() => {
-  vi.unstubAllEnvs()
-  vi.restoreAllMocks()
-})
-
 describe('getAccount', () => {
-  it('calls authFetch with GET /api/v1/account', async () => {
-    const fetch = makeAuthFetch(mockAccount)
-    await getAccount(fetch)
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account')
+  it('calls client.GET /api/v1/account', async () => {
+    const c = makeClient(mockAccount, 'GET')
+    await getAccount(c)
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith('/api/v1/account')
   })
 
   it('returns the AccountResponse', async () => {
-    const fetch = makeAuthFetch(mockAccount)
-    const result = await getAccount(fetch)
+    const c = makeClient(mockAccount, 'GET')
+    const result = await getAccount(c)
     expect(result).toEqual(mockAccount)
   })
 })
 
 describe('updateAccount', () => {
-  it('calls authFetch with PUT /api/v1/account and body', async () => {
-    const fetch = makeAuthFetch(mockAccount)
-    await updateAccount(fetch, { firstName: 'Janet' })
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account', {
-      method: 'PUT',
-      body: JSON.stringify({ firstName: 'Janet' }),
-    })
+  it('calls client.PUT /api/v1/account with body', async () => {
+    const c = makeClient(mockAccount, 'PUT')
+    await updateAccount(c, { firstName: 'Janet' })
+    expect((c as unknown as { PUT: ReturnType<typeof vi.fn> }).PUT).toHaveBeenCalledWith(
+      '/api/v1/account',
+      { body: { firstName: 'Janet' } },
+    )
   })
 
   it('returns the updated AccountResponse', async () => {
     const updated = { ...mockAccount, firstName: 'Janet' }
-    const fetch = makeAuthFetch(updated)
-    const result = await updateAccount(fetch, { firstName: 'Janet' })
+    const c = makeClient(updated, 'PUT')
+    const result = await updateAccount(c, { firstName: 'Janet' })
     expect(result.firstName).toBe('Janet')
   })
 })
 
 describe('listAddresses', () => {
-  it('calls authFetch with GET /api/v1/account/addresses', async () => {
-    const fetch = makeAuthFetch([mockAddress])
-    await listAddresses(fetch)
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account/addresses')
+  it('calls client.GET /api/v1/account/addresses', async () => {
+    const c = makeClient([mockAddress], 'GET')
+    await listAddresses(c)
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith(
+      '/api/v1/account/addresses',
+    )
   })
 
   it('returns array of AddressResponse', async () => {
-    const fetch = makeAuthFetch([mockAddress])
-    const result = await listAddresses(fetch)
+    const c = makeClient([mockAddress], 'GET')
+    const result = await listAddresses(c)
     expect(result).toEqual([mockAddress])
   })
 })
 
 describe('createAddress', () => {
-  it('calls authFetch with POST /api/v1/account/addresses and body', async () => {
-    const fetch = makeAuthFetch(mockAddress)
+  it('calls client.POST /api/v1/account/addresses with body', async () => {
     const data = {
       firstName: 'Jane',
       lastName: 'Smith',
@@ -120,17 +145,17 @@ describe('createAddress', () => {
       zip: '97201',
       country: 'US',
     }
-    await createAddress(fetch, data)
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account/addresses', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    const c = makeClient(mockAddress, 'POST')
+    await createAddress(c, data)
+    expect((c as unknown as { POST: ReturnType<typeof vi.fn> }).POST).toHaveBeenCalledWith(
+      '/api/v1/account/addresses',
+      { body: data },
+    )
   })
 })
 
 describe('updateAddress', () => {
-  it('calls authFetch with PUT /api/v1/account/addresses/{id}', async () => {
-    const fetch = makeAuthFetch(mockAddress)
+  it('calls client.PUT /api/v1/account/addresses/{id} with path + body', async () => {
     const data = {
       firstName: 'Jane',
       lastName: 'Smith',
@@ -139,71 +164,87 @@ describe('updateAddress', () => {
       zip: '97201',
       country: 'US',
     }
-    await updateAddress(fetch, 'addr-1', data)
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account/addresses/addr-1', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
+    const c = makeClient(mockAddress, 'PUT')
+    await updateAddress(c, 'addr-1', data)
+    expect((c as unknown as { PUT: ReturnType<typeof vi.fn> }).PUT).toHaveBeenCalledWith(
+      '/api/v1/account/addresses/{id}',
+      { params: { path: { id: 'addr-1' } }, body: data },
+    )
   })
 })
 
 describe('deleteAddress', () => {
-  it('calls authFetch with DELETE /api/v1/account/addresses/{id}', async () => {
-    const fetch = makeAuthFetch(undefined)
-    await deleteAddress(fetch, 'addr-1')
-    expect(fetch).toHaveBeenCalledWith('/api/v1/account/addresses/addr-1', { method: 'DELETE' })
+  it('calls client.DELETE /api/v1/account/addresses/{id}', async () => {
+    const c = makeClient(undefined, 'DELETE')
+    await deleteAddress(c, 'addr-1')
+    expect((c as unknown as { DELETE: ReturnType<typeof vi.fn> }).DELETE).toHaveBeenCalledWith(
+      '/api/v1/account/addresses/{id}',
+      { params: { path: { id: 'addr-1' } } },
+    )
   })
 })
 
 describe('listOrders', () => {
-  it('calls authFetch with GET /api/v1/storefront/orders', async () => {
-    const fetch = makeAuthFetch({ content: [mockOrder], meta: { page: 0, pageSize: 10, total: 1 } })
-    await listOrders(fetch)
-    expect(fetch).toHaveBeenCalledWith('/api/v1/storefront/orders')
+  it('calls client.GET /api/v1/storefront/orders', async () => {
+    const data = { content: [mockOrder], meta: { page: 0, pageSize: 10, total: 1 } }
+    const c = makeClient(data, 'GET')
+    await listOrders(c)
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders',
+      expect.objectContaining({ params: { query: { page: undefined, size: undefined } } }),
+    )
   })
 
-  it('appends page and size query params when provided', async () => {
-    const fetch = makeAuthFetch({ content: [], meta: { page: 1, pageSize: 10, total: 0 } })
-    await listOrders(fetch, { page: 1, size: 10 })
-    expect(fetch).toHaveBeenCalledWith('/api/v1/storefront/orders?page=1&size=10')
+  it('passes page and size as query params when provided', async () => {
+    const data = { content: [], meta: { page: 1, pageSize: 10, total: 0 } }
+    const c = makeClient(data, 'GET')
+    await listOrders(c, { page: 1, size: 10 })
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders',
+      expect.objectContaining({ params: { query: { page: 1, size: 10 } } }),
+    )
   })
 
   it('returns PagedResultOrderResponse', async () => {
     const data = { content: [mockOrder], meta: { page: 0, pageSize: 10, total: 1 } }
-    const fetch = makeAuthFetch(data)
-    const result = await listOrders(fetch)
+    const c = makeClient(data, 'GET')
+    const result = await listOrders(c)
     expect(result.content).toEqual([mockOrder])
   })
 })
 
 describe('getOrder', () => {
-  it('calls authFetch with GET /api/v1/storefront/orders/{id}', async () => {
-    const fetch = makeAuthFetch(mockOrder)
-    await getOrder(fetch, 'order-1')
-    expect(fetch).toHaveBeenCalledWith('/api/v1/storefront/orders/order-1')
+  it('calls client.GET /api/v1/storefront/orders/{id}', async () => {
+    const c = makeClient(mockOrder, 'GET')
+    await getOrder(c, 'order-1')
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders/{id}',
+      { params: { path: { id: 'order-1' } } },
+    )
   })
 })
 
 describe('cancelOrder', () => {
-  it('calls authFetch with PUT /api/v1/storefront/orders/{id}/cancel', async () => {
-    const fetch = makeAuthFetch({ ...mockOrder, status: 'CANCELLED' })
-    await cancelOrder(fetch, 'order-1')
-    expect(fetch).toHaveBeenCalledWith('/api/v1/storefront/orders/order-1/cancel', {
-      method: 'PUT',
-    })
+  it('calls client.PUT /api/v1/storefront/orders/{id}/cancel', async () => {
+    const c = makeClient({ ...mockOrder, status: 'CANCELLED' }, 'PUT')
+    await cancelOrder(c, 'order-1')
+    expect((c as unknown as { PUT: ReturnType<typeof vi.fn> }).PUT).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders/{id}/cancel',
+      { params: { path: { id: 'order-1' } } },
+    )
   })
 
   it('returns the updated OrderResponse', async () => {
     const cancelled = { ...mockOrder, status: 'CANCELLED' as const }
-    const fetch = makeAuthFetch(cancelled)
-    const result = await cancelOrder(fetch, 'order-1')
+    const c = makeClient(cancelled, 'PUT')
+    const result = await cancelOrder(c, 'order-1')
     expect(result.status).toBe('CANCELLED')
   })
 })
 
 describe('error propagation', () => {
-  it('propagates errors from authFetch', async () => {
-    const fetch = makeFailingAuthFetch('HTTP 401')
-    await expect(getAccount(fetch)).rejects.toThrow('HTTP 401')
+  it('propagates errors from the client', async () => {
+    const c = makeFailingClient()
+    await expect(getAccount(c)).rejects.toThrow('HTTP 401')
   })
 })

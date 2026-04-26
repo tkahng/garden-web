@@ -29,7 +29,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('#/context/auth', () => ({
-  useAuth: () => ({ isAuthenticated: false, authFetch: vi.fn() }),
+  useAuth: () => ({ isAuthenticated: false, authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() } }),
 }))
 
 vi.mock('#/context/auth-modal', () => ({
@@ -45,19 +45,19 @@ const mockPage: PageResponse = {
   title: 'Welcome to Garden',
   handle: 'home',
   body: 'Seasonal plants, seeds, and tools for every garden.',
-  metaTitle: null,
-  metaDescription: null,
+  metaTitle: undefined,
+  metaDescription: undefined,
   publishedAt: '2026-01-01T00:00:00Z',
 }
 
 const mockCollections: CollectionSummaryResponse[] = [
-  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs', featuredImageUrl: null },
-  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies', featuredImageUrl: null },
+  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs', featuredImageUrl: undefined },
+  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies', featuredImageUrl: undefined },
 ]
 
 const mockProducts: ProductSummaryResponse[] = [
-  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
-  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
+  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: undefined, featuredImageUrl: undefined, priceMin: undefined, priceMax: undefined, compareAtPriceMin: undefined, compareAtPriceMax: undefined },
+  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: undefined, featuredImageUrl: undefined, priceMin: undefined, priceMax: undefined, compareAtPriceMin: undefined, compareAtPriceMax: undefined },
 ]
 
 describe('HeroSection', () => {

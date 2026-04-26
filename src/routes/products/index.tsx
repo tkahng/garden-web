@@ -71,17 +71,17 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
             {product.vendor}
           </p>
         )}
-        {product.priceMin !== null && product.priceMax !== null && (
+        {product.priceMin != null && product.priceMax != null && (
           <div className="mt-1 text-sm flex items-center gap-2">
             <span>
               {product.priceMin === product.priceMax
-                ? formatPrice(product.priceMin)
-                : `${formatPrice(product.priceMin)} – ${formatPrice(product.priceMax)}`}
+                ? formatPrice(product.priceMin ?? 0)
+                : `${formatPrice(product.priceMin ?? 0)} – ${formatPrice(product.priceMax ?? 0)}`}
             </span>
-            {product.compareAtPriceMin !== null &&
-              product.compareAtPriceMin > product.priceMin && (
+            {product.compareAtPriceMin != null &&
+              product.compareAtPriceMin > (product.priceMin ?? 0) && (
                 <span className="line-through text-muted-foreground">
-                  {formatPrice(product.compareAtPriceMin)}
+                  {formatPrice(product.compareAtPriceMin ?? 0)}
                 </span>
               )}
           </div>
@@ -89,7 +89,7 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
       </a>
       <div className="absolute top-2 right-2">
         <WishlistButton
-          productId={product.id}
+          productId={product.id ?? ''}
           className="bg-background/80 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
         />
       </div>
@@ -263,9 +263,9 @@ function ProductListingPage() {
         </div>
       )}
       <Pagination
-        page={meta.page}
-        total={meta.total}
-        pageSize={meta.pageSize}
+        page={meta.page ?? 0}
+        total={meta.total ?? 0}
+        pageSize={meta.pageSize ?? 20}
         onPage={handlePage}
       />
     </main>

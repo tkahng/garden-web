@@ -6,6 +6,7 @@ import { useAuth } from '#/context/auth'
 import { listAddresses } from '#/lib/account-api'
 import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
+import { validateDiscount } from '#/lib/cart-api'
 import type { AddressResponse } from '#/lib/account-api'
 import { GuestCheckoutDialog } from '#/components/GuestCheckoutDialog'
 
@@ -262,9 +263,7 @@ function AuthCart() {
       const subtotal = cart?.items?.reduce(
         (sum, item) => sum + (item.unitPrice ?? 0) * (item.quantity ?? 1), 0,
       ) ?? 0
-      const res = await authFetch<{ valid: boolean; discountedAmount?: number; message?: string }>(
-        `/api/v1/storefront/discounts/validate?code=${encodeURIComponent(code)}&orderAmount=${subtotal}`,
-      )
+      const res = await validateDiscount(authFetch, code, subtotal)
       if (res.valid) {
         setAppliedCode(code)
         setDiscountAmount(res.discountedAmount ?? 0)
