@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { listProducts } from '#/lib/api'
 import type { ProductSummaryResponse } from '#/lib/api'
+import { WishlistButton } from '#/components/WishlistButton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,46 +46,54 @@ function formatPrice(amount: number): string {
 
 export function ProductCard({ product }: { product: ProductSummaryResponse }) {
   return (
-    <a href={`/products/${product.handle}`} className="group block">
-      <div className="island-shell aspect-[3/4] overflow-hidden mb-3">
-        {product.featuredImageUrl ? (
-          <img
-            src={product.featuredImageUrl}
-            alt={product.title}
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div
-            data-testid="card-placeholder"
-            className="w-full h-full bg-muted"
-          />
-        )}
-      </div>
-      <p className="font-bold text-foreground text-sm leading-snug">
-        {product.title}
-      </p>
-      {product.vendor && (
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {product.vendor}
-        </p>
-      )}
-      {product.priceMin !== null && product.priceMax !== null && (
-        <div className="mt-1 text-sm flex items-center gap-2">
-          <span>
-            {product.priceMin === product.priceMax
-              ? formatPrice(product.priceMin)
-              : `${formatPrice(product.priceMin)} – ${formatPrice(product.priceMax)}`}
-          </span>
-          {product.compareAtPriceMin !== null &&
-            product.compareAtPriceMin > product.priceMin && (
-              <span className="line-through text-muted-foreground">
-                {formatPrice(product.compareAtPriceMin)}
-              </span>
-            )}
+    <div className="group relative block">
+      <a href={`/products/${product.handle}`} className="block">
+        <div className="island-shell aspect-[3/4] overflow-hidden mb-3">
+          {product.featuredImageUrl ? (
+            <img
+              src={product.featuredImageUrl}
+              alt={product.title}
+              loading="lazy"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div
+              data-testid="card-placeholder"
+              className="w-full h-full bg-muted"
+            />
+          )}
         </div>
-      )}
-    </a>
+        <p className="font-bold text-foreground text-sm leading-snug">
+          {product.title}
+        </p>
+        {product.vendor && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {product.vendor}
+          </p>
+        )}
+        {product.priceMin != null && product.priceMax != null && (
+          <div className="mt-1 text-sm flex items-center gap-2">
+            <span>
+              {product.priceMin === product.priceMax
+                ? formatPrice(product.priceMin ?? 0)
+                : `${formatPrice(product.priceMin ?? 0)} – ${formatPrice(product.priceMax ?? 0)}`}
+            </span>
+            {product.compareAtPriceMin != null &&
+              product.compareAtPriceMin > (product.priceMin ?? 0) && (
+                <span className="line-through text-muted-foreground">
+                  {formatPrice(product.compareAtPriceMin ?? 0)}
+                </span>
+              )}
+          </div>
+        )}
+      </a>
+      <div className="absolute top-2 right-2">
+        <WishlistButton
+          productId={product.id ?? ''}
+          className="bg-background/80 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+        />
+      </div>
+    </div>
   )
 }
 
@@ -254,9 +263,9 @@ function ProductListingPage() {
         </div>
       )}
       <Pagination
-        page={meta.page}
-        total={meta.total}
-        pageSize={meta.pageSize}
+        page={meta.page ?? 0}
+        total={meta.total ?? 0}
+        pageSize={meta.pageSize ?? 20}
         onPage={handlePage}
       />
     </main>

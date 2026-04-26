@@ -1,10 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
+import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import ReactMarkdown from 'react-markdown'
+import { toast } from 'sonner'
 import { getProduct } from '#/lib/api'
 import { useCart } from '#/context/cart'
+import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
+import { addToQuoteCart } from '#/lib/b2b-api'
+import { WishlistButton } from '#/components/WishlistButton'
+import { ProductReviews } from '#/components/ProductReviews'
+import { RelatedProducts } from '#/components/RelatedProducts'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -48,10 +55,12 @@ function buildOptionGroups(
 ): [string, string[]][] {
   const map = new Map<string, string[]>()
   for (const variant of variants) {
-    for (const ov of variant.optionValues) {
-      if (!map.has(ov.optionName)) map.set(ov.optionName, [])
-      const values = map.get(ov.optionName)!
-      if (!values.includes(ov.valueLabel)) values.push(ov.valueLabel)
+    for (const ov of variant.optionValues ?? []) {
+      const name = ov.optionName ?? ''
+      const label = ov.valueLabel ?? ''
+      if (!map.has(name)) map.set(name, [])
+      const values = map.get(name)!
+      if (!values.includes(label)) values.push(label)
     }
   }
   return Array.from(map.entries())
@@ -121,6 +130,8 @@ export function ProductInfo({
   onAddToCart,
   isAddingToCart = false,
   addError,
+  onAddToQuoteCart,
+  isAddingToQuoteCart = false,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
@@ -131,6 +142,8 @@ export function ProductInfo({
   onAddToCart?: () => void
   isAddingToCart?: boolean
   addError?: string | null
+  onAddToQuoteCart?: () => void
+  isAddingToQuoteCart?: boolean
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -138,7 +151,7 @@ export function ProductInfo({
     .join(' · ')
 
   const optionGroups = useMemo(
-    () => buildOptionGroups(product.variants),
+    () => buildOptionGroups(product.variants ?? []),
     [product.variants],
   )
 
@@ -157,7 +170,7 @@ export function ProductInfo({
       </h1>
 
       {/* Price */}
-      {activeVariant != null && (
+      {activeVariant != null && activeVariant.price != null && (
         <div className="flex items-baseline gap-3">
           <span className="text-2xl font-bold text-foreground">
             {formatPrice(activeVariant.price)}
@@ -254,19 +267,53 @@ export function ProductInfo({
         </div>
       </div>
 
-      {/* Add to Cart */}
-      <button
-        disabled={activeVariant == null || isAddingToCart}
-        onClick={onAddToCart}
-        className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {activeVariant == null ? 'Unavailable' : 'Add to cart'}
-      </button>
+      {/* Add to Cart / Add to Quote Cart */}
+      {activeVariant?.price != null ? (
+        <div className="flex flex-col gap-2">
+          <button
+            disabled={isAddingToCart}
+            onClick={onAddToCart}
+            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isAddingToCart ? 'Adding…' : 'Add to cart'}
+          </button>
+          <button
+            disabled={activeVariant == null || isAddingToQuoteCart}
+            onClick={onAddToQuoteCart}
+            className="w-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isAddingToQuoteCart ? 'Adding…' : 'Add to quote cart'}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <button
+            disabled={activeVariant == null || isAddingToQuoteCart}
+            onClick={onAddToQuoteCart}
+            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {activeVariant == null
+              ? 'Unavailable'
+              : isAddingToQuoteCart
+                ? 'Adding…'
+                : 'Add to quote cart'}
+          </button>
+          <p className="text-xs text-muted-foreground text-center">
+            This item is available by quote only.
+          </p>
+        </div>
+      )}
       {addError != null && (
         <p data-testid="add-error" className="text-sm text-red-600">
           {addError}
         </p>
       )}
+
+      {/* Wishlist */}
+      <div className="flex items-center gap-2">
+        <WishlistButton productId={product.id ?? ''} />
+        <span className="text-sm text-muted-foreground">Save to wishlist</span>
+      </div>
 
       {/* Description */}
       {product.description != null && (
@@ -279,9 +326,9 @@ export function ProductInfo({
       )}
 
       {/* Tags */}
-      {product.tags.length > 0 && (
+      {(product.tags ?? []).length > 0 && (
         <div data-testid="product-tags" className="flex flex-wrap gap-2">
-          {product.tags.map((tag) => (
+          {(product.tags ?? []).map((tag) => (
             <span
               key={tag}
               className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
@@ -299,39 +346,42 @@ export function ProductInfo({
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
-  const { isAuthenticated } = useAuth()
+  useDocumentMeta(product.metaTitle ?? product.title, product.metaDescription)
+  const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
+  const { addItem: addGuestItem } = useGuestCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >(() =>
     Object.fromEntries(
-      product.variants[0]?.optionValues.map((v) => [
-        v.optionName,
-        v.valueLabel,
-      ]) ?? [],
+      (product.variants?.[0]?.optionValues ?? []).map((v) => [
+        v.optionName ?? '',
+        v.valueLabel ?? '',
+      ]),
     ),
   )
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
+  const [isAddingToQuote, setIsAddingToQuote] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const activeVariant =
-    product.variants.find((v) =>
-      v.optionValues.every(
-        (ov) => selectedOptions[ov.optionName] === ov.valueLabel,
+    (product.variants ?? []).find((v) =>
+      (v.optionValues ?? []).every(
+        (ov) => selectedOptions[ov.optionName ?? ''] === ov.valueLabel,
       ),
-    ) ?? product.variants[0]
+    ) ?? product.variants?.[0]
 
   async function handleAddToCart() {
-    if (!isAuthenticated) {
-      openAuthModal('login')
-      return
-    }
     setIsAdding(true)
     setAddError(null)
     try {
-      await addItem(activeVariant.id, quantity)
+      if (isAuthenticated) {
+        await addItem(activeVariant?.id ?? '', quantity)
+      } else {
+        await addGuestItem(activeVariant?.id ?? '', quantity)
+      }
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
     } finally {
@@ -339,11 +389,32 @@ function ProductDetailPage() {
     }
   }
 
+  async function handleAddToQuoteCart() {
+    if (!isAuthenticated) {
+      openAuthModal('login')
+      return
+    }
+    setIsAddingToQuote(true)
+    try {
+      await addToQuoteCart(authFetch, { variantId: activeVariant?.id ?? '', quantity })
+      toast.success('Added to quote cart', {
+        action: {
+          label: 'View cart',
+          onClick: () => { window.location.href = '/account/quote-cart' },
+        },
+      })
+    } catch {
+      toast.error('Failed to add to quote cart.')
+    } finally {
+      setIsAddingToQuote(false)
+    }
+  }
+
   return (
     <main className="page-wrap px-4 py-10">
       <div className="grid gap-12 lg:grid-cols-2">
         <ProductGallery
-          images={product.images}
+          images={product.images ?? []}
           activeIndex={activeGalleryIndex}
           onSelect={setActiveGalleryIndex}
         />
@@ -357,8 +428,12 @@ function ProductDetailPage() {
           onAddToCart={handleAddToCart}
           isAddingToCart={isAdding}
           addError={addError}
+          onAddToQuoteCart={handleAddToQuoteCart}
+          isAddingToQuoteCart={isAddingToQuote}
         />
       </div>
+      <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />
+      <RelatedProducts handle={product.handle ?? ''} />
     </main>
   )
 }

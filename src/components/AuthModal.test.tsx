@@ -12,7 +12,7 @@ vi.mock('#/lib/api', () => ({
   authLogout: vi.fn(),
   authRefresh: vi.fn(),
   getAccount: vi.fn(),
-  createAuthFetch: vi.fn(() => vi.fn()),
+  createAuthClient: vi.fn(() => ({ GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() })),
   authRequestPasswordReset: vi.fn(),
 }))
 

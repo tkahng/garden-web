@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,17 +18,32 @@ import { Route as CollectionsIndexRouteImport } from './routes/collections/index
 import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
+import { Route as InvitationsTokenRouteImport } from './routes/invitations/$token'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AccountWishlistRouteImport } from './routes/account/wishlist'
+import { Route as AccountQuoteCartRouteImport } from './routes/account/quote-cart'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
+import { Route as AccountPricingRouteImport } from './routes/account/pricing'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
+import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
+import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
+import { Route as AccountInvoicesIndexRouteImport } from './routes/account/invoices/index'
+import { Route as AccountQuotesPendingApprovalsRouteImport } from './routes/account/quotes/pending-approvals'
+import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quotes/$quoteId'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
+import { Route as AccountInvoicesInvoiceIdRouteImport } from './routes/account/invoices/$invoiceId'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -68,6 +84,11 @@ const ProductsHandleRoute = ProductsHandleRouteImport.update({
   path: '/products/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
+  id: '/invitations/$token',
+  path: '/invitations/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CollectionsHandleRoute = CollectionsHandleRouteImport.update({
   id: '/collections/$handle',
   path: '/collections/$handle',
@@ -93,9 +114,24 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountWishlistRoute = AccountWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountQuoteCartRoute = AccountQuoteCartRouteImport.update({
+  id: '/quote-cart',
+  path: '/quote-cart',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountPricingRoute = AccountPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
@@ -103,9 +139,19 @@ const AccountOrdersRoute = AccountOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountCompanyRoute = AccountCompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountAddressesRoute = AccountAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountQuotesIndexRoute = AccountQuotesIndexRouteImport.update({
+  id: '/quotes/',
+  path: '/quotes/',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
@@ -113,70 +159,125 @@ const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AccountOrdersRoute,
 } as any)
+const AccountInvoicesIndexRoute = AccountInvoicesIndexRouteImport.update({
+  id: '/invoices/',
+  path: '/invoices/',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountQuotesPendingApprovalsRoute =
+  AccountQuotesPendingApprovalsRouteImport.update({
+    id: '/quotes/pending-approvals',
+    path: '/quotes/pending-approvals',
+    getParentRoute: () => AccountRoute,
+  } as any)
+const AccountQuotesQuoteIdRoute = AccountQuotesQuoteIdRouteImport.update({
+  id: '/quotes/$quoteId',
+  path: '/quotes/$quoteId',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountOrdersOrderIdRoute = AccountOrdersOrderIdRouteImport.update({
   id: '/$orderId',
   path: '/$orderId',
   getParentRoute: () => AccountOrdersRoute,
 } as any)
+const AccountInvoicesInvoiceIdRoute =
+  AccountInvoicesInvoiceIdRouteImport.update({
+    id: '/invoices/$invoiceId',
+    path: '/invoices/$invoiceId',
+    getParentRoute: () => AccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
+  '/account/quotes/': typeof AccountQuotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account': typeof AccountIndexRoute
   '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/account/invoices': typeof AccountInvoicesIndexRoute
   '/account/orders': typeof AccountOrdersIndexRoute
+  '/account/quotes': typeof AccountQuotesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
+  '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/company': typeof AccountCompanyRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/account/invoices/$invoiceId': typeof AccountInvoicesInvoiceIdRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
+  '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
+  '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
+  '/account/quotes/': typeof AccountQuotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -184,70 +285,105 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/search'
     | '/account/addresses'
+    | '/account/company'
     | '/account/orders'
+    | '/account/pricing'
     | '/account/profile'
+    | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
+    | '/account/invoices/'
     | '/account/orders/'
+    | '/account/quotes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/search'
     | '/account/addresses'
+    | '/account/company'
+    | '/account/pricing'
     | '/account/profile'
+    | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account'
     | '/cart'
     | '/collections'
     | '/products'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
+    | '/account/invoices'
     | '/account/orders'
+    | '/account/quotes'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/account'
+    | '/search'
     | '/account/addresses'
+    | '/account/company'
     | '/account/orders'
+    | '/account/pricing'
     | '/account/profile'
+    | '/account/quote-cart'
+    | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
     | '/checkout/return'
     | '/collections/$handle'
+    | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
     | '/cart/'
     | '/collections/'
     | '/products/'
+    | '/account/invoices/$invoiceId'
     | '/account/orders/$orderId'
+    | '/account/quotes/$quoteId'
+    | '/account/quotes/pending-approvals'
+    | '/account/invoices/'
     | '/account/orders/'
+    | '/account/quotes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
+  SearchRoute: typeof SearchRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
+  InvitationsTokenRoute: typeof InvitationsTokenRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   CartIndexRoute: typeof CartIndexRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
@@ -256,6 +392,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account': {
       id: '/account'
       path: '/account'
@@ -312,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invitations/$token': {
+      id: '/invitations/$token'
+      path: '/invitations/$token'
+      fullPath: '/invitations/$token'
+      preLoaderRoute: typeof InvitationsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/collections/$handle': {
       id: '/collections/$handle'
       path: '/collections/$handle'
@@ -347,11 +497,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/wishlist': {
+      id: '/account/wishlist'
+      path: '/wishlist'
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountWishlistRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quote-cart': {
+      id: '/account/quote-cart'
+      path: '/quote-cart'
+      fullPath: '/account/quote-cart'
+      preLoaderRoute: typeof AccountQuoteCartRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
       fullPath: '/account/profile'
       preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/pricing': {
+      id: '/account/pricing'
+      path: '/pricing'
+      fullPath: '/account/pricing'
+      preLoaderRoute: typeof AccountPricingRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/orders': {
@@ -361,11 +532,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/company': {
+      id: '/account/company'
+      path: '/company'
+      fullPath: '/account/company'
+      preLoaderRoute: typeof AccountCompanyRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/addresses': {
       id: '/account/addresses'
       path: '/addresses'
       fullPath: '/account/addresses'
       preLoaderRoute: typeof AccountAddressesRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quotes/': {
+      id: '/account/quotes/'
+      path: '/quotes'
+      fullPath: '/account/quotes/'
+      preLoaderRoute: typeof AccountQuotesIndexRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/orders/': {
@@ -375,12 +560,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersIndexRouteImport
       parentRoute: typeof AccountOrdersRoute
     }
+    '/account/invoices/': {
+      id: '/account/invoices/'
+      path: '/invoices'
+      fullPath: '/account/invoices/'
+      preLoaderRoute: typeof AccountInvoicesIndexRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quotes/pending-approvals': {
+      id: '/account/quotes/pending-approvals'
+      path: '/quotes/pending-approvals'
+      fullPath: '/account/quotes/pending-approvals'
+      preLoaderRoute: typeof AccountQuotesPendingApprovalsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quotes/$quoteId': {
+      id: '/account/quotes/$quoteId'
+      path: '/quotes/$quoteId'
+      fullPath: '/account/quotes/$quoteId'
+      preLoaderRoute: typeof AccountQuotesQuoteIdRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/orders/$orderId': {
       id: '/account/orders/$orderId'
       path: '/$orderId'
       fullPath: '/account/orders/$orderId'
       preLoaderRoute: typeof AccountOrdersOrderIdRouteImport
       parentRoute: typeof AccountOrdersRoute
+    }
+    '/account/invoices/$invoiceId': {
+      id: '/account/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/account/invoices/$invoiceId'
+      preLoaderRoute: typeof AccountInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AccountRoute
     }
   }
 }
@@ -401,16 +614,34 @@ const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountCompanyRoute: typeof AccountCompanyRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
+  AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
+  AccountQuoteCartRoute: typeof AccountQuoteCartRoute
+  AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
+  AccountInvoicesInvoiceIdRoute: typeof AccountInvoicesInvoiceIdRoute
+  AccountQuotesQuoteIdRoute: typeof AccountQuotesQuoteIdRoute
+  AccountQuotesPendingApprovalsRoute: typeof AccountQuotesPendingApprovalsRoute
+  AccountInvoicesIndexRoute: typeof AccountInvoicesIndexRoute
+  AccountQuotesIndexRoute: typeof AccountQuotesIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
+  AccountCompanyRoute: AccountCompanyRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
+  AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,
+  AccountQuoteCartRoute: AccountQuoteCartRoute,
+  AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
+  AccountInvoicesInvoiceIdRoute: AccountInvoicesInvoiceIdRoute,
+  AccountQuotesQuoteIdRoute: AccountQuotesQuoteIdRoute,
+  AccountQuotesPendingApprovalsRoute: AccountQuotesPendingApprovalsRoute,
+  AccountInvoicesIndexRoute: AccountInvoicesIndexRoute,
+  AccountQuotesIndexRoute: AccountQuotesIndexRoute,
 }
 
 const AccountRouteWithChildren =
@@ -420,11 +651,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
+  SearchRoute: SearchRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
+  InvitationsTokenRoute: InvitationsTokenRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   CartIndexRoute: CartIndexRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,

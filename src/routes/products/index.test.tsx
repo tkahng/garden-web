@@ -3,16 +3,49 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import type { ProductSummaryResponse } from '#/lib/api'
 import { ProductCard, FilterBar, Pagination } from './index'
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    ...rest
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    [key: string]: unknown
+  }) => (
+    <a href={to} className={className} {...rest}>
+      {children}
+    </a>
+  ),
+  useNavigate: () => vi.fn(),
+  lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
+  createFileRoute: () => (_config: unknown) => ({}),
+}))
+
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({ isAuthenticated: false, authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() } }),
+}))
+
+vi.mock('#/context/auth-modal', () => ({
+  useAuthModal: () => ({ openAuthModal: vi.fn() }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
+
 const base: ProductSummaryResponse = {
   id: 'p1',
   title: 'Heirloom Tomato Seeds',
   handle: 'heirloom-tomato-seeds',
   vendor: 'Garden Co',
-  featuredImageUrl: null,
-  priceMin: null,
-  priceMax: null,
-  compareAtPriceMin: null,
-  compareAtPriceMax: null,
+  featuredImageUrl: undefined,
+  priceMin: undefined,
+  priceMax: undefined,
+  compareAtPriceMin: undefined,
+  compareAtPriceMax: undefined,
 }
 
 describe('ProductCard', () => {
@@ -43,7 +76,7 @@ describe('ProductCard', () => {
   })
 
   it('omits vendor when null', () => {
-    render(<ProductCard product={{ ...base, vendor: null }} />)
+    render(<ProductCard product={{ ...base, vendor: undefined }} />)
     expect(screen.queryByText('Garden Co')).not.toBeInTheDocument()
   })
 

@@ -1,16 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AddressesPage, AddressSkeleton } from './addresses'
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (_config: unknown) => ({}),
 }))
 
-const mockAuthFetch = vi.fn()
+const mockAuthFetch = { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() }
 
 vi.mock('#/context/auth', () => ({
   useAuth: () => ({ authFetch: mockAuthFetch }),
 }))
+
+vi.mock('#/lib/account-api', () => ({
+  listAddresses: vi.fn(),
+  createAddress: vi.fn(),
+  updateAddress: vi.fn(),
+  deleteAddress: vi.fn(),
+}))
+
+import * as accountApi from '#/lib/account-api'
 
 const mockAddress = {
   id: 'addr-1',
@@ -25,7 +34,10 @@ const mockAddress = {
 }
 
 beforeEach(() => {
-  mockAuthFetch.mockReset()
+  vi.mocked(accountApi.listAddresses).mockResolvedValue([])
+  vi.mocked(accountApi.createAddress).mockResolvedValue(mockAddress)
+  vi.mocked(accountApi.updateAddress).mockResolvedValue(mockAddress)
+  vi.mocked(accountApi.deleteAddress).mockResolvedValue(undefined as never)
 })
 
 describe('AddressSkeleton', () => {
@@ -37,13 +49,13 @@ describe('AddressSkeleton', () => {
 
 describe('AddressesPage', () => {
   it('shows skeleton while loading', () => {
-    mockAuthFetch.mockReturnValue(new Promise(() => {}))
+    vi.mocked(accountApi.listAddresses).mockReturnValue(new Promise(() => {}))
     render(<AddressesPage />)
     expect(screen.getByTestId('address-skeleton')).toBeInTheDocument()
   })
 
   it('shows empty state when no addresses', async () => {
-    mockAuthFetch.mockResolvedValue([])
+    vi.mocked(accountApi.listAddresses).mockResolvedValue([])
     render(<AddressesPage />)
     await waitFor(() =>
       expect(screen.getByText(/no saved addresses/i)).toBeInTheDocument(),
@@ -51,7 +63,7 @@ describe('AddressesPage', () => {
   })
 
   it('renders address cards with address details', async () => {
-    mockAuthFetch.mockResolvedValue([mockAddress])
+    vi.mocked(accountApi.listAddresses).mockResolvedValue([mockAddress])
     render(<AddressesPage />)
     await waitFor(() => {
       expect(screen.getByText('123 Garden St')).toBeInTheDocument()
@@ -60,13 +72,12 @@ describe('AddressesPage', () => {
   })
 
   it('shows Default badge on default address', async () => {
-    mockAuthFetch.mockResolvedValue([mockAddress])
+    vi.mocked(accountApi.listAddresses).mockResolvedValue([mockAddress])
     render(<AddressesPage />)
     await waitFor(() => expect(screen.getByText(/default/i)).toBeInTheDocument())
   })
 
   it('shows Add address button', async () => {
-    mockAuthFetch.mockResolvedValue([])
     render(<AddressesPage />)
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /add address/i })).toBeInTheDocument(),
@@ -74,22 +85,25 @@ describe('AddressesPage', () => {
   })
 
   it('shows address form when Add address is clicked', async () => {
-    mockAuthFetch.mockResolvedValue([])
     render(<AddressesPage />)
     await waitFor(() => screen.getByRole('button', { name: /add address/i }))
-    fireEvent.click(screen.getByRole('button', { name: /add address/i }))
-    expect(screen.getByLabelText(/address line 1/i)).toBeInTheDocument()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add address/i }))
+    })
+    await waitFor(() => expect(screen.getByLabelText(/address line 1/i)).toBeInTheDocument())
   })
 
   it('calls createAddress on form submit', async () => {
-    mockAuthFetch
+    vi.mocked(accountApi.listAddresses)
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce(mockAddress)
       .mockResolvedValueOnce([mockAddress])
     render(<AddressesPage />)
     await waitFor(() => screen.getByRole('button', { name: /add address/i }))
-    fireEvent.click(screen.getByRole('button', { name: /add address/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add address/i }))
+    })
 
+    await waitFor(() => screen.getByLabelText(/first name/i))
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
     fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
     fireEvent.change(screen.getByLabelText(/address line 1/i), {
@@ -99,32 +113,30 @@ describe('AddressesPage', () => {
     fireEvent.change(screen.getByLabelText(/zip/i), { target: { value: '97201' } })
     fireEvent.change(screen.getByLabelText(/country/i), { target: { value: 'US' } })
 
-    fireEvent.click(screen.getByRole('button', { name: /save address/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save address/i }))
+    })
 
-    await waitFor(() =>
-      expect(mockAuthFetch).toHaveBeenCalledWith(
-        '/api/v1/account/addresses',
-        expect.objectContaining({ method: 'POST' }),
-      ),
-    )
+    await waitFor(() => expect(accountApi.createAddress).toHaveBeenCalled())
   })
 
   it('calls deleteAddress when Delete is confirmed', async () => {
-    mockAuthFetch
+    vi.mocked(accountApi.listAddresses)
       .mockResolvedValueOnce([mockAddress])
-      .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce([])
     render(<AddressesPage />)
     await waitFor(() => screen.getByText('123 Garden St'))
 
-    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
-    fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
+    })
 
-    await waitFor(() =>
-      expect(mockAuthFetch).toHaveBeenCalledWith(
-        '/api/v1/account/addresses/addr-1',
-        { method: 'DELETE' },
-      ),
-    )
+    await waitFor(() => expect(accountApi.deleteAddress).toHaveBeenCalledWith(
+      expect.anything(),
+      'addr-1',
+    ))
   })
 })

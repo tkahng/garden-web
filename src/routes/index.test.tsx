@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type {
   PageResponse,
@@ -7,24 +7,57 @@ import type {
 } from '#/lib/api'
 import { HeroSection, FeaturedCollection, CollectionsGrid } from './index'
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    ...rest
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    [key: string]: unknown
+  }) => (
+    <a href={to} className={className} {...rest}>
+      {children}
+    </a>
+  ),
+  useNavigate: () => vi.fn(),
+  lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
+  createFileRoute: () => (_config: unknown) => ({}),
+}))
+
+vi.mock('#/context/auth', () => ({
+  useAuth: () => ({ isAuthenticated: false, authFetch: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() } }),
+}))
+
+vi.mock('#/context/auth-modal', () => ({
+  useAuthModal: () => ({ openAuthModal: vi.fn() }),
+}))
+
+vi.mock('#/context/wishlist', () => ({
+  useWishlist: () => ({ isWishlisted: () => false, toggleWishlist: vi.fn() }),
+}))
+
 const mockPage: PageResponse = {
   id: '1',
   title: 'Welcome to Garden',
   handle: 'home',
   body: 'Seasonal plants, seeds, and tools for every garden.',
-  metaTitle: null,
-  metaDescription: null,
+  metaTitle: undefined,
+  metaDescription: undefined,
   publishedAt: '2026-01-01T00:00:00Z',
 }
 
 const mockCollections: CollectionSummaryResponse[] = [
-  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs', featuredImageUrl: null },
-  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies', featuredImageUrl: null },
+  { id: 'c1', title: 'Seeds & Bulbs', handle: 'seeds-bulbs', featuredImageUrl: undefined },
+  { id: 'c2', title: 'Tools & Supplies', handle: 'tools-supplies', featuredImageUrl: undefined },
 ]
 
 const mockProducts: ProductSummaryResponse[] = [
-  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
-  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: null, featuredImageUrl: null, priceMin: null, priceMax: null, compareAtPriceMin: null, compareAtPriceMax: null },
+  { id: 'p1', title: 'Heirloom Tomato Seeds', handle: 'heirloom-tomato-seeds', vendor: undefined, featuredImageUrl: undefined, priceMin: undefined, priceMax: undefined, compareAtPriceMin: undefined, compareAtPriceMax: undefined },
+  { id: 'p2', title: 'Lavender Starter Pack', handle: 'lavender-starter-pack', vendor: undefined, featuredImageUrl: undefined, priceMin: undefined, priceMax: undefined, compareAtPriceMin: undefined, compareAtPriceMax: undefined },
 ]
 
 describe('HeroSection', () => {

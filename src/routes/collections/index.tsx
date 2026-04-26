@@ -87,9 +87,9 @@ function CollectionsListPage() {
         </div>
       )}
       <Pagination
-        page={meta.page}
-        total={meta.total}
-        pageSize={meta.pageSize}
+        page={meta.page ?? 0}
+        total={meta.total ?? 0}
+        pageSize={meta.pageSize ?? 20}
         onPage={handlePage}
       />
     </main>

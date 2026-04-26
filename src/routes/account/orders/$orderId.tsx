@@ -188,6 +188,12 @@ function OrderDetailPage() {
           <span className="text-muted-foreground">Subtotal</span>
           <span>{formatPrice(subtotal, order.currency ?? 'USD')}</span>
         </div>
+        {order.taxAmount != null && order.taxAmount > 0 && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Tax</span>
+            <span>{formatPrice(order.taxAmount, order.currency ?? 'USD')}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between border-t border-border pt-2 text-sm font-semibold">
           <span>Total</span>
           <span>{formatPrice(order.totalAmount ?? 0, order.currency ?? 'USD')}</span>

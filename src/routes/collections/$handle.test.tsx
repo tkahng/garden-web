@@ -7,8 +7,10 @@ const baseCollection: CollectionDetailResponse = {
   id: 'c1',
   title: 'Seeds & Bulbs',
   handle: 'seeds-bulbs',
-  description: null,
-  featuredImageUrl: null,
+  description: undefined,
+  featuredImageUrl: undefined,
+  metaTitle: undefined,
+  metaDescription: undefined,
 }
 
 describe('CollectionHeader', () => {
