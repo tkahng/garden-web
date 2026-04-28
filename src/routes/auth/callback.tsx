@@ -4,14 +4,9 @@ import { useAuth } from '#/context/auth'
 
 export const Route = createFileRoute('/auth/callback')({
   component: AuthCallbackRoute,
-  validateSearch: (search: Record<string, unknown>) => ({
-    accessToken: typeof search.accessToken === 'string' ? search.accessToken : null,
-    refreshToken: typeof search.refreshToken === 'string' ? search.refreshToken : null,
-  }),
 })
 
 function AuthCallbackRoute() {
-  const { accessToken, refreshToken } = Route.useSearch()
   const { loginWithTokens } = useAuth()
   const navigate = useNavigate()
   const handled = useRef(false)
@@ -19,6 +14,10 @@ function AuthCallbackRoute() {
   useEffect(() => {
     if (handled.current) return
     handled.current = true
+
+    const params = new URLSearchParams(window.location.hash.slice(1))
+    const accessToken = params.get('accessToken')
+    const refreshToken = params.get('refreshToken')
 
     if (!accessToken || !refreshToken) {
       navigate({ to: '/' })
@@ -28,7 +27,7 @@ function AuthCallbackRoute() {
     loginWithTokens(accessToken, refreshToken)
       .then(() => navigate({ to: '/' }))
       .catch(() => navigate({ to: '/' }))
-  }, [accessToken, refreshToken, loginWithTokens, navigate])
+  }, [loginWithTokens, navigate])
 
   return (
     <main className="page-wrap py-16 text-center">
