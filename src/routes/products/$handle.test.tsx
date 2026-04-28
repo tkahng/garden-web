@@ -266,6 +266,12 @@ describe('ProductInfo — price and variant selection', () => {
     expect(screen.getByRole('button', { name: /adding/i })).toBeDisabled()
   })
 
+  it('disables Add to cart button when activeVariant has no id', () => {
+    const noIdVariant = { ...mockVariants[0], id: undefined }
+    render(<ProductInfo {...defaultProps} activeVariant={noIdVariant} onAddToCart={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeDisabled()
+  })
+
   it('shows error message when addError is provided', () => {
     render(<ProductInfo {...defaultProps} addError="Failed to add item to cart. Please try again." />)
     expect(screen.getByTestId('add-error')).toHaveTextContent(

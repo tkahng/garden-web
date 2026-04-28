@@ -42,12 +42,13 @@ const mockCart = {
 }
 
 function Display() {
-  const { cart, isLoading, itemCount } = useCart()
+  const { cart, isLoading, error, itemCount } = useCart()
   return (
     <div>
       <span data-testid="loading">{String(isLoading)}</span>
       <span data-testid="item-count">{itemCount}</span>
       <span data-testid="cart-id">{cart?.id ?? 'none'}</span>
+      <span data-testid="error">{error ?? ''}</span>
     </div>
   )
 }
@@ -160,6 +161,42 @@ describe('CartProvider', () => {
 
     expect(screen.getByTestId('cart-id').textContent).toBe('none')
     expect(screen.getByTestId('loading').textContent).toBe('false')
+  })
+
+  it('addItem sets error when api fails', async () => {
+    mockIsAuthenticated = true
+    vi.mocked(cartApi.addCartItem).mockRejectedValue(new Error('Out of stock'))
+    await act(async () => { render(<Harness />) })
+    await act(async () => { screen.getByText('add').click() })
+    expect(screen.getByTestId('error').textContent).toBe('Out of stock')
+  })
+
+  it('removeItem sets error when api fails', async () => {
+    mockIsAuthenticated = true
+    vi.mocked(cartApi.removeCartItem).mockRejectedValue(new Error('Not found'))
+    await act(async () => { render(<Harness />) })
+    await act(async () => { screen.getByText('remove').click() })
+    expect(screen.getByTestId('error').textContent).toBe('Not found')
+  })
+
+  it('updateQuantity sets error when api fails', async () => {
+    mockIsAuthenticated = true
+    vi.mocked(cartApi.updateCartItem).mockRejectedValue(new Error('Invalid quantity'))
+    await act(async () => { render(<Harness />) })
+    await act(async () => { screen.getByText('update').click() })
+    expect(screen.getByTestId('error').textContent).toBe('Invalid quantity')
+  })
+
+  it('error clears on next successful operation', async () => {
+    mockIsAuthenticated = true
+    vi.mocked(cartApi.addCartItem)
+      .mockRejectedValueOnce(new Error('Out of stock'))
+      .mockResolvedValueOnce({ ...mockCart, id: 'cart-updated' })
+    await act(async () => { render(<Harness />) })
+    await act(async () => { screen.getByText('add').click() })
+    expect(screen.getByTestId('error').textContent).toBe('Out of stock')
+    await act(async () => { screen.getByText('add').click() })
+    expect(screen.getByTestId('error').textContent).toBe('')
   })
 
   it('clears cart when user logs out', async () => {

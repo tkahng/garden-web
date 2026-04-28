@@ -125,7 +125,7 @@ function SearchPage() {
   useEffect(() => {
     if (!q.trim()) { setResults(null); return }
     setIsLoading(true)
-    search({ q, size: 8 })
+    search({ q, limit: 8 })
       .then(setResults)
       .catch(() => setResults(null))
       .finally(() => setIsLoading(false))

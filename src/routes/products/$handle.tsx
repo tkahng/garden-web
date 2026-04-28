@@ -271,14 +271,14 @@ export function ProductInfo({
       {activeVariant?.price != null ? (
         <div className="flex flex-col gap-2">
           <button
-            disabled={isAddingToCart}
+            disabled={isAddingToCart || !activeVariant?.id}
             onClick={onAddToCart}
             className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isAddingToCart ? 'Adding…' : 'Add to cart'}
           </button>
           <button
-            disabled={activeVariant == null || isAddingToQuoteCart}
+            disabled={!activeVariant?.id || isAddingToQuoteCart}
             onClick={onAddToQuoteCart}
             className="w-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -374,13 +374,17 @@ function ProductDetailPage() {
     ) ?? product.variants?.[0]
 
   async function handleAddToCart() {
+    if (!activeVariant?.id) {
+      setAddError('Please select a variant before adding to cart.')
+      return
+    }
     setIsAdding(true)
     setAddError(null)
     try {
       if (isAuthenticated) {
-        await addItem(activeVariant?.id ?? '', quantity)
+        await addItem(activeVariant.id, quantity)
       } else {
-        await addGuestItem(activeVariant?.id ?? '', quantity)
+        await addGuestItem(activeVariant.id, quantity)
       }
     } catch {
       setAddError('Failed to add item to cart. Please try again.')
@@ -394,9 +398,10 @@ function ProductDetailPage() {
       openAuthModal('login')
       return
     }
+    if (!activeVariant?.id) return
     setIsAddingToQuote(true)
     try {
-      await addToQuoteCart(authFetch, { variantId: activeVariant?.id ?? '', quantity })
+      await addToQuoteCart(authFetch, { variantId: activeVariant.id, quantity })
       toast.success('Added to quote cart', {
         action: {
           label: 'View cart',

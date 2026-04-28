@@ -274,7 +274,7 @@ describe('QuoteDetailPage', () => {
     render(<QuoteDetailPage />)
     await waitFor(() => screen.getByText(/offer expires soon/i))
     expect(screen.getByText(/30s/)).toBeInTheDocument()
-    act(() => { vi.advanceTimersByTime(5000) })
+    await act(async () => { vi.advanceTimersByTime(5000) })
     expect(screen.getByText(/25s/)).toBeInTheDocument()
     vi.useRealTimers()
   })
