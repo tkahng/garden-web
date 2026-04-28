@@ -203,7 +203,7 @@ export function search(params: {
   q: string
   types?: string[]
   page?: number
-  size?: number
+  limit?: number
 }): Promise<SearchResponse> {
   return callApi(createPublicClient().GET('/api/v1/search', {
     params: {
@@ -211,7 +211,7 @@ export function search(params: {
         q: params.q,
         types: params.types,
         page: params.page,
-        size: params.size,
+        limit: params.limit,
       },
     },
   }))
