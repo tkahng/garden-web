@@ -25,6 +25,7 @@ import { useAuth } from '#/context/auth'
 interface CartContextValue {
   cart: CartResponse | null
   isLoading: boolean
+  error: string | null
   itemCount: number
   addItem: (variantId: string, qty?: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
@@ -48,6 +49,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -67,23 +69,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated])
 
   const addItem = useCallback(async (variantId: string, qty = 1) => {
-    const updated = await addCartItem(authFetchRef.current, variantId, qty)
-    setCart(updated)
+    setError(null)
+    try {
+      const updated = await addCartItem(authFetchRef.current, variantId, qty)
+      setCart(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to add item')
+    }
   }, [])
 
   const removeItem = useCallback(async (itemId: string) => {
-    const updated = await removeCartItem(authFetchRef.current, itemId)
-    setCart(updated)
+    setError(null)
+    try {
+      const updated = await removeCartItem(authFetchRef.current, itemId)
+      setCart(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to remove item')
+    }
   }, [])
 
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
-    const updated = await updateCartItem(authFetchRef.current, itemId, qty)
-    setCart(updated)
+    setError(null)
+    try {
+      const updated = await updateCartItem(authFetchRef.current, itemId, qty)
+      setCart(updated)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to update quantity')
+    }
   }, [])
 
   const abandon = useCallback(async () => {
-    await abandonCart(authFetchRef.current)
-    setCart(null)
+    setError(null)
+    try {
+      await abandonCart(authFetchRef.current)
+      setCart(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to abandon cart')
+    }
   }, [])
 
   const checkoutFn = useCallback(async (shippingRateId?: string, discountCode?: string): Promise<CheckoutResponse> => {
@@ -99,7 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, removeItem, updateQuantity, abandon, checkout: checkoutFn }}>
+    <CartContext.Provider value={{ cart, isLoading, error, itemCount, addItem, removeItem, updateQuantity, abandon, checkout: checkoutFn }}>
       {children}
     </CartContext.Provider>
   )
