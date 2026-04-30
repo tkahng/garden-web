@@ -18,6 +18,9 @@ export type ProductSummaryResponse = components['schemas']['ProductSummaryRespon
 export type SearchResponse = components['schemas']['SearchResponse']
 export type SearchArticleResult = components['schemas']['SearchArticleResult']
 export type SearchPageResult = components['schemas']['SearchPageResult']
+export type BlogResponse = components['schemas']['BlogResponse']
+export type ArticleResponse = components['schemas']['ArticleResponse']
+export type ArticleImageResponse = components['schemas']['ArticleImageResponse']
 
 export interface PagedResult<T> {
   content: T[]
@@ -142,6 +145,36 @@ export async function getAccount(accessToken: string): Promise<User> {
 export function getPage(handle: string): Promise<PageResponse> {
   return callApi(createPublicClient().GET('/api/v1/pages/{handle}', {
     params: { path: { handle } },
+  }))
+}
+
+export function listBlogs(page = 0, pageSize = 20): Promise<PagedResult<BlogResponse>> {
+  return callApi(createPublicClient().GET('/api/v1/blogs', {
+    params: { query: { page, pageSize } },
+  })) as Promise<PagedResult<BlogResponse>>
+}
+
+export function getBlog(blogHandle: string): Promise<BlogResponse> {
+  return callApi(createPublicClient().GET('/api/v1/blogs/{blogHandle}', {
+    params: { path: { blogHandle } },
+  }))
+}
+
+export function listArticles(
+  blogHandle: string,
+  page = 0,
+  pageSize = 10,
+  tag?: string,
+  q?: string,
+): Promise<PagedResult<ArticleResponse>> {
+  return callApi(createPublicClient().GET('/api/v1/blogs/{blogHandle}/articles', {
+    params: { path: { blogHandle }, query: { page, pageSize, tag, q } },
+  })) as Promise<PagedResult<ArticleResponse>>
+}
+
+export function getArticle(blogHandle: string, articleHandle: string): Promise<ArticleResponse> {
+  return callApi(createPublicClient().GET('/api/v1/blogs/{blogHandle}/articles/{articleHandle}', {
+    params: { path: { blogHandle, articleHandle } },
   }))
 }
 

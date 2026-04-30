@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Products', to: '/products' },
   { label: 'Collections', to: '/collections' },
+  { label: 'Blog', to: '/blogs' },
   { label: 'About', to: '/about' },
 ] as const
 
