@@ -1,6 +1,6 @@
 import type { components } from '#/schema'
 import type { ApiClient } from '#/lib/client'
-import { callApi } from '#/lib/client'
+import { callApi, createPublicClient } from '#/lib/client'
 
 // ─── Exported types ───────────────────────────────────────────────────────────
 
@@ -11,6 +11,7 @@ export type CheckoutResponse = components['schemas']['CheckoutResponse']
 export type CheckoutReturnResponse = components['schemas']['CheckoutReturnResponse']
 export type CheckoutRequest = components['schemas']['CheckoutRequest']
 export type DiscountValidationResponse = components['schemas']['DiscountValidationResponse']
+export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
@@ -65,5 +66,13 @@ export function validateDiscount(
 ): Promise<DiscountValidationResponse> {
   return callApi(client.GET('/api/v1/storefront/discounts/validate', {
     params: { query: { code, orderAmount } },
+  }))
+}
+
+// ─── Gift card validation ─────────────────────────────────────────────────────
+
+export function validateGiftCard(code: string): Promise<GiftCardValidationResponse> {
+  return callApi(createPublicClient().GET('/api/v1/storefront/gift-cards/validate', {
+    params: { query: { code } },
   }))
 }

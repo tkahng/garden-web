@@ -6,7 +6,7 @@ import { useAuth } from '#/context/auth'
 import { listAddresses } from '#/lib/account-api'
 import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
-import { validateDiscount } from '#/lib/cart-api'
+import { validateDiscount, validateGiftCard } from '#/lib/cart-api'
 import type { AddressResponse } from '#/lib/account-api'
 import { GuestCheckoutDialog } from '#/components/GuestCheckoutDialog'
 
@@ -223,6 +223,11 @@ function AuthCart() {
   const [discountAmount, setDiscountAmount] = useState<number | null>(null)
   const [discountError, setDiscountError] = useState<string | null>(null)
   const [discountLoading, setDiscountLoading] = useState(false)
+  const [giftCardInput, setGiftCardInput] = useState('')
+  const [appliedGiftCard, setAppliedGiftCard] = useState<string | null>(null)
+  const [giftCardBalance, setGiftCardBalance] = useState<number | null>(null)
+  const [giftCardError, setGiftCardError] = useState<string | null>(null)
+  const [giftCardLoading, setGiftCardLoading] = useState(false)
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -285,11 +290,39 @@ function AuthCart() {
     setDiscountInput('')
   }
 
+  async function applyGiftCard() {
+    const code = giftCardInput.trim().toUpperCase()
+    if (!code) return
+    setGiftCardLoading(true)
+    setGiftCardError(null)
+    try {
+      const res = await validateGiftCard(code)
+      if (res.valid) {
+        setAppliedGiftCard(res.code ?? code)
+        setGiftCardBalance(res.currentBalance ?? 0)
+        setGiftCardInput('')
+      } else {
+        setGiftCardError(res.message ?? 'Invalid gift card')
+      }
+    } catch {
+      setGiftCardError('Could not apply gift card')
+    } finally {
+      setGiftCardLoading(false)
+    }
+  }
+
+  function removeGiftCard() {
+    setAppliedGiftCard(null)
+    setGiftCardBalance(null)
+    setGiftCardError(null)
+    setGiftCardInput('')
+  }
+
   async function handleCheckout() {
     setIsCheckingOut(true)
     setCheckoutError(null)
     try {
-      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined)
+      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined)
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
       } else {
@@ -331,7 +364,8 @@ function AuthCart() {
   const selectedRate = rates.find((r) => r.id === selectedRateId)
   const shippingCost = selectedRate?.price ?? 0
   const discount = discountAmount ?? 0
-  const total = subtotal + shippingCost - discount
+  const giftCardApplied = giftCardBalance != null ? Math.min(giftCardBalance, subtotal + shippingCost - discount) : 0
+  const total = subtotal + shippingCost - discount - giftCardApplied
 
   return (
     <main className="page-wrap px-4 py-10">
@@ -409,6 +443,50 @@ function AuthCart() {
           )}
         </div>
 
+        {/* Gift card */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-foreground">Gift card</p>
+          {appliedGiftCard ? (
+            <div className="flex items-center justify-between rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm dark:border-blue-700 dark:bg-blue-950/30">
+              <span className="font-mono font-semibold text-blue-700 dark:text-blue-400">
+                {appliedGiftCard}
+                {giftCardBalance != null && (
+                  <span className="ml-2 font-normal text-blue-600">Balance: {formatPrice(giftCardBalance)}</span>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={removeGiftCard}
+                className="ml-3 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter gift card code"
+                value={giftCardInput}
+                onChange={(e) => { setGiftCardInput(e.target.value.toUpperCase()); setGiftCardError(null) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') void applyGiftCard() }}
+                className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={() => void applyGiftCard()}
+                disabled={!giftCardInput.trim() || giftCardLoading}
+                className="rounded-lg border border-input px-4 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {giftCardLoading ? '…' : 'Apply'}
+              </button>
+            </div>
+          )}
+          {giftCardError && (
+            <p className="text-xs text-destructive">{giftCardError}</p>
+          )}
+        </div>
+
         {/* Ship to */}
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-foreground">Ship to</p>
@@ -454,6 +532,12 @@ function AuthCart() {
               <div className="flex justify-between text-green-600">
                 <span>Discount ({appliedCode})</span>
                 <span>−{formatPrice(discount)}</span>
+              </div>
+            )}
+            {giftCardApplied > 0 && (
+              <div className="flex justify-between text-blue-600">
+                <span>Gift card ({appliedGiftCard})</span>
+                <span>−{formatPrice(giftCardApplied)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-border pt-1 font-bold text-foreground">
