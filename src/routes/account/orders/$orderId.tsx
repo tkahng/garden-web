@@ -2,7 +2,14 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
 import { Skeleton } from '#/components/ui/skeleton'
-import { getOrder, cancelOrder } from '#/lib/account-api'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '#/components/ui/dialog'
+import { getOrder, cancelOrder, requestRefund } from '#/lib/account-api'
 import type { OrderResponse } from '#/lib/account-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -32,7 +39,12 @@ const ORDER_STATUS_CLASS: Record<string, string> = {
   PAID: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-muted text-muted-foreground',
   REFUNDED: 'bg-blue-100 text-blue-800',
+  PARTIALLY_FULFILLED: 'bg-orange-100 text-orange-800',
+  FULFILLED: 'bg-emerald-100 text-emerald-800',
+  INVOICED: 'bg-purple-100 text-purple-800',
 }
+
+const REFUNDABLE_STATUSES = new Set(['PAID', 'FULFILLED', 'PARTIALLY_FULFILLED'])
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -61,6 +73,9 @@ function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false)
+  const [isRefunding, setIsRefunding] = useState(false)
+  const [refundError, setRefundError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -89,6 +104,21 @@ function OrderDetailPage() {
       setOrder(updated)
     } finally {
       setIsCancelling(false)
+    }
+  }
+
+  async function handleRefund() {
+    if (!order?.id) return
+    setIsRefunding(true)
+    setRefundError(null)
+    try {
+      const updated = await requestRefund(authFetch, order.id)
+      setOrder(updated)
+      setRefundDialogOpen(false)
+    } catch {
+      setRefundError('Failed to submit refund request. Please try again.')
+    } finally {
+      setIsRefunding(false)
     }
   }
 
@@ -200,17 +230,71 @@ function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Cancel */}
-      {order.status === 'PENDING_PAYMENT' && (
-        <button
-          type="button"
-          disabled={isCancelling}
-          onClick={handleCancel}
-          className="self-start rounded-full border border-destructive px-5 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
-        >
-          {isCancelling ? 'Cancelling…' : 'Cancel order'}
-        </button>
-      )}
+      {/* Actions */}
+      <div className="flex flex-wrap gap-3">
+        {order.status === 'PENDING_PAYMENT' && (
+          <button
+            type="button"
+            disabled={isCancelling}
+            onClick={handleCancel}
+            className="rounded-full border border-destructive px-5 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          >
+            {isCancelling ? 'Cancelling…' : 'Cancel order'}
+          </button>
+        )}
+        {REFUNDABLE_STATUSES.has(order.status ?? '') && (
+          <button
+            type="button"
+            onClick={() => { setRefundError(null); setRefundDialogOpen(true) }}
+            className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+          >
+            Request refund
+          </button>
+        )}
+      </div>
+
+      {/* Refund confirmation dialog */}
+      <Dialog open={refundDialogOpen} onOpenChange={(v) => { if (!v) setRefundDialogOpen(false) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request a refund</DialogTitle>
+            <DialogDescription>
+              This will submit a refund request for your order. Our team will review it and process the refund to your original payment method.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="rounded-lg border border-border px-4 py-3 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Order total</span>
+                <span className="font-semibold text-foreground">
+                  {formatPrice(order.totalAmount ?? 0, order.currency ?? 'USD')}
+                </span>
+              </div>
+            </div>
+            {refundError && (
+              <p className="text-sm text-destructive">{refundError}</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setRefundDialogOpen(false)}
+                disabled={isRefunding}
+                className="rounded-full border border-border px-5 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRefund()}
+                disabled={isRefunding}
+                className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {isRefunding ? 'Submitting…' : 'Submit request'}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

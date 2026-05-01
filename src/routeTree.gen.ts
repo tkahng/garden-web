@@ -16,11 +16,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
 import { Route as CartIndexRouteImport } from './routes/cart/index'
+import { Route as BlogsIndexRouteImport } from './routes/blogs/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations/$token'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
+import { Route as BlogsBlogHandleRouteImport } from './routes/blogs/$blogHandle'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -34,6 +36,7 @@ import { Route as AccountAddressesRouteImport } from './routes/account/addresses
 import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account/orders/index'
 import { Route as AccountInvoicesIndexRouteImport } from './routes/account/invoices/index'
+import { Route as BlogsBlogHandleArticleHandleRouteImport } from './routes/blogs/$blogHandle.$articleHandle'
 import { Route as AccountQuotesPendingApprovalsRouteImport } from './routes/account/quotes/pending-approvals'
 import { Route as AccountQuotesQuoteIdRouteImport } from './routes/account/quotes/$quoteId'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account/orders/$orderId'
@@ -74,6 +77,11 @@ const CartIndexRoute = CartIndexRouteImport.update({
   path: '/cart/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogsIndexRoute = BlogsIndexRouteImport.update({
+  id: '/blogs/',
+  path: '/blogs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountIndexRoute = AccountIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -97,6 +105,11 @@ const CollectionsHandleRoute = CollectionsHandleRouteImport.update({
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogsBlogHandleRoute = BlogsBlogHandleRouteImport.update({
+  id: '/blogs/$blogHandle',
+  path: '/blogs/$blogHandle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
@@ -164,6 +177,12 @@ const AccountInvoicesIndexRoute = AccountInvoicesIndexRouteImport.update({
   path: '/invoices/',
   getParentRoute: () => AccountRoute,
 } as any)
+const BlogsBlogHandleArticleHandleRoute =
+  BlogsBlogHandleArticleHandleRouteImport.update({
+    id: '/$articleHandle',
+    path: '/$articleHandle',
+    getParentRoute: () => BlogsBlogHandleRoute,
+  } as any)
 const AccountQuotesPendingApprovalsRoute =
   AccountQuotesPendingApprovalsRouteImport.update({
     id: '/quotes/pending-approvals',
@@ -202,11 +221,13 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/blogs/$blogHandle': typeof BlogsBlogHandleRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
+  '/blogs/': typeof BlogsIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -214,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/blogs/$blogHandle/$articleHandle': typeof BlogsBlogHandleArticleHandleRoute
   '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
@@ -231,11 +253,13 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/blogs/$blogHandle': typeof BlogsBlogHandleRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account': typeof AccountIndexRoute
+  '/blogs': typeof BlogsIndexRoute
   '/cart': typeof CartIndexRoute
   '/collections': typeof CollectionsIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -243,6 +267,7 @@ export interface FileRoutesByTo {
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/blogs/$blogHandle/$articleHandle': typeof BlogsBlogHandleArticleHandleRoute
   '/account/invoices': typeof AccountInvoicesIndexRoute
   '/account/orders': typeof AccountOrdersIndexRoute
   '/account/quotes': typeof AccountQuotesIndexRoute
@@ -263,11 +288,13 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/blogs/$blogHandle': typeof BlogsBlogHandleRouteWithChildren
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
+  '/blogs/': typeof BlogsIndexRoute
   '/cart/': typeof CartIndexRoute
   '/collections/': typeof CollectionsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -275,6 +302,7 @@ export interface FileRoutesById {
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/quotes/$quoteId': typeof AccountQuotesQuoteIdRoute
   '/account/quotes/pending-approvals': typeof AccountQuotesPendingApprovalsRoute
+  '/blogs/$blogHandle/$articleHandle': typeof BlogsBlogHandleArticleHandleRoute
   '/account/invoices/': typeof AccountInvoicesIndexRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
   '/account/quotes/': typeof AccountQuotesIndexRoute
@@ -296,11 +324,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/blogs/$blogHandle'
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
+    | '/blogs/'
     | '/cart/'
     | '/collections/'
     | '/products/'
@@ -308,6 +338,7 @@ export interface FileRouteTypes {
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
     | '/account/quotes/pending-approvals'
+    | '/blogs/$blogHandle/$articleHandle'
     | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
@@ -325,11 +356,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/blogs/$blogHandle'
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
     | '/products/$handle'
     | '/account'
+    | '/blogs'
     | '/cart'
     | '/collections'
     | '/products'
@@ -337,6 +370,7 @@ export interface FileRouteTypes {
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
     | '/account/quotes/pending-approvals'
+    | '/blogs/$blogHandle/$articleHandle'
     | '/account/invoices'
     | '/account/orders'
     | '/account/quotes'
@@ -356,11 +390,13 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/blogs/$blogHandle'
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
     | '/products/$handle'
     | '/account/'
+    | '/blogs/'
     | '/cart/'
     | '/collections/'
     | '/products/'
@@ -368,6 +404,7 @@ export interface FileRouteTypes {
     | '/account/orders/$orderId'
     | '/account/quotes/$quoteId'
     | '/account/quotes/pending-approvals'
+    | '/blogs/$blogHandle/$articleHandle'
     | '/account/invoices/'
     | '/account/orders/'
     | '/account/quotes/'
@@ -381,10 +418,12 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  BlogsBlogHandleRoute: typeof BlogsBlogHandleRouteWithChildren
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
   InvitationsTokenRoute: typeof InvitationsTokenRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
+  BlogsIndexRoute: typeof BlogsIndexRoute
   CartIndexRoute: typeof CartIndexRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -441,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blogs/': {
+      id: '/blogs/'
+      path: '/blogs'
+      fullPath: '/blogs/'
+      preLoaderRoute: typeof BlogsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/': {
       id: '/account/'
       path: '/'
@@ -474,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/return'
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blogs/$blogHandle': {
+      id: '/blogs/$blogHandle'
+      path: '/blogs/$blogHandle'
+      fullPath: '/blogs/$blogHandle'
+      preLoaderRoute: typeof BlogsBlogHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verify-email': {
@@ -567,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountInvoicesIndexRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/blogs/$blogHandle/$articleHandle': {
+      id: '/blogs/$blogHandle/$articleHandle'
+      path: '/$articleHandle'
+      fullPath: '/blogs/$blogHandle/$articleHandle'
+      preLoaderRoute: typeof BlogsBlogHandleArticleHandleRouteImport
+      parentRoute: typeof BlogsBlogHandleRoute
+    }
     '/account/quotes/pending-approvals': {
       id: '/account/quotes/pending-approvals'
       path: '/quotes/pending-approvals'
@@ -647,6 +707,18 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface BlogsBlogHandleRouteChildren {
+  BlogsBlogHandleArticleHandleRoute: typeof BlogsBlogHandleArticleHandleRoute
+}
+
+const BlogsBlogHandleRouteChildren: BlogsBlogHandleRouteChildren = {
+  BlogsBlogHandleArticleHandleRoute: BlogsBlogHandleArticleHandleRoute,
+}
+
+const BlogsBlogHandleRouteWithChildren = BlogsBlogHandleRoute._addFileChildren(
+  BlogsBlogHandleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -655,10 +727,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  BlogsBlogHandleRoute: BlogsBlogHandleRouteWithChildren,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
   InvitationsTokenRoute: InvitationsTokenRoute,
   ProductsHandleRoute: ProductsHandleRoute,
+  BlogsIndexRoute: BlogsIndexRoute,
   CartIndexRoute: CartIndexRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
