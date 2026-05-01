@@ -76,3 +76,9 @@ export function cancelOrder(client: ApiClient, id: string): Promise<OrderRespons
     params: { path: { id } },
   }))
 }
+
+export function requestRefund(client: ApiClient, id: string): Promise<OrderResponse> {
+  return callApi(client.POST('/api/v1/storefront/orders/{id}/refund', {
+    params: { path: { id } },
+  }))
+}
