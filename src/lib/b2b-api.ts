@@ -50,6 +50,8 @@ export type UpdateMemberRoleRequest = {
   role: 'MANAGER' | 'MEMBER'
 }
 
+export type UpdateSpendingLimitRequest = components['schemas']['UpdateSpendingLimitRequest']
+
 export type CreateInvitationRequest = {
   email: string
   role?: 'MANAGER' | 'MEMBER'
@@ -123,6 +125,18 @@ export function removeMember(
   return callApi(client.DELETE('/api/v1/companies/{id}/members/{userId}', {
     params: { path: { id: companyId, userId } },
   })) as Promise<void>
+}
+
+export function updateSpendingLimit(
+  client: ApiClient,
+  companyId: string,
+  userId: string,
+  spendingLimit: number | null,
+): Promise<CompanyMemberResponse> {
+  return callApi(client.PUT('/api/v1/companies/{id}/members/{userId}/spending-limit', {
+    params: { path: { id: companyId, userId } },
+    body: { spendingLimit: spendingLimit ?? undefined },
+  }))
 }
 
 // ─── Invitations ──────────────────────────────────────────────────────────────

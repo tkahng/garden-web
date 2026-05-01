@@ -14,6 +14,7 @@ import {
   addMember,
   removeMember,
   updateMemberRole,
+  updateSpendingLimit,
   listInvitations,
   sendInvitation,
   cancelInvitation,
@@ -126,6 +127,82 @@ export function CreateCompanyForm({ onCreate }: { onCreate: (c: CompanyResponse)
 
 // ─── MembersTab ───────────────────────────────────────────────────────────────
 
+function SpendingLimitCell({
+  member,
+  companyId,
+  onUpdate,
+}: {
+  member: CompanyMemberResponse
+  companyId: string
+  onUpdate: () => void
+}) {
+  const { authFetch } = useAuth()
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(
+    member.spendingLimit != null ? String(member.spendingLimit) : '',
+  )
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    if (!member.userId) return
+    setSaving(true)
+    try {
+      const parsed = value.trim() === '' ? null : Number(value)
+      if (parsed !== null && (isNaN(parsed) || parsed < 0)) {
+        toast.error('Enter a valid amount or leave blank for no limit')
+        return
+      }
+      await updateSpendingLimit(authFetch, companyId, member.userId, parsed)
+      toast.success('Spending limit updated')
+      setEditing(false)
+      onUpdate()
+    } catch {
+      toast.error('Failed to update spending limit')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="text-xs text-muted-foreground hover:text-foreground"
+        title="Edit spending limit"
+      >
+        {member.spendingLimit != null
+          ? `$${member.spendingLimit.toLocaleString()} limit`
+          : 'No limit'}
+      </button>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <Input
+        type="number"
+        min={0}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="No limit"
+        className="h-7 w-24 text-xs"
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') void handleSave()
+          if (e.key === 'Escape') setEditing(false)
+        }}
+      />
+      <Button size="sm" variant="outline" disabled={saving} onClick={() => void handleSave()}>
+        {saving ? '…' : 'Save'}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+        ✕
+      </Button>
+    </div>
+  )
+}
+
 function MembersTab({
   companyId,
   myRole,
@@ -196,17 +273,18 @@ function MembersTab({
     <div className="space-y-6">
       <div className="divide-y divide-border rounded-xl border border-border">
         {members.map((m) => (
-          <div key={m.membershipId} className="flex items-center justify-between px-4 py-3">
+          <div key={m.membershipId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
             <div>
               <p className="text-sm font-medium">
                 {m.firstName} {m.lastName}
               </p>
               <p className="text-xs text-muted-foreground">{m.email}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <RoleBadge role={m.role} />
               {canManage && m.role !== 'OWNER' && (
                 <>
+                  <SpendingLimitCell member={m} companyId={companyId} onUpdate={load} />
                   {m.role === 'MEMBER' ? (
                     <Button
                       variant="outline"
