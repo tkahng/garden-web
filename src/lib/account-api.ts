@@ -82,3 +82,18 @@ export function requestRefund(client: ApiClient, id: string): Promise<OrderRespo
     params: { path: { id } },
   }))
 }
+
+// ─── Auth (authenticated) ─────────────────────────────────────────────────────
+
+export function updatePassword(
+  client: ApiClient,
+  data: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  return callApi(client.POST('/api/v1/auth/update-password', { body: data })) as Promise<void>
+}
+
+export function resendVerification(client: ApiClient, email: string): Promise<void> {
+  return callApi(client.POST('/api/v1/auth/resend-verification', {
+    body: { email },
+  })) as Promise<void>
+}
