@@ -56,7 +56,7 @@ function BlogDetailPage() {
     <main className="page-wrap py-12">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link to="/blogs" className="hover:text-foreground">Blog</Link>
+        <Link to="/blogs" search={{ page: 0 }} className="hover:text-foreground">Blog</Link>
         <span>/</span>
         <span className="text-foreground font-medium">{blog.title}</span>
       </nav>

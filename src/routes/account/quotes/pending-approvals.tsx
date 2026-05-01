@@ -153,21 +153,30 @@ function ApprovalCard({ quote, onApprove, onReject }: ApprovalCardProps) {
 
 // ─── PendingApprovalsPage ─────────────────────────────────────────────────────
 
+const PAGE_SIZE = 10
+
 export function PendingApprovalsPage() {
   const { authFetch } = useAuth()
   const [quotes, setQuotes] = useState<QuoteRequestResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [page, setPage] = useState(0)
+  const [total, setTotal] = useState(0)
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1
 
   useEffect(() => {
     let cancelled = false
-    listPendingApprovals(authFetch)
+    setIsLoading(true)
+    listPendingApprovals(authFetch, { page, size: PAGE_SIZE })
       .then((data) => {
-        if (!cancelled) setQuotes(data.content ?? [])
+        if (!cancelled) {
+          setQuotes(data.content ?? [])
+          setTotal(data.meta?.total ?? 0)
+        }
       })
       .catch(() => toast.error('Failed to load pending approvals'))
       .finally(() => { if (!cancelled) setIsLoading(false) })
     return () => { cancelled = true }
-  }, [authFetch])
+  }, [authFetch, page])
 
   const handleApprove = useCallback(async (id: string) => {
     try {
@@ -218,6 +227,28 @@ export function PendingApprovalsPage() {
             onReject={handleReject}
           />
         ))
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-2 flex items-center justify-center gap-4">
+          <button
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page === 0}
+            className="px-4 py-2 border border-border rounded text-sm disabled:opacity-40"
+          >
+            Prev
+          </button>
+          <span className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-border rounded text-sm disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   )
