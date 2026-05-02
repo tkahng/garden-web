@@ -30,6 +30,7 @@ export type PriceListResponse = components['schemas']['PriceListResponse']
 export type CustomerPriceEntryResponse = components['schemas']['CustomerPriceEntryResponse']
 export type InvoiceResponse = components['schemas']['InvoiceResponse']
 export type InvoicePaymentResponse = components['schemas']['InvoicePaymentResponse']
+export type CreditAccountResponse = components['schemas']['CreditAccountResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -289,6 +290,20 @@ export function listPriceListEntries(
   return callApi(client.GET('/api/v1/companies/{id}/price-lists/{priceListId}/entries', {
     params: { path: { id: companyId, priceListId } },
   })) as Promise<CustomerPriceEntryResponse[]>
+}
+
+// ─── Credit account ───────────────────────────────────────────────────────────
+
+export function getCreditAccount(
+  client: ApiClient,
+  companyId: string,
+): Promise<CreditAccountResponse | null> {
+  return client.GET('/api/v1/companies/{id}/credit-account', {
+    params: { path: { id: companyId } },
+  }).then(({ data, error }) => {
+    if (error) return null
+    return (data as { data?: CreditAccountResponse } | undefined)?.data ?? null
+  })
 }
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────

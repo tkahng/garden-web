@@ -8,6 +8,7 @@ import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
 import { validateDiscount, validateGiftCard } from '#/lib/cart-api'
 import type { AddressResponse } from '#/lib/account-api'
+import { getCreditAccount, type CreditAccountResponse } from '#/lib/b2b-api'
 import { GuestCheckoutDialog } from '#/components/GuestCheckoutDialog'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -228,6 +229,7 @@ function AuthCart() {
   const [giftCardBalance, setGiftCardBalance] = useState<number | null>(null)
   const [giftCardError, setGiftCardError] = useState<string | null>(null)
   const [giftCardLoading, setGiftCardLoading] = useState(false)
+  const [creditAccount, setCreditAccount] = useState<CreditAccountResponse | null>(null)
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -236,6 +238,14 @@ function AuthCart() {
       })
       .catch(() => setDefaultAddress(null))
   }, [authFetch])
+
+  useEffect(() => {
+    const companyId = (cart as { companyId?: string } | null)?.companyId
+    if (!companyId) { setCreditAccount(null); return }
+    getCreditAccount(authFetch, companyId)
+      .then(setCreditAccount)
+      .catch(() => setCreditAccount(null))
+  }, [authFetch, cart])
 
   // Fetch shipping rates once we have the default address
   useEffect(() => {
@@ -366,6 +376,13 @@ function AuthCart() {
   const discount = discountAmount ?? 0
   const giftCardApplied = giftCardBalance != null ? Math.min(giftCardBalance, subtotal + shippingCost - discount) : 0
   const total = subtotal + shippingCost - discount - giftCardApplied
+
+  const isTaxExempt = (cart as { taxExempt?: boolean } | null)?.taxExempt ?? false
+  const creditLimit = creditAccount?.creditLimit ?? 0
+  const availableCredit = creditAccount?.availableCredit ?? 0
+  const outstandingBalance = creditAccount?.outstandingBalance ?? 0
+  const utilizationPct = creditLimit > 0 ? Math.min(100, Math.round((outstandingBalance / creditLimit) * 100)) : 0
+  const overCreditLimit = creditAccount != null && total > availableCredit
 
   return (
     <main className="page-wrap px-4 py-10">
@@ -518,6 +535,29 @@ function AuthCart() {
           </div>
         )}
 
+        {/* Credit account utilization */}
+        {creditAccount && (
+          <div className="rounded-xl border border-border px-4 py-3 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-foreground">Credit account</span>
+              <span className="text-muted-foreground">
+                {formatPrice(availableCredit)} available of {formatPrice(creditLimit)}
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  utilizationPct > 80 ? 'bg-destructive' : utilizationPct > 50 ? 'bg-yellow-500' : 'bg-primary'
+                }`}
+                style={{ width: `${utilizationPct}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              NET {creditAccount.paymentTermsDays ?? 30} · {utilizationPct}% utilized
+            </p>
+          </div>
+        )}
+
         {/* Total */}
         {selectedRate && (
           <div className="flex flex-col gap-1 rounded-xl bg-muted/40 px-4 py-3 text-sm">
@@ -540,9 +580,25 @@ function AuthCart() {
                 <span>−{formatPrice(giftCardApplied)}</span>
               </div>
             )}
+            {isTaxExempt && (
+              <div className="flex justify-between text-green-600">
+                <span>Tax (exempt)</span>
+                <span>$0.00</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-border pt-1 font-bold text-foreground">
               <span>Total</span><span>{formatPrice(Math.max(0, total))}</span>
             </div>
+          </div>
+        )}
+
+        {overCreditLimit && (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <p className="font-semibold">Credit limit exceeded</p>
+            <p className="mt-0.5 text-xs">
+              This order ({formatPrice(total)}) exceeds your available credit ({formatPrice(availableCredit)}).
+              Please contact your account manager to increase your credit limit.
+            </p>
           </div>
         )}
 
@@ -553,7 +609,7 @@ function AuthCart() {
         <button
           type="button"
           onClick={handleCheckout}
-          disabled={isCheckingOut || !defaultAddress || (rates.length > 0 && !selectedRateId)}
+          disabled={isCheckingOut || !defaultAddress || (rates.length > 0 && !selectedRateId) || overCreditLimit}
           className="w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isCheckingOut ? 'Processing…' : 'Proceed to Checkout'}
