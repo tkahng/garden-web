@@ -302,7 +302,7 @@ export function getCreditAccount(
     params: { path: { id: companyId } },
   }).then(({ data, error }) => {
     if (error) return null
-    return (data as { data?: CreditAccountResponse } | undefined)?.data ?? null
+    return data?.data ?? null
   })
 }
 

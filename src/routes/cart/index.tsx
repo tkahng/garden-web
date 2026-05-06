@@ -8,7 +8,7 @@ import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
 import { validateDiscount, validateGiftCard } from '#/lib/cart-api'
 import type { AddressResponse } from '#/lib/account-api'
-import { getCreditAccount, type CreditAccountResponse } from '#/lib/b2b-api'
+import { getCreditAccount, getCompany, type CreditAccountResponse, type CompanyResponse } from '#/lib/b2b-api'
 import { GuestCheckoutDialog } from '#/components/GuestCheckoutDialog'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -230,6 +230,7 @@ function AuthCart() {
   const [giftCardError, setGiftCardError] = useState<string | null>(null)
   const [giftCardLoading, setGiftCardLoading] = useState(false)
   const [creditAccount, setCreditAccount] = useState<CreditAccountResponse | null>(null)
+  const [company, setCompany] = useState<CompanyResponse | null>(null)
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -240,11 +241,14 @@ function AuthCart() {
   }, [authFetch])
 
   useEffect(() => {
-    const companyId = (cart as { companyId?: string } | null)?.companyId
-    if (!companyId) { setCreditAccount(null); return }
+    const companyId = cart?.companyId
+    if (!companyId) { setCreditAccount(null); setCompany(null); return }
     getCreditAccount(authFetch, companyId)
       .then(setCreditAccount)
       .catch(() => setCreditAccount(null))
+    getCompany(authFetch, companyId)
+      .then(setCompany)
+      .catch(() => setCompany(null))
   }, [authFetch, cart])
 
   // Fetch shipping rates once we have the default address
@@ -377,7 +381,7 @@ function AuthCart() {
   const giftCardApplied = giftCardBalance != null ? Math.min(giftCardBalance, subtotal + shippingCost - discount) : 0
   const total = subtotal + shippingCost - discount - giftCardApplied
 
-  const isTaxExempt = (cart as { taxExempt?: boolean } | null)?.taxExempt ?? false
+  const isTaxExempt = company?.taxExempt ?? false
   const creditLimit = creditAccount?.creditLimit ?? 0
   const availableCredit = creditAccount?.availableCredit ?? 0
   const outstandingBalance = creditAccount?.outstandingBalance ?? 0
