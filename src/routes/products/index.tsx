@@ -3,10 +3,11 @@ import { useState, useEffect, useRef } from 'react'
 import { listProducts } from '#/lib/api'
 import type { ProductSummaryResponse } from '#/lib/api'
 import { WishlistButton } from '#/components/WishlistButton'
+import { useCart } from '#/context/cart'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Search = { q?: string; vendor?: string; type?: string; sort?: string; page: number }
+type Search = { q?: string; vendor?: string; type?: string; sort?: string; page: number; companyId?: string }
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/products/')({
     vendor: typeof search.vendor === 'string' ? search.vendor : undefined,
     type: typeof search.type === 'string' ? search.type : undefined,
     sort: typeof search.sort === 'string' ? search.sort : undefined,
+    companyId: typeof search.companyId === 'string' ? search.companyId : undefined,
     page: (() => {
       const raw = search.page
       const n = typeof raw === 'number' ? raw : Number(raw)
@@ -38,6 +40,7 @@ export const Route = createFileRoute('/products/')({
       sort: deps.sort,
       page: deps.page,
       size: 20,
+      companyId: deps.companyId,
     }),
   component: ProductListingPage,
 })
@@ -309,6 +312,14 @@ function ProductListingPage() {
   const data = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: '/products/' })
+  const { cart } = useCart()
+
+  useEffect(() => {
+    const cartCompanyId = cart?.companyId
+    if (cartCompanyId && !search.companyId) {
+      navigate({ search: (prev) => ({ ...prev, companyId: cartCompanyId }), replace: true })
+    }
+  }, [cart?.companyId, search.companyId, navigate])
 
   function handleSearch(updates: Partial<Search>) {
     navigate({ search: (prev) => ({ ...prev, ...updates }) })

@@ -205,6 +205,7 @@ export function listProducts(params: {
   sort?: string
   page?: number
   size?: number
+  companyId?: string
 }): Promise<PagedResult<ProductSummaryResponse>> {
   return callApi(createPublicClient().GET('/api/v1/products', {
     params: {
@@ -215,6 +216,7 @@ export function listProducts(params: {
         sortBy: params.sort,
         page: params.page,
         size: params.size,
+        companyId: params.companyId,
       },
     },
   })) as Promise<PagedResult<ProductSummaryResponse>>
