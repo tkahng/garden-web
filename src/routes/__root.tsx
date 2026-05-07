@@ -4,6 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import Header from '#/components/Header'
 import Footer from '#/components/Footer'
 import AuthModal from '#/components/AuthModal'
+import NewsletterPopup from '#/components/NewsletterPopup'
 import { AuthModalProvider } from '#/context/auth-modal'
 import { AuthProvider } from '#/context/auth'
 import { CartProvider } from '#/context/cart'
@@ -31,6 +32,7 @@ function RootComponent() {
               <Footer />
             </div>
             <AuthModal />
+            <NewsletterPopup />
             <TanStackDevtools
               config={{ position: 'bottom-right' }}
               plugins={[{ name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> }]}

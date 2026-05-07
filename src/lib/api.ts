@@ -254,6 +254,19 @@ export function search(params: {
   }))
 }
 
+// ─── Newsletter ───────────────────────────────────────────────────────────────
+
+export async function subscribeNewsletter(email: string, source: string): Promise<{ alreadySubscribed: boolean }> {
+  const res = await fetch(`${base()}/api/v1/newsletter/subscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, source }),
+  })
+  if (!res.ok) throw new Error('Failed to subscribe')
+  const json = await res.json()
+  return json.data as { alreadySubscribed: boolean }
+}
+
 // ─── Internal ─────────────────────────────────────────────────────────────────
 
 function base(): string {
