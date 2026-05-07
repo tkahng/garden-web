@@ -14,6 +14,8 @@ import { addToQuoteCart } from '#/lib/b2b-api'
 import { WishlistButton } from '#/components/WishlistButton'
 import { ProductReviews } from '#/components/ProductReviews'
 import { RelatedProducts } from '#/components/RelatedProducts'
+import { RecentlyViewed } from '#/components/RecentlyViewed'
+import { useRecentlyViewed } from '#/hooks/useRecentlyViewed'
 import {
   MagnifyingGlassPlusIcon,
   XIcon,
@@ -583,6 +585,18 @@ function ProductDetailPage() {
     { image: featuredImage, type: 'product', url: window.location.href },
   )
   useJsonLd(buildProductSchema(product))
+  const { record } = useRecentlyViewed()
+  useEffect(() => {
+    if (!product.id || !product.handle) return
+    record({
+      id: product.id,
+      handle: product.handle,
+      title: product.title ?? '',
+      priceMin: product.variants?.[0]?.price ?? null,
+      featuredImageUrl: product.images?.[0]?.url ?? null,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id])
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
@@ -693,6 +707,7 @@ function ProductDetailPage() {
       </div>
       <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />
       <RelatedProducts handle={product.handle ?? ''} />
+      <RecentlyViewed exclude={product.handle ?? undefined} />
       {lightboxIndex !== null && (
         <ProductLightbox
           images={product.images ?? []}

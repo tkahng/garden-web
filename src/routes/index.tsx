@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
 import { getPage, listCollections, listProducts } from '#/lib/api'
 import { ProductCard } from '#/routes/products/index'
+import { RecentlyViewed } from '#/components/RecentlyViewed'
 import type {
   PageResponse,
   CollectionSummaryResponse,
@@ -39,6 +40,7 @@ function HomePage() {
           products={featuredProducts}
         />
       )}
+      <RecentlyViewedSection />
       <CollectionsGrid collections={collections} />
     </main>
   )
@@ -75,6 +77,16 @@ export function HeroSection({ page }: { page: PageResponse | null }) {
           </a>
         </div>
       </div>
+    </section>
+  )
+}
+
+// ─── RecentlyViewedSection ────────────────────────────────────────────────────
+
+function RecentlyViewedSection() {
+  return (
+    <section className="page-wrap px-4">
+      <RecentlyViewed />
     </section>
   )
 }
