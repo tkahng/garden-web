@@ -30,11 +30,11 @@ function formatPrice(amount: number) {
 
 let nextId = 1
 
-function makeRow(): OrderRow {
+export function makeRow(): OrderRow {
   return { id: nextId++, sku: '', qty: '1', resolved: null, status: 'idle' }
 }
 
-function QuickOrderPage() {
+export function QuickOrderPage() {
   const { isAuthenticated } = useAuth()
   const { addItem } = useCart()
   const [rows, setRows] = useState<OrderRow[]>([makeRow(), makeRow(), makeRow()])
