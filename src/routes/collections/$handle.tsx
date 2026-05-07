@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { getCollection, listCollectionProducts } from '#/lib/api'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import type {
@@ -7,10 +8,11 @@ import type {
   ProductSummaryResponse,
 } from '#/lib/api'
 import { Pagination, ProductCard } from '#/routes/products/index'
+import { useCart } from '#/context/cart'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Search = { page: number; sort?: string }
+type Search = { page: number; sort?: string; companyId?: string }
 
 const COLLECTION_SORT_OPTIONS = [
   { value: 'featured', label: 'Featured' },
@@ -25,6 +27,7 @@ const COLLECTION_SORT_OPTIONS = [
 export const Route = createFileRoute('/collections/$handle')({
   validateSearch: (search: Record<string, unknown>): Search => ({
     sort: typeof search.sort === 'string' ? search.sort : undefined,
+    companyId: typeof search.companyId === 'string' ? search.companyId : undefined,
     page: (() => {
       const raw = search.page
       const n = typeof raw === 'number' ? raw : Number(raw)
@@ -36,7 +39,7 @@ export const Route = createFileRoute('/collections/$handle')({
     const [sortBy, sortDir] = parseSortParam(deps.sort)
     return Promise.all([
       getCollection(params.handle),
-      listCollectionProducts(params.handle, deps.page, 20, sortBy, sortDir),
+      listCollectionProducts(params.handle, deps.page, 20, sortBy, sortDir, deps.companyId),
     ])
   },
   component: CollectionDetailPage,
@@ -110,13 +113,21 @@ function toProductSummary(
 
 function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
-  const { sort } = Route.useSearch()
+  const { sort, companyId } = Route.useSearch()
   useDocumentMeta(
     collection.metaTitle ?? collection.title,
     collection.metaDescription,
     { image: collection.featuredImageUrl, type: 'website', url: window.location.href },
   )
   const navigate = useNavigate({ from: '/collections/$handle' })
+  const { cart } = useCart()
+
+  useEffect(() => {
+    const cartCompanyId = cart?.companyId
+    if (cartCompanyId && !companyId) {
+      navigate({ search: (prev) => ({ ...prev, companyId: cartCompanyId }), replace: true })
+    }
+  }, [cart?.companyId, companyId, navigate])
 
   function handlePage(page: number) {
     navigate({ search: (prev) => ({ ...prev, page }) })

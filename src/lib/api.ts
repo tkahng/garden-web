@@ -186,9 +186,10 @@ export function listCollectionProducts(
   size: number,
   sortBy?: string,
   sortDir?: string,
+  companyId?: string,
 ): Promise<PagedResult<CollectionProductResponse>> {
   return callApi(createPublicClient().GET('/api/v1/collections/{handle}/products', {
-    params: { path: { handle }, query: { page, size, sortBy, sortDir } },
+    params: { path: { handle }, query: { page, size, sortBy, sortDir, companyId } },
   })) as Promise<PagedResult<CollectionProductResponse>>
 }
 
