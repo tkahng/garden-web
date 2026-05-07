@@ -33,6 +33,7 @@ export type InvoicePaymentResponse = components['schemas']['InvoicePaymentRespon
 export type CreditAccountResponse = components['schemas']['CreditAccountResponse']
 export type VariantPriceTiersResponse = components['schemas']['VariantPriceTiersResponse']
 export type PriceTierEntry = components['schemas']['PriceTierEntry']
+export type VariantLookupResponse = components['schemas']['VariantLookupResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -306,6 +307,14 @@ export function getCreditAccount(
     if (error) return null
     return data?.data ?? null
   })
+}
+
+// ─── Variant SKU lookup ───────────────────────────────────────────────────────
+
+export function lookupBySku(sku: string): Promise<VariantLookupResponse> {
+  return callApi(createPublicClient().GET('/api/v1/products/variants/lookup', {
+    params: { query: { sku } },
+  }))
 }
 
 // ─── Tiered pricing ───────────────────────────────────────────────────────────
