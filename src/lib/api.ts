@@ -43,21 +43,19 @@ export interface AuthTokens {
   refreshToken: string
 }
 
-// ─── Auth functions (raw fetch — used for login bootstrap before auth client) ─
+// ─── Auth functions ───────────────────────────────────────────────────────────
 
 export function getGoogleOAuthUrl(): string {
   return `${base()}/api/v1/auth/oauth2/google`
 }
 
 export async function authLogin(email: string, password: string): Promise<AuthTokens> {
-  const res = await fetch(`${base()}/api/v1/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+  const { data, error } = await createPublicClient().POST('/api/v1/auth/login', {
+    body: { email, password },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  if (error) throw error
+  const t = data!.data!
+  return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
 export async function authRegister(
@@ -66,70 +64,62 @@ export async function authRegister(
   firstName: string,
   lastName: string,
 ): Promise<AuthTokens> {
-  const res = await fetch(`${base()}/api/v1/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, firstName, lastName }),
+  const { data, error } = await createPublicClient().POST('/api/v1/auth/register', {
+    body: { email, password, firstName, lastName },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  if (error) throw error
+  const t = data!.data!
+  return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
 export async function authLogout(refreshToken: string): Promise<void> {
-  const res = await fetch(`${base()}/api/v1/auth/logout`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+  const { error } = await createPublicClient().POST('/api/v1/auth/logout', {
+    body: { refreshToken },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  if (error) throw error
 }
 
 export async function authRefresh(refreshToken: string): Promise<AuthTokens> {
-  const res = await fetch(`${base()}/api/v1/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+  const { data, error } = await createPublicClient().POST('/api/v1/auth/refresh', {
+    body: { refreshToken },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return { accessToken: json.data.accessToken, refreshToken: json.data.refreshToken }
+  if (error) throw error
+  const t = data!.data!
+  return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
 export async function authRequestPasswordReset(email: string): Promise<void> {
-  const res = await fetch(`${base()}/api/v1/auth/request-password-reset`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+  const { error } = await createPublicClient().POST('/api/v1/auth/request-password-reset', {
+    body: { email },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  if (error) throw error
 }
 
 export async function authConfirmPasswordReset(
   token: string,
   newPassword: string,
 ): Promise<void> {
-  const res = await fetch(`${base()}/api/v1/auth/confirm-password-reset/${token}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newPassword }),
+  const { error } = await createPublicClient().POST('/api/v1/auth/confirm-password-reset/{token}', {
+    params: { path: { token } },
+    body: { newPassword },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  if (error) throw error
 }
 
 export async function authVerifyEmail(token: string): Promise<void> {
-  const res = await fetch(`${base()}/api/v1/auth/verify-email?token=${token}`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const { error } = await createPublicClient().GET('/api/v1/auth/verify-email', {
+    params: { query: { token } },
+  })
+  if (error) throw error
 }
 
 // Used during login bootstrap (before auth client is initialized)
 export async function getAccount(accessToken: string): Promise<User> {
-  const res = await fetch(`${base()}/api/v1/account`, {
+  const { data, error } = await createPublicClient().GET('/api/v1/account', {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  const d = json.data
+  if (error) throw error
+  const d = data!.data!
   return {
     id: d.id ?? '',
     email: d.email ?? '',
@@ -257,14 +247,11 @@ export function search(params: {
 // ─── Newsletter ───────────────────────────────────────────────────────────────
 
 export async function subscribeNewsletter(email: string, source: string): Promise<{ alreadySubscribed: boolean }> {
-  const res = await fetch(`${base()}/api/v1/newsletter/subscribe`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, source }),
+  const { data, error } = await createPublicClient().POST('/api/v1/newsletter/subscribe', {
+    body: { email, source },
   })
-  if (!res.ok) throw new Error('Failed to subscribe')
-  const json = await res.json()
-  return json.data as { alreadySubscribed: boolean }
+  if (error) throw error
+  return data!.data! as { alreadySubscribed: boolean }
 }
 
 // ─── Internal ─────────────────────────────────────────────────────────────────

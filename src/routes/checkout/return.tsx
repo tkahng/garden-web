@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { CheckoutReturnResponse } from '#/lib/cart-api'
+import { createPublicClient, callApi } from '#/lib/client'
 
 export const Route = createFileRoute('/checkout/return')({
   component: CheckoutReturnRoute,
@@ -24,23 +25,14 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
     if (!sessionId) return
     let cancelled = false
 
-    const apiBase = import.meta.env.VITE_API_BASE_URL ?? ''
-    fetch(`${apiBase}/api/v1/checkout/return?session_id=${encodeURIComponent(sessionId)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then((json) => {
+    callApi(createPublicClient().GET('/api/v1/checkout/return', {
+      params: { query: { session_id: sessionId } },
+    }))
+      .then((data) => {
         if (cancelled) return
-        const data = json.data as CheckoutReturnResponse
-        setOrder(data)
-        if (data.status === 'PAID') {
-          setStatus('success')
-        } else if (data.status === 'CANCELLED') {
-          setStatus('cancelled')
-        } else {
-          setStatus('success')
-        }
+        const d = data as CheckoutReturnResponse
+        setOrder(d)
+        setStatus(d.status === 'CANCELLED' ? 'cancelled' : 'success')
       })
       .catch(() => {
         if (!cancelled) setStatus('error')
