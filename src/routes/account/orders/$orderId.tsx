@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
 import { Skeleton } from '#/components/ui/skeleton'
@@ -9,7 +9,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '#/components/ui/dialog'
-import { getOrder, cancelOrder, requestRefund } from '#/lib/account-api'
+import { toast } from 'sonner'
+import { getOrder, cancelOrder, requestRefund, reorder } from '#/lib/account-api'
 import type { OrderResponse } from '#/lib/account-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -72,7 +73,9 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<OrderResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isReordering, setIsReordering] = useState(false)
   const [refundDialogOpen, setRefundDialogOpen] = useState(false)
   const [isRefunding, setIsRefunding] = useState(false)
   const [refundError, setRefundError] = useState<string | null>(null)
@@ -104,6 +107,20 @@ function OrderDetailPage() {
       setOrder(updated)
     } finally {
       setIsCancelling(false)
+    }
+  }
+
+  async function handleReorder() {
+    if (!order?.id) return
+    setIsReordering(true)
+    try {
+      await reorder(authFetch, order.id)
+      toast.success('Items added to your cart')
+      await navigate({ to: '/cart' })
+    } catch {
+      toast.error('Failed to reorder. Some items may no longer be available.')
+    } finally {
+      setIsReordering(false)
     }
   }
 
@@ -232,6 +249,14 @@ function OrderDetailPage() {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={isReordering}
+          onClick={handleReorder}
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          {isReordering ? 'Adding to cart…' : 'Reorder'}
+        </button>
         {order.status === 'PENDING_PAYMENT' && (
           <button
             type="button"

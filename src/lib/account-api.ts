@@ -83,6 +83,14 @@ export function requestRefund(client: ApiClient, id: string): Promise<OrderRespo
   }))
 }
 
+export type CartResponse = components['schemas']['CartResponse']
+
+export function reorder(client: ApiClient, id: string): Promise<CartResponse> {
+  return callApi(client.POST('/api/v1/storefront/orders/{id}/reorder', {
+    params: { path: { id } },
+  }))
+}
+
 // ─── Auth (authenticated) ─────────────────────────────────────────────────────
 
 export function updatePassword(
