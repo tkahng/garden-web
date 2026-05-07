@@ -89,7 +89,11 @@ function toProductSummary(
 
 function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
-  useDocumentMeta(collection.metaTitle ?? collection.title, collection.metaDescription)
+  useDocumentMeta(
+    collection.metaTitle ?? collection.title,
+    collection.metaDescription,
+    { image: collection.featuredImageUrl, type: 'website', url: window.location.href },
+  )
   const navigate = useNavigate({ from: '/collections/$handle' })
 
   function handlePage(page: number) {

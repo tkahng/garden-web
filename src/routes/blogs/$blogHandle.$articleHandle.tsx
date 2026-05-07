@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import ReactMarkdown from 'react-markdown'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
+import { useJsonLd } from '#/hooks/useJsonLd'
 import { getArticle } from '#/lib/api'
 import type { ArticleResponse } from '#/lib/api'
 
@@ -13,12 +14,30 @@ function ArticleDetailPage() {
   const article = Route.useLoaderData() as ArticleResponse
   const { blogHandle } = Route.useParams()
 
+  const featuredImage = article.images?.find((img) => img.id === article.featuredImageId) ?? article.images?.[0]
+
   useDocumentMeta(
     article.metaTitle ?? article.title ?? 'Article',
     article.metaDescription ?? article.excerpt ?? undefined,
+    { image: featuredImage?.url, type: 'article', url: window.location.href },
   )
 
-  const featuredImage = article.images?.find((img) => img.id === article.featuredImageId) ?? article.images?.[0]
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.metaDescription ?? article.excerpt ?? undefined,
+    image: featuredImage?.url ?? undefined,
+    author: article.authorName
+      ? { '@type': 'Person', name: article.authorName }
+      : undefined,
+    datePublished: article.publishedAt ?? undefined,
+    publisher: {
+      '@type': 'Organization',
+      name: 'The Garden Shop',
+    },
+    url: window.location.href,
+  })
 
   return (
     <main className="page-wrap py-12">

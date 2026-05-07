@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
+import { useJsonLd } from '#/hooks/useJsonLd'
 import ReactMarkdown from 'react-markdown'
 import { toast } from 'sonner'
 import { getProduct } from '#/lib/api'
@@ -342,11 +343,40 @@ export function ProductInfo({
   )
 }
 
+// ─── Schema.org helpers ───────────────────────────────────────────────────────
+
+function buildProductSchema(product: ProductDetailResponse): Record<string, unknown> {
+  const images = (product.images ?? []).map((i) => i.url).filter(Boolean)
+  const offers = (product.variants ?? []).map((v) => ({
+    '@type': 'Offer',
+    priceCurrency: 'USD',
+    price: v.price ?? 0,
+    availability: 'https://schema.org/InStock',
+    url: window.location.href,
+  }))
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.metaDescription ?? product.description ?? undefined,
+    image: images.length > 0 ? images : undefined,
+    brand: product.vendor ? { '@type': 'Brand', name: product.vendor } : undefined,
+    offers: offers.length === 1 ? offers[0] : offers,
+  }
+}
+
 // ─── ProductDetailPage ────────────────────────────────────────────────────────
 
 function ProductDetailPage() {
   const product = Route.useLoaderData()
-  useDocumentMeta(product.metaTitle ?? product.title, product.metaDescription)
+  const featuredImage = product.images?.[0]?.url ?? null
+  useDocumentMeta(
+    product.metaTitle ?? product.title,
+    product.metaDescription,
+    { image: featuredImage, type: 'product', url: window.location.href },
+  )
+  useJsonLd(buildProductSchema(product))
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
   const { addItem } = useCart()
