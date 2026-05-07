@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import { useJsonLd } from '#/hooks/useJsonLd'
@@ -275,6 +275,7 @@ export function ProductInfo({
   addError,
   onAddToQuoteCart,
   isAddingToQuoteCart = false,
+  atcRef,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
@@ -287,6 +288,7 @@ export function ProductInfo({
   addError?: string | null
   onAddToQuoteCart?: () => void
   isAddingToQuoteCart?: boolean
+  atcRef?: React.RefObject<HTMLDivElement | null>
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -411,41 +413,43 @@ export function ProductInfo({
       </div>
 
       {/* Add to Cart / Add to Quote Cart */}
-      {activeVariant?.price != null ? (
-        <div className="flex flex-col gap-2">
-          <button
-            disabled={isAddingToCart || !activeVariant?.id}
-            onClick={onAddToCart}
-            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isAddingToCart ? 'Adding…' : 'Add to cart'}
-          </button>
-          <button
-            disabled={!activeVariant?.id || isAddingToQuoteCart}
-            onClick={onAddToQuoteCart}
-            className="w-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isAddingToQuoteCart ? 'Adding…' : 'Add to quote cart'}
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <button
-            disabled={activeVariant == null || isAddingToQuoteCart}
-            onClick={onAddToQuoteCart}
-            className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {activeVariant == null
-              ? 'Unavailable'
-              : isAddingToQuoteCart
-                ? 'Adding…'
-                : 'Add to quote cart'}
-          </button>
-          <p className="text-xs text-muted-foreground text-center">
-            This item is available by quote only.
-          </p>
-        </div>
-      )}
+      <div ref={atcRef}>
+        {activeVariant?.price != null ? (
+          <div className="flex flex-col gap-2">
+            <button
+              disabled={isAddingToCart || !activeVariant?.id}
+              onClick={onAddToCart}
+              className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isAddingToCart ? 'Adding…' : 'Add to cart'}
+            </button>
+            <button
+              disabled={!activeVariant?.id || isAddingToQuoteCart}
+              onClick={onAddToQuoteCart}
+              className="w-full border border-border px-6 py-3 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isAddingToQuoteCart ? 'Adding…' : 'Add to quote cart'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <button
+              disabled={activeVariant == null || isAddingToQuoteCart}
+              onClick={onAddToQuoteCart}
+              className="w-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {activeVariant == null
+                ? 'Unavailable'
+                : isAddingToQuoteCart
+                  ? 'Adding…'
+                  : 'Add to quote cart'}
+            </button>
+            <p className="text-xs text-muted-foreground text-center">
+              This item is available by quote only.
+            </p>
+          </div>
+        )}
+      </div>
       {addError != null && (
         <p data-testid="add-error" className="text-sm text-red-600">
           {addError}
@@ -508,6 +512,66 @@ function buildProductSchema(product: ProductDetailResponse): Record<string, unkn
   }
 }
 
+// ─── StickyAtcBar ─────────────────────────────────────────────────────────────
+
+function StickyAtcBar({
+  image,
+  title,
+  price,
+  onAddToCart,
+  isAdding,
+  disabled,
+}: {
+  image: ProductImageResponse | undefined
+  title: string
+  price: number | null
+  onAddToCart?: () => void
+  isAdding: boolean
+  disabled: boolean
+}) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  return createPortal(
+    <div
+      aria-label="Quick add to cart"
+      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-md transition-transform duration-300 ${
+        visible ? 'translate-y-0' : 'translate-y-full'
+      }`}
+    >
+      <div className="page-wrap flex items-center gap-4 px-4 py-3">
+        {image?.url && (
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md border border-border">
+            <img
+              src={image.url}
+              alt={image.altText ?? title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+          {price != null && (
+            <p className="text-sm text-muted-foreground">{formatPrice(price)}</p>
+          )}
+        </div>
+        <button
+          disabled={isAdding || disabled}
+          onClick={onAddToCart}
+          className="shrink-0 bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isAdding ? 'Adding…' : 'Add to cart'}
+        </button>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 // ─── ProductDetailPage ────────────────────────────────────────────────────────
 
 function ProductDetailPage() {
@@ -525,6 +589,21 @@ function ProductDetailPage() {
   const { addItem: addGuestItem } = useGuestCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const atcRef = useRef<HTMLDivElement>(null)
+  const [atcPastTop, setAtcPastTop] = useState(false)
+
+  useEffect(() => {
+    const el = atcRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setAtcPastTop(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+      },
+      { threshold: 0 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >(() =>
@@ -609,6 +688,7 @@ function ProductDetailPage() {
           addError={addError}
           onAddToQuoteCart={handleAddToQuoteCart}
           isAddingToQuoteCart={isAddingToQuote}
+          atcRef={atcRef}
         />
       </div>
       <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />
@@ -618,6 +698,16 @@ function ProductDetailPage() {
           images={product.images ?? []}
           startIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
+        />
+      )}
+      {atcPastTop && activeVariant?.price != null && (
+        <StickyAtcBar
+          image={product.images?.[0]}
+          title={product.title ?? ''}
+          price={activeVariant.price}
+          onAddToCart={handleAddToCart}
+          isAdding={isAdding}
+          disabled={!activeVariant?.id}
         />
       )}
     </main>
