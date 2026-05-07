@@ -425,32 +425,39 @@ export function ProductInfo({
       )}
 
       {/* Quantity */}
-      <div className="flex items-center gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Quantity
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Decrease quantity"
-            disabled={quantity <= 1}
-            onClick={() => onQuantityChange(quantity - 1)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
-          >
-            −
-          </button>
-          <span className="w-8 text-center text-sm font-semibold">
-            {quantity}
-          </span>
-          <button
-            type="button"
-            aria-label="Increase quantity"
-            onClick={() => onQuantityChange(quantity + 1)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold hover:border-primary"
-          >
-            +
-          </button>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Quantity
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Decrease quantity"
+              disabled={quantity <= (activeVariant?.minimumOrderQty ?? 1)}
+              onClick={() => onQuantityChange(quantity - 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm font-semibold">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              aria-label="Increase quantity"
+              onClick={() => onQuantityChange(quantity + 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-bold hover:border-primary"
+            >
+              +
+            </button>
+          </div>
         </div>
+        {(activeVariant?.minimumOrderQty ?? 1) > 1 && (
+          <p className="text-xs text-muted-foreground">
+            Minimum order: {activeVariant!.minimumOrderQty} units
+          </p>
+        )}
       </div>
 
       {/* Add to Cart / Add to Quote Cart */}
@@ -686,6 +693,11 @@ function ProductDetailPage() {
         (ov) => selectedOptions[ov.optionName ?? ''] === ov.valueLabel,
       ),
     ) ?? product.variants?.[0]
+
+  useEffect(() => {
+    const moq = activeVariant?.minimumOrderQty ?? 1
+    setQuantity((prev) => Math.max(prev, moq))
+  }, [activeVariant?.id, activeVariant?.minimumOrderQty])
 
   async function handleAddToCart() {
     if (!activeVariant?.id) {
