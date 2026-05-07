@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useCart } from '#/context/cart'
 import { useGuestCart } from '#/context/guest-cart'
@@ -213,6 +213,7 @@ function ShippingRateSelector({
 function AuthCart() {
   const { cart, isLoading, removeItem, updateQuantity, abandon, checkout } = useCart()
   const { authFetch } = useAuth()
+  const navigate = useNavigate()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [defaultAddress, setDefaultAddress] = useState<AddressResponse | null | undefined>(undefined)
@@ -340,6 +341,9 @@ function AuthCart() {
       const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined, poNumber || undefined)
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
+      } else if (result.orderId) {
+        // Net terms or zero-total order — no Stripe redirect
+        await navigate({ to: '/account/orders/$orderId', params: { orderId: result.orderId } })
       } else {
         setCheckoutError('No checkout URL returned. Please try again.')
       }
@@ -627,13 +631,26 @@ function AuthCart() {
           <p className="text-sm text-destructive">{checkoutError}</p>
         )}
 
+        {creditAccount != null && (creditAccount.paymentTermsDays ?? 0) > 0 && (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <p className="font-semibold">Net {creditAccount.paymentTermsDays} payment terms</p>
+            <p className="mt-0.5 text-xs text-green-700">
+              This order will be invoiced. No payment is required at checkout.
+            </p>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleCheckout}
           disabled={isCheckingOut || !defaultAddress || (rates.length > 0 && !selectedRateId) || overCreditLimit}
           className="w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isCheckingOut ? 'Processing…' : 'Proceed to Checkout'}
+          {isCheckingOut
+            ? 'Processing…'
+            : (creditAccount?.paymentTermsDays ?? 0) > 0
+              ? `Place Order (Net ${creditAccount!.paymentTermsDays})`
+              : 'Proceed to Checkout'}
         </button>
       </div>
     </main>

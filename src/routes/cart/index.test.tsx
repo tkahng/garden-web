@@ -8,6 +8,7 @@ vi.mock('@tanstack/react-router', () => ({
     <a href={to} className={className}>{children}</a>
   ),
   createFileRoute: () => (_config: unknown) => ({}),
+  useNavigate: () => vi.fn(),
 }))
 
 // Cart context mock state
