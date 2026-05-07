@@ -58,6 +58,7 @@ export function CartItemRow({
   const { id } = item
 
   const qty = item.quantity ?? 1
+  const moq = item.minimumOrderQty ?? 1
   const unitPrice = item.unitPrice ?? 0
   const lineTotal = unitPrice * qty
 
@@ -89,7 +90,7 @@ export function CartItemRow({
         <button
           type="button"
           aria-label="Decrease quantity"
-          disabled={qty <= 1}
+          disabled={qty <= moq}
           onClick={() => onUpdateQuantity(id, qty - 1)}
           className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
         >
