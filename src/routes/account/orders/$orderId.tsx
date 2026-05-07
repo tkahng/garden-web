@@ -252,6 +252,19 @@ function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Invoice notice */}
+      {order.status === 'INVOICED' && (
+        <div className="flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm">
+          <span className="text-purple-800 font-medium">This order has been invoiced.</span>
+          <Link
+            to="/account/invoices"
+            className="text-purple-700 font-semibold hover:underline"
+          >
+            View invoices →
+          </Link>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
         <button
