@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import { useJsonLd } from '#/hooks/useJsonLd'
 import ReactMarkdown from 'react-markdown'
@@ -13,6 +14,12 @@ import { addToQuoteCart } from '#/lib/b2b-api'
 import { WishlistButton } from '#/components/WishlistButton'
 import { ProductReviews } from '#/components/ProductReviews'
 import { RelatedProducts } from '#/components/RelatedProducts'
+import {
+  MagnifyingGlassPlusIcon,
+  XIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+} from '@phosphor-icons/react'
 import type {
   ProductDetailResponse,
   ProductVariantResponse,
@@ -73,22 +80,33 @@ export function ProductGallery({
   images,
   activeIndex,
   onSelect,
+  onZoom,
 }: {
   images: ProductImageResponse[]
   activeIndex: number
   onSelect: (i: number) => void
+  onZoom: (i: number) => void
 }) {
   const safeIndex = Math.min(activeIndex, images.length - 1)
   return (
     <div className="flex flex-col gap-3">
-      <div className="island-shell aspect-[4/5] w-full overflow-hidden bg-muted">
+      <div
+        className="island-shell group relative aspect-[4/5] w-full overflow-hidden bg-muted"
+        onClick={() => images.length > 0 && onZoom(safeIndex)}
+        style={{ cursor: images.length > 0 ? 'zoom-in' : 'default' }}
+      >
         {images.length > 0 ? (
-          <img
-            data-testid="featured-image"
-            src={images[safeIndex].url}
-            alt={images[safeIndex].altText ?? ''}
-            className="h-full w-full object-cover"
-          />
+          <>
+            <img
+              data-testid="featured-image"
+              src={images[safeIndex].url}
+              alt={images[safeIndex].altText ?? ''}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute bottom-3 right-3 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <MagnifyingGlassPlusIcon size={16} weight="bold" />
+            </div>
+          </>
         ) : (
           <div data-testid="gallery-placeholder" className="h-full w-full" />
         )}
@@ -116,6 +134,130 @@ export function ProductGallery({
         </div>
       )}
     </div>
+  )
+}
+
+// ─── ProductLightbox ──────────────────────────────────────────────────────────
+
+function ProductLightbox({
+  images,
+  startIndex,
+  onClose,
+}: {
+  images: ProductImageResponse[]
+  startIndex: number
+  onClose: () => void
+}) {
+  const [idx, setIdx] = useState(startIndex)
+  const canPrev = idx > 0
+  const canNext = idx < images.length - 1
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') setIdx((i) => Math.max(0, i - 1))
+      if (e.key === 'ArrowRight') setIdx((i) => Math.min(images.length - 1, i + 1))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [images.length, onClose])
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image viewer"
+      className="fixed inset-0 z-50 flex flex-col bg-black/95"
+      onClick={onClose}
+    >
+      {/* Close */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close image viewer"
+        className="absolute right-4 top-4 z-10 rounded-full p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+      >
+        <XIcon size={24} />
+      </button>
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <p className="absolute left-1/2 top-4 -translate-x-1/2 text-sm text-white/50">
+          {idx + 1} / {images.length}
+        </p>
+      )}
+
+      {/* Image area */}
+      <div
+        className="relative flex flex-1 items-center justify-center px-16"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {canPrev && (
+          <button
+            type="button"
+            onClick={() => setIdx((i) => i - 1)}
+            aria-label="Previous image"
+            className="absolute left-3 rounded-full p-3 text-white/70 transition hover:bg-white/10 hover:text-white"
+          >
+            <ArrowLeftIcon size={26} />
+          </button>
+        )}
+
+        <img
+          key={images[idx].url}
+          src={images[idx].url ?? ''}
+          alt={images[idx].altText ?? ''}
+          className="max-h-[80vh] max-w-full select-none object-contain"
+          draggable={false}
+        />
+
+        {canNext && (
+          <button
+            type="button"
+            onClick={() => setIdx((i) => i + 1)}
+            aria-label="Next image"
+            className="absolute right-3 rounded-full p-3 text-white/70 transition hover:bg-white/10 hover:text-white"
+          >
+            <ArrowRightIcon size={26} />
+          </button>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div
+          className="flex justify-center gap-2 overflow-x-auto px-4 pb-6 pt-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {images.map((img, i) => (
+            <button
+              key={img.id ?? i}
+              type="button"
+              onClick={() => setIdx(i)}
+              aria-label={img.altText ?? `Image ${i + 1}`}
+              className={`h-14 w-14 shrink-0 overflow-hidden rounded border-2 transition ${
+                i === idx
+                  ? 'border-white opacity-100'
+                  : 'border-transparent opacity-40 hover:opacity-70'
+              }`}
+            >
+              <img
+                src={img.url ?? ''}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>,
+    document.body,
   )
 }
 
@@ -382,6 +524,7 @@ function ProductDetailPage() {
   const { addItem } = useCart()
   const { addItem: addGuestItem } = useGuestCart()
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >(() =>
@@ -452,6 +595,7 @@ function ProductDetailPage() {
           images={product.images ?? []}
           activeIndex={activeGalleryIndex}
           onSelect={setActiveGalleryIndex}
+          onZoom={setLightboxIndex}
         />
         <ProductInfo
           product={product}
@@ -469,6 +613,13 @@ function ProductDetailPage() {
       </div>
       <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />
       <RelatedProducts handle={product.handle ?? ''} />
+      {lightboxIndex !== null && (
+        <ProductLightbox
+          images={product.images ?? []}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </main>
   )
 }
