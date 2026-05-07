@@ -6,15 +6,23 @@ import { WishlistButton } from '#/components/WishlistButton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Search = { q?: string; vendor?: string; type?: string; page: number }
+type Search = { q?: string; vendor?: string; type?: string; sort?: string; page: number }
 
-// ─── Route (completed in Task 5) ─────────────────────────────────────────────
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'title_asc', label: 'A – Z' },
+  { value: 'title_desc', label: 'Z – A' },
+] as const
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute('/products/')({
   validateSearch: (search: Record<string, unknown>): Search => ({
     q: typeof search.q === 'string' ? search.q : undefined,
     vendor: typeof search.vendor === 'string' ? search.vendor : undefined,
     type: typeof search.type === 'string' ? search.type : undefined,
+    sort: typeof search.sort === 'string' ? search.sort : undefined,
     page: (() => {
       const raw = search.page
       const n = typeof raw === 'number' ? raw : Number(raw)
@@ -27,6 +35,7 @@ export const Route = createFileRoute('/products/')({
       q: deps.q,
       vendor: deps.vendor,
       type: deps.type,
+      sort: deps.sort,
       page: deps.page,
       size: 20,
     }),
@@ -97,22 +106,84 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
   )
 }
 
+// ─── SortSelect ───────────────────────────────────────────────────────────────
+
+export function SortSelect({
+  value,
+  onChange,
+}: {
+  value: string | undefined
+  onChange: (sort: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor="sort-select" className="text-sm text-muted-foreground whitespace-nowrap">
+        Sort by
+      </label>
+      <select
+        id="sort-select"
+        value={value ?? 'newest'}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        {SORT_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+// ─── ActiveFilters ────────────────────────────────────────────────────────────
+
+function ActiveFilters({
+  search,
+  onClear,
+}: {
+  search: Search
+  onClear: (key: keyof Search) => void
+}) {
+  const chips: { key: keyof Search; label: string }[] = []
+  if (search.q) chips.push({ key: 'q', label: `"${search.q}"` })
+  if (search.vendor) chips.push({ key: 'vendor', label: search.vendor })
+  if (search.type) chips.push({ key: 'type', label: search.type })
+  if (chips.length === 0) return null
+  return (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      <span className="text-xs text-muted-foreground">Filters:</span>
+      {chips.map(({ key, label }) => (
+        <button
+          key={key}
+          onClick={() => onClear(key)}
+          className="flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-0.5 text-xs hover:bg-accent transition"
+        >
+          {label}
+          <span aria-hidden className="ml-0.5 text-muted-foreground">×</span>
+        </button>
+      ))}
+      <a href="/products" className="text-xs text-primary hover:underline">
+        Clear all
+      </a>
+    </div>
+  )
+}
+
 // ─── FilterBar ────────────────────────────────────────────────────────────────
 
 export function FilterBar({
   search,
+  total,
   onSearch,
 }: {
-  search: { q?: string; vendor?: string; type?: string }
+  search: Search
+  total: number
   onSearch: (updates: Partial<Search>) => void
 }) {
   const [inputValue, setInputValue] = useState(search.q ?? '')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [])
 
   useEffect(() => {
@@ -129,53 +200,66 @@ export function FilterBar({
     }, 300)
   }
 
-  function handleVendor(e: React.ChangeEvent<HTMLSelectElement>) {
-    onSearch({ vendor: e.target.value || undefined, page: 0 })
-  }
-
-  function handleType(e: React.ChangeEvent<HTMLSelectElement>) {
-    onSearch({ type: e.target.value || undefined, page: 0 })
-  }
-
-  const hasFilters = !!(search.q || search.vendor || search.type)
-
   return (
-    <div className="flex flex-wrap gap-3 mb-6">
-      <input
-        type="text"
-        placeholder="Search products…"
-        value={inputValue}
-        onChange={handleInput}
-        className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
+    <div className="mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <svg
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5"
+            >
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search products…"
+              value={inputValue}
+              onChange={handleInput}
+              className="h-9 rounded-lg border border-border bg-background pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          {/* Vendor filter */}
+          {search.vendor !== undefined && (
+            <select
+              value={search.vendor}
+              onChange={(e) => onSearch({ vendor: e.target.value || undefined, page: 0 })}
+              className="h-9 rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All vendors</option>
+              <option value={search.vendor}>{search.vendor}</option>
+            </select>
+          )}
+
+          {/* Type filter */}
+          {search.type !== undefined && (
+            <select
+              value={search.type}
+              onChange={(e) => onSearch({ type: e.target.value || undefined, page: 0 })}
+              className="h-9 rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All types</option>
+              <option value={search.type}>{search.type}</option>
+            </select>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">{total.toLocaleString()} products</span>
+          <SortSelect
+            value={search.sort}
+            onChange={(sort) => onSearch({ sort, page: 0 })}
+          />
+        </div>
+      </div>
+
+      <ActiveFilters
+        search={search}
+        onClear={(key) => onSearch({ [key]: undefined, page: 0 })}
       />
-      {search.vendor !== undefined && (
-        <select
-          value={search.vendor}
-          onChange={handleVendor}
-          className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
-        >
-          <option value="">All vendors</option>
-          <option value={search.vendor}>{search.vendor}</option>
-        </select>
-      )}
-      {search.type !== undefined && (
-        <select
-          value={search.type}
-          onChange={handleType}
-          className="border border-border rounded px-3 py-1.5 text-sm bg-background text-foreground"
-        >
-          <option value="">All types</option>
-          <option value={search.type}>{search.type}</option>
-        </select>
-      )}
-      {hasFilters && (
-        <a
-          href="/products"
-          className="text-sm text-primary underline self-center"
-        >
-          Clear filters
-        </a>
-      )}
     </div>
   )
 }
@@ -240,11 +324,8 @@ function ProductListingPage() {
     <main className="page-wrap px-4 py-10">
       <header className="mb-6">
         <h1 className="display-title">Products</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {meta.total} products
-        </p>
       </header>
-      <FilterBar search={search} onSearch={handleSearch} />
+      <FilterBar search={search} total={meta.total ?? 0} onSearch={handleSearch} />
       {products.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-muted-foreground">No products found.</p>

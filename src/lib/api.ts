@@ -194,9 +194,11 @@ export function listCollectionProducts(
   handle: string,
   page: number,
   size: number,
+  sortBy?: string,
+  sortDir?: string,
 ): Promise<PagedResult<CollectionProductResponse>> {
   return callApi(createPublicClient().GET('/api/v1/collections/{handle}/products', {
-    params: { path: { handle }, query: { page, size } },
+    params: { path: { handle }, query: { page, size, sortBy, sortDir } },
   })) as Promise<PagedResult<CollectionProductResponse>>
 }
 
@@ -210,6 +212,7 @@ export function listProducts(params: {
   q?: string
   vendor?: string
   type?: string
+  sort?: string
   page?: number
   size?: number
 }): Promise<PagedResult<ProductSummaryResponse>> {
@@ -219,6 +222,7 @@ export function listProducts(params: {
         titleContains: params.q,
         vendor: params.vendor,
         productType: params.type,
+        sortBy: params.sort,
         page: params.page,
         size: params.size,
       },
