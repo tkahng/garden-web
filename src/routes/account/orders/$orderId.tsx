@@ -180,6 +180,11 @@ function OrderDetailPage() {
           {order.createdAt && (
             <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
           )}
+          {order.poNumber && (
+            <p className="text-sm text-muted-foreground">
+              PO: <span className="font-medium text-foreground">{order.poNumber}</span>
+            </p>
+          )}
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${ORDER_STATUS_CLASS[order.status ?? ''] ?? ''}`}
