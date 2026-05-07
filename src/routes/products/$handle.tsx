@@ -10,7 +10,8 @@ import { useCart } from '#/context/cart'
 import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
-import { addToQuoteCart } from '#/lib/b2b-api'
+import { addToQuoteCart, getVariantTiers } from '#/lib/b2b-api'
+import type { VariantPriceTiersResponse } from '#/lib/b2b-api'
 import { WishlistButton } from '#/components/WishlistButton'
 import { ProductReviews } from '#/components/ProductReviews'
 import { RelatedProducts } from '#/components/RelatedProducts'
@@ -265,6 +266,38 @@ function ProductLightbox({
 
 // ─── ProductInfo ──────────────────────────────────────────────────────────────
 
+function PriceTiersTable({
+  tiers,
+  variantId,
+}: {
+  tiers: VariantPriceTiersResponse[]
+  variantId: string | undefined
+}) {
+  const variantTiers = tiers.find((t) => t.variantId === variantId)?.tiers ?? []
+  if (variantTiers.length === 0) return null
+  return (
+    <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Volume pricing
+      </p>
+      <table className="w-full text-sm">
+        <tbody>
+          {variantTiers.map((tier) => (
+            <tr key={tier.minQty} className="border-t border-border first:border-t-0">
+              <td className="py-1 text-muted-foreground">
+                {tier.minQty === 1 ? '1+ units' : `${tier.minQty}+ units`}
+              </td>
+              <td className="py-1 text-right font-semibold text-foreground">
+                {tier.price != null ? formatPrice(tier.price) : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export function ProductInfo({
   product,
   selectedOptions,
@@ -278,6 +311,7 @@ export function ProductInfo({
   onAddToQuoteCart,
   isAddingToQuoteCart = false,
   atcRef,
+  priceTiers,
 }: {
   product: ProductDetailResponse
   selectedOptions: Record<string, string>
@@ -291,6 +325,7 @@ export function ProductInfo({
   onAddToQuoteCart?: () => void
   isAddingToQuoteCart?: boolean
   atcRef?: React.RefObject<HTMLDivElement | null>
+  priceTiers?: VariantPriceTiersResponse[]
 }) {
   const hasKicker = product.vendor != null || product.productType != null
   const kicker = [product.vendor, product.productType]
@@ -328,6 +363,10 @@ export function ProductInfo({
             </span>
           )}
         </div>
+      )}
+
+      {priceTiers != null && priceTiers.length > 0 && (
+        <PriceTiersTable tiers={priceTiers} variantId={activeVariant?.id} />
       )}
 
       {/* Option selectors */}
@@ -599,8 +638,17 @@ function ProductDetailPage() {
   }, [product.id])
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
-  const { addItem } = useCart()
+  const { cart, addItem } = useCart()
   const { addItem: addGuestItem } = useGuestCart()
+  const [priceTiers, setPriceTiers] = useState<VariantPriceTiersResponse[]>([])
+
+  useEffect(() => {
+    const companyId = cart?.companyId
+    if (!isAuthenticated || !companyId || !product.handle) return
+    getVariantTiers(authFetch, product.handle, companyId)
+      .then(setPriceTiers)
+      .catch(() => setPriceTiers([]))
+  }, [isAuthenticated, cart?.companyId, product.handle, authFetch])
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const atcRef = useRef<HTMLDivElement>(null)
@@ -703,6 +751,7 @@ function ProductDetailPage() {
           onAddToQuoteCart={handleAddToQuoteCart}
           isAddingToQuoteCart={isAddingToQuote}
           atcRef={atcRef}
+          priceTiers={priceTiers}
         />
       </div>
       <ProductReviews productId={product.id ?? ''} reviewSummary={product.reviewSummary ?? null} />

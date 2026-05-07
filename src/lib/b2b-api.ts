@@ -31,6 +31,8 @@ export type CustomerPriceEntryResponse = components['schemas']['CustomerPriceEnt
 export type InvoiceResponse = components['schemas']['InvoiceResponse']
 export type InvoicePaymentResponse = components['schemas']['InvoicePaymentResponse']
 export type CreditAccountResponse = components['schemas']['CreditAccountResponse']
+export type VariantPriceTiersResponse = components['schemas']['VariantPriceTiersResponse']
+export type PriceTierEntry = components['schemas']['PriceTierEntry']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -306,6 +308,18 @@ export function getCreditAccount(
   })
 }
 
+// ─── Tiered pricing ───────────────────────────────────────────────────────────
+
+export function getVariantTiers(
+  client: ApiClient,
+  handle: string,
+  companyId: string,
+): Promise<VariantPriceTiersResponse[]> {
+  return callApi(client.GET('/api/v1/products/{handle}/tiers', {
+    params: { path: { handle }, query: { companyId } },
+  })) as Promise<VariantPriceTiersResponse[]>
+}
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export function listInvoices(
@@ -315,4 +329,26 @@ export function listInvoices(
   return callApi(client.GET('/api/v1/companies/{id}/invoices', {
     params: { path: { id: companyId } },
   })) as Promise<InvoiceResponse[]>
+}
+
+export async function downloadStatement(
+  client: ApiClient,
+  companyId: string,
+  from?: string,
+  to?: string,
+): Promise<void> {
+  type TextResult = { data: string | undefined; error: unknown }
+  const rawRes = (await (client.GET as (...args: unknown[]) => Promise<TextResult>)(
+    '/api/v1/companies/{id}/statement',
+    { params: { path: { id: companyId }, query: { from, to } }, parseAs: 'text' },
+  ))
+  if (rawRes.error) throw rawRes.error
+  const csv = rawRes.data ?? ''
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `statement-${companyId}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
