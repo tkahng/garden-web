@@ -231,6 +231,7 @@ function AuthCart() {
   const [giftCardLoading, setGiftCardLoading] = useState(false)
   const [creditAccount, setCreditAccount] = useState<CreditAccountResponse | null>(null)
   const [company, setCompany] = useState<CompanyResponse | null>(null)
+  const [poNumber, setPoNumber] = useState('')
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -336,7 +337,7 @@ function AuthCart() {
     setIsCheckingOut(true)
     setCheckoutError(null)
     try {
-      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined)
+      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined, poNumber || undefined)
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
       } else {
@@ -603,6 +604,22 @@ function AuthCart() {
               This order ({formatPrice(total)}) exceeds your available credit ({formatPrice(availableCredit)}).
               Please contact your account manager to increase your credit limit.
             </p>
+          </div>
+        )}
+
+        {cart?.companyId && (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="po-number" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              PO Number <span className="font-normal normal-case">(optional)</span>
+            </label>
+            <input
+              id="po-number"
+              type="text"
+              value={poNumber}
+              onChange={(e) => setPoNumber(e.target.value)}
+              placeholder="e.g. PO-2026-0042"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            />
           </div>
         )}
 

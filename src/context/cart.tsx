@@ -31,7 +31,7 @@ interface CartContextValue {
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   abandon: () => Promise<void>
-  checkout: (shippingRateId?: string, discountCode?: string, giftCardCode?: string) => Promise<CheckoutResponse>
+  checkout: (shippingRateId?: string, discountCode?: string, giftCardCode?: string, poNumber?: string) => Promise<CheckoutResponse>
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -108,11 +108,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const checkoutFn = useCallback(async (shippingRateId?: string, discountCode?: string, giftCardCode?: string): Promise<CheckoutResponse> => {
+  const checkoutFn = useCallback(async (shippingRateId?: string, discountCode?: string, giftCardCode?: string, poNumber?: string): Promise<CheckoutResponse> => {
     return checkout(authFetchRef.current, {
       shippingRateId: shippingRateId ?? undefined,
       discountCode: discountCode || undefined,
       giftCardCode: giftCardCode || undefined,
+      poNumber: poNumber || undefined,
     })
   }, [])
 
