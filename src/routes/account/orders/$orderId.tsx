@@ -18,8 +18,9 @@ import {
   approveOrder,
   rejectApproval,
   submitReturn,
+  listFulfillments,
 } from '#/lib/account-api'
-import type { OrderResponse, SubmitReturnRequest } from '#/lib/account-api'
+import type { OrderResponse, SubmitReturnRequest, FulfillmentResponse } from '#/lib/account-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams()
 
   const [order, setOrder] = useState<OrderResponse | null>(null)
+  const [fulfillments, setFulfillments] = useState<FulfillmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -101,9 +103,12 @@ function OrderDetailPage() {
     let cancelled = false
     setIsLoading(true)
     setError(null)
-    getOrder(authFetch, orderId)
-      .then((data) => {
-        if (!cancelled) setOrder(data)
+    Promise.all([
+      getOrder(authFetch, orderId),
+      listFulfillments(authFetch, orderId).catch(() => [] as FulfillmentResponse[]),
+    ])
+      .then(([data, fuls]) => {
+        if (!cancelled) { setOrder(data); setFulfillments(fuls) }
       })
       .catch(() => {
         if (!cancelled) setError('Failed to load order.')
@@ -296,6 +301,45 @@ function OrderDetailPage() {
           )
         })}
       </div>
+
+      {/* Shipments */}
+      {fulfillments.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {fulfillments.map((f) => (
+            <div key={f.id} className="flex flex-col gap-1 rounded-xl border border-border px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-xs uppercase tracking-wide text-muted-foreground">
+                  {f.status === 'SHIPPED' ? 'Shipped' : f.status === 'DELIVERED' ? 'Delivered' : f.status}
+                </span>
+                {f.status === 'DELIVERED' && (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">Delivered</span>
+                )}
+                {f.status === 'SHIPPED' && (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">In transit</span>
+                )}
+              </div>
+              {f.trackingCompany && (
+                <p className="text-muted-foreground">{f.trackingCompany}</p>
+              )}
+              {f.trackingNumber && (
+                f.trackingUrl ? (
+                  <a
+                    href={f.trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-primary hover:underline"
+                  >
+                    {f.trackingNumber}
+                  </a>
+                ) : (
+                  <span className="font-mono">{f.trackingNumber}</span>
+                )
+              )}
+              {f.note && <p className="text-xs text-muted-foreground mt-0.5">{f.note}</p>}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Summary */}
       <div className="flex flex-col gap-2 rounded-xl border border-border px-4 py-4">

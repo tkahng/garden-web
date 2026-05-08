@@ -85,6 +85,7 @@ export function requestRefund(client: ApiClient, id: string): Promise<OrderRespo
 
 export type CartResponse = components['schemas']['CartResponse']
 export type CheckoutResponse = components['schemas']['CheckoutResponse']
+export type FulfillmentResponse = components['schemas']['FulfillmentResponse']
 export type ReturnRequestResponse = components['schemas']['ReturnRequestResponse']
 export type SubmitReturnRequest = components['schemas']['SubmitReturnRequest']
 export type PagedResultReturnRequestResponse = components['schemas']['PagedResultReturnRequestResponse']
@@ -141,6 +142,19 @@ export function getReturn(client: ApiClient, id: string): Promise<ReturnRequestR
   return callApi(client.GET('/api/v1/storefront/returns/{id}', {
     params: { path: { id } },
   }))
+}
+
+export function listFulfillments(
+  client: ApiClient,
+  orderId: string,
+): Promise<FulfillmentResponse[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).GET('/api/v1/storefront/orders/{id}/fulfillments', {
+    params: { path: { id: orderId } },
+  }).then((res: { data?: { data?: FulfillmentResponse[] }; error?: unknown }) => {
+    if (res.error) throw res.error
+    return res.data?.data ?? []
+  })
 }
 
 // ─── Auth (authenticated) ─────────────────────────────────────────────────────
