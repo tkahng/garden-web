@@ -157,6 +157,64 @@ export function listFulfillments(
   })
 }
 
+// ─── Order templates ──────────────────────────────────────────────────────────
+
+export interface OrderTemplateItemResponse {
+  id?: string
+  variantId?: string
+  variantTitle?: string
+  quantity?: number
+}
+
+export interface OrderTemplateResponse {
+  id?: string
+  userId?: string
+  name?: string
+  items?: OrderTemplateItemResponse[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export function listOrderTemplates(client: ApiClient): Promise<OrderTemplateResponse[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).GET('/api/v1/storefront/order-templates')
+    .then((res: { data?: { data?: OrderTemplateResponse[] }; error?: unknown }) => {
+      if (res.error) throw res.error
+      return res.data?.data ?? []
+    })
+}
+
+export function createOrderTemplate(
+  client: ApiClient,
+  name: string,
+  items: Array<{ variantId: string; quantity: number }>,
+): Promise<OrderTemplateResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).POST('/api/v1/storefront/order-templates', {
+    body: { name, items },
+  }).then((res: { data?: { data?: OrderTemplateResponse }; error?: unknown }) => {
+    if (res.error) throw res.error
+    return res.data?.data ?? {}
+  })
+}
+
+export function deleteOrderTemplate(client: ApiClient, id: string): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).DELETE(`/api/v1/storefront/order-templates/${id}`)
+    .then((res: { error?: unknown }) => {
+      if (res.error) throw res.error
+    })
+}
+
+export function loadOrderTemplate(client: ApiClient, id: string): Promise<CartResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).POST(`/api/v1/storefront/order-templates/${id}/load`)
+    .then((res: { data?: { data?: CartResponse }; error?: unknown }) => {
+      if (res.error) throw res.error
+      return res.data?.data ?? {}
+    })
+}
+
 // ─── Gift cards ───────────────────────────────────────────────────────────────
 
 export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']

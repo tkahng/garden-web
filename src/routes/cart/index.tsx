@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { useCart } from '#/context/cart'
 import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
-import { listAddresses } from '#/lib/account-api'
+import { toast } from 'sonner'
+import { listAddresses, createOrderTemplate } from '#/lib/account-api'
 import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
 import { validateDiscount, validateGiftCard } from '#/lib/cart-api'
@@ -234,6 +235,9 @@ function AuthCart() {
   const [creditAccount, setCreditAccount] = useState<CreditAccountResponse | null>(null)
   const [company, setCompany] = useState<CompanyResponse | null>(null)
   const [poNumber, setPoNumber] = useState('')
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -352,6 +356,31 @@ function AuthCart() {
       setCheckoutError('Failed to start checkout. Please try again.')
     } finally {
       setIsCheckingOut(false)
+    }
+  }
+
+  async function handleSaveTemplate(e: React.FormEvent) {
+    e.preventDefault()
+    const name = templateName.trim()
+    if (!name) return
+    const cartItems = cart?.items ?? []
+    if (cartItems.length === 0) { toast.error('Cart is empty.'); return }
+    setIsSavingTemplate(true)
+    try {
+      await createOrderTemplate(
+        authFetch,
+        name,
+        cartItems
+          .filter((i) => i.variantId)
+          .map((i) => ({ variantId: i.variantId!, quantity: i.quantity ?? 1 })),
+      )
+      toast.success('Template saved.')
+      setSaveTemplateOpen(false)
+      setTemplateName('')
+    } catch {
+      toast.error('Failed to save template.')
+    } finally {
+      setIsSavingTemplate(false)
     }
   }
 
@@ -653,6 +682,47 @@ function AuthCart() {
               ? `Place Order (Net ${creditAccount!.paymentTermsDays})`
               : 'Proceed to Checkout'}
         </button>
+
+        {/* Save as template */}
+        {!saveTemplateOpen ? (
+          <button
+            type="button"
+            onClick={() => setSaveTemplateOpen(true)}
+            className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            Save cart as template
+          </button>
+        ) : (
+          <form
+            onSubmit={(e) => void handleSaveTemplate(e)}
+            className="flex flex-col gap-2"
+          >
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="Template name (e.g. Monthly supply)"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={isSavingTemplate || !templateName.trim()}
+                className="flex-1 rounded-full bg-primary py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {isSavingTemplate ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSaveTemplateOpen(false); setTemplateName('') }}
+                className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-muted"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   )

@@ -33,6 +33,7 @@ import { Route as AccountQuickOrderRouteImport } from './routes/account/quick-or
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountPricingRouteImport } from './routes/account/pricing'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
+import { Route as AccountOrderTemplatesRouteImport } from './routes/account/order-templates'
 import { Route as AccountNotificationsRouteImport } from './routes/account/notifications'
 import { Route as AccountGiftCardsRouteImport } from './routes/account/gift-cards'
 import { Route as AccountCompanyRouteImport } from './routes/account/company'
@@ -166,6 +167,11 @@ const AccountOrdersRoute = AccountOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountOrderTemplatesRoute = AccountOrderTemplatesRouteImport.update({
+  id: '/order-templates',
+  path: '/order-templates',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/account/company': typeof AccountCompanyRoute
   '/account/gift-cards': typeof AccountGiftCardsRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/account/company': typeof AccountCompanyRoute
   '/account/gift-cards': typeof AccountGiftCardsRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quick-order': typeof AccountQuickOrderRoute
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/account/company': typeof AccountCompanyRoute
   '/account/gift-cards': typeof AccountGiftCardsRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/account/company'
     | '/account/gift-cards'
     | '/account/notifications'
+    | '/account/order-templates'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/account/company'
     | '/account/gift-cards'
     | '/account/notifications'
+    | '/account/order-templates'
     | '/account/pricing'
     | '/account/profile'
     | '/account/quick-order'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/account/company'
     | '/account/gift-cards'
     | '/account/notifications'
+    | '/account/order-templates'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
@@ -647,6 +659,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/order-templates': {
+      id: '/account/order-templates'
+      path: '/order-templates'
+      fullPath: '/account/order-templates'
+      preLoaderRoute: typeof AccountOrderTemplatesRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/notifications': {
       id: '/account/notifications'
       path: '/notifications'
@@ -753,6 +772,7 @@ interface AccountRouteChildren {
   AccountCompanyRoute: typeof AccountCompanyRoute
   AccountGiftCardsRoute: typeof AccountGiftCardsRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
+  AccountOrderTemplatesRoute: typeof AccountOrderTemplatesRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
@@ -773,6 +793,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountCompanyRoute: AccountCompanyRoute,
   AccountGiftCardsRoute: AccountGiftCardsRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,
+  AccountOrderTemplatesRoute: AccountOrderTemplatesRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,

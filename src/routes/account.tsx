@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/account/notifications', label: 'Notifications' },
   { to: '/account/orders', label: 'Orders' },
   { to: '/account/returns', label: 'Returns' },
+  { to: '/account/order-templates', label: 'Templates' },
   { to: '/account/gift-cards', label: 'Gift Cards' },
   { to: '/account/quick-order', label: 'Quick Order' },
   { to: '/account/company', label: 'Company' },
