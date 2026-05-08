@@ -1,4 +1,5 @@
 import type { CartResponse, CheckoutResponse } from '#/lib/cart-api'
+import { createPublicClient, callApi } from '#/lib/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,64 +48,39 @@ export function clearGuestSession(): void {
   localStorage.removeItem(GUEST_SESSION_KEY)
 }
 
-// ─── Internals ────────────────────────────────────────────────────────────────
-
-function base(): string {
-  const url = import.meta.env.VITE_API_BASE_URL
-  if (!url) throw new Error('VITE_API_BASE_URL is not set')
-  return url
-}
-
-async function guestFetch<T>(path: string, sessionId: string, options: RequestInit = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'X-Guest-Session': sessionId,
-    ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-    ...(options.headers as Record<string, string> | undefined),
-  }
-  const res = await fetch(`${base()}${path}`, { ...options, headers })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw Object.assign(new Error(body?.error ?? `HTTP ${res.status}`), { status: res.status, code: body?.error })
-  }
-  const json = await res.json()
-  return json.data as T
-}
-
-async function publicFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${base()}${path}`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  return json.data as T
-}
-
 // ─── Guest cart ───────────────────────────────────────────────────────────────
 
 export function getGuestCart(sessionId: string): Promise<CartResponse> {
-  return guestFetch<CartResponse>('/api/v1/guest-cart', sessionId)
+  return callApi(createPublicClient().GET('/api/v1/guest-cart', {
+    params: { header: { 'X-Guest-Session': sessionId } },
+  })) as Promise<CartResponse>
 }
 
 export function addGuestCartItem(sessionId: string, variantId: string, quantity: number): Promise<CartResponse> {
-  return guestFetch<CartResponse>('/api/v1/guest-cart/items', sessionId, {
-    method: 'POST',
-    body: JSON.stringify({ variantId, quantity }),
-  })
+  return callApi(createPublicClient().POST('/api/v1/guest-cart/items', {
+    params: { header: { 'X-Guest-Session': sessionId } },
+    body: { variantId, quantity },
+  })) as Promise<CartResponse>
 }
 
 export function updateGuestCartItem(sessionId: string, itemId: string, quantity: number): Promise<CartResponse> {
-  return guestFetch<CartResponse>(`/api/v1/guest-cart/items/${itemId}`, sessionId, {
-    method: 'PUT',
-    body: JSON.stringify({ quantity }),
-  })
+  return callApi(createPublicClient().PUT('/api/v1/guest-cart/items/{itemId}', {
+    params: { header: { 'X-Guest-Session': sessionId }, path: { itemId } },
+    body: { quantity },
+  })) as Promise<CartResponse>
 }
 
 export function removeGuestCartItem(sessionId: string, itemId: string): Promise<CartResponse> {
-  return guestFetch<CartResponse>(`/api/v1/guest-cart/items/${itemId}`, sessionId, {
-    method: 'DELETE',
-  })
+  return callApi(createPublicClient().DELETE('/api/v1/guest-cart/items/{itemId}', {
+    params: { header: { 'X-Guest-Session': sessionId }, path: { itemId } },
+  })) as Promise<CartResponse>
 }
 
-export function abandonGuestCart(sessionId: string): Promise<void> {
-  return guestFetch<void>('/api/v1/guest-cart', sessionId, { method: 'DELETE' })
+export async function abandonGuestCart(sessionId: string): Promise<void> {
+  const { error } = await createPublicClient().DELETE('/api/v1/guest-cart', {
+    params: { header: { 'X-Guest-Session': sessionId } },
+  })
+  if (error) throw error
 }
 
 // ─── Shipping rates ───────────────────────────────────────────────────────────
@@ -114,16 +90,17 @@ export function getShippingRates(
   province?: string,
   orderAmount?: number,
 ): Promise<ShippingRateOption[]> {
-  const qs = new URLSearchParams({ country })
-  if (province) qs.set('province', province)
-  if (orderAmount !== undefined) qs.set('orderAmount', String(orderAmount))
-  return publicFetch<ShippingRateOption[]>(`/api/v1/storefront/shipping/rates?${qs}`)
+  return callApi(createPublicClient().GET('/api/v1/storefront/shipping/rates', {
+    params: { query: { country, province, orderAmount } },
+  })) as Promise<ShippingRateOption[]>
 }
 
 // ─── Email check ──────────────────────────────────────────────────────────────
 
 export function checkEmailExists(email: string): Promise<boolean> {
-  return publicFetch<boolean>(`/api/v1/auth/check-email?email=${encodeURIComponent(email)}`)
+  return callApi(createPublicClient().GET('/api/v1/auth/check-email', {
+    params: { query: { email } },
+  })) as Promise<boolean>
 }
 
 // ─── Guest checkout ───────────────────────────────────────────────────────────
@@ -132,8 +109,8 @@ export function submitGuestCheckout(
   sessionId: string,
   request: GuestCheckoutRequest,
 ): Promise<CheckoutResponse> {
-  return guestFetch<CheckoutResponse>('/api/v1/checkout/guest', sessionId, {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  return callApi(createPublicClient().POST('/api/v1/checkout/guest', {
+    params: { header: { 'X-Guest-Session': sessionId } },
+    body: request as never,
+  })) as Promise<CheckoutResponse>
 }

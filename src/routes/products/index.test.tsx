@@ -148,13 +148,13 @@ describe('FilterBar', () => {
   })
 
   it('renders the search input with placeholder', () => {
-    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    render(<FilterBar search={{ page: 0 }} total={0} onSearch={vi.fn()} />)
     expect(screen.getByPlaceholderText('Search products…')).toBeInTheDocument()
   })
 
   it('calls onSearch with q after 300ms debounce', () => {
     const onSearch = vi.fn()
-    render(<FilterBar search={{}} onSearch={onSearch} />)
+    render(<FilterBar search={{ page: 0 }} total={0} onSearch={onSearch} />)
     fireEvent.change(screen.getByPlaceholderText('Search products…'), {
       target: { value: 'tomato' },
     })
@@ -165,7 +165,7 @@ describe('FilterBar', () => {
 
   it('passes q as undefined when input is cleared', () => {
     const onSearch = vi.fn()
-    render(<FilterBar search={{ q: 'tomato' }} onSearch={onSearch} />)
+    render(<FilterBar search={{ q: 'tomato', page: 0 }} total={0} onSearch={onSearch} />)
     fireEvent.change(screen.getByPlaceholderText('Search products…'), {
       target: { value: '' },
     })
@@ -174,19 +174,19 @@ describe('FilterBar', () => {
   })
 
   it('does not render vendor dropdown when vendor is not in search', () => {
-    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    render(<FilterBar search={{ page: 0 }} total={0} onSearch={vi.fn()} />)
     expect(screen.queryByText('All vendors')).not.toBeInTheDocument()
   })
 
   it('renders vendor dropdown when vendor is in search', () => {
-    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={vi.fn()} />)
+    render(<FilterBar search={{ vendor: 'Garden Co', page: 0 }} total={0} onSearch={vi.fn()} />)
     expect(screen.getByText('All vendors')).toBeInTheDocument()
-    expect(screen.getByText('Garden Co')).toBeInTheDocument()
+    expect(screen.getAllByText('Garden Co').length).toBeGreaterThanOrEqual(1)
   })
 
   it('calls onSearch when vendor is cleared via dropdown', () => {
     const onSearch = vi.fn()
-    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={onSearch} />)
+    render(<FilterBar search={{ vendor: 'Garden Co', page: 0 }} total={0} onSearch={onSearch} />)
     fireEvent.change(screen.getByDisplayValue('Garden Co'), {
       target: { value: '' },
     })
@@ -194,30 +194,30 @@ describe('FilterBar', () => {
   })
 
   it('does not render type dropdown when type is not in search', () => {
-    render(<FilterBar search={{}} onSearch={vi.fn()} />)
+    render(<FilterBar search={{ page: 0 }} total={0} onSearch={vi.fn()} />)
     expect(screen.queryByText('All types')).not.toBeInTheDocument()
   })
 
   it('renders type dropdown when type is in search', () => {
-    render(<FilterBar search={{ type: 'Seeds' }} onSearch={vi.fn()} />)
+    render(<FilterBar search={{ type: 'Seeds', page: 0 }} total={0} onSearch={vi.fn()} />)
     expect(screen.getByText('All types')).toBeInTheDocument()
-    expect(screen.getByText('Seeds')).toBeInTheDocument()
+    expect(screen.getAllByText('Seeds').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('does not render clear filters link when no filters active', () => {
-    render(<FilterBar search={{}} onSearch={vi.fn()} />)
-    expect(screen.queryByText('Clear filters')).not.toBeInTheDocument()
+  it('does not render clear all link when no filters active', () => {
+    render(<FilterBar search={{ page: 0 }} total={0} onSearch={vi.fn()} />)
+    expect(screen.queryByText('Clear all')).not.toBeInTheDocument()
   })
 
-  it('renders clear filters link when q is set', () => {
-    render(<FilterBar search={{ q: 'tomato' }} onSearch={vi.fn()} />)
-    const link = screen.getByText('Clear filters')
+  it('renders clear all link when q is set', () => {
+    render(<FilterBar search={{ q: 'tomato', page: 0 }} total={0} onSearch={vi.fn()} />)
+    const link = screen.getByText('Clear all')
     expect(link).toHaveAttribute('href', '/products')
   })
 
-  it('renders clear filters link when vendor is set', () => {
-    render(<FilterBar search={{ vendor: 'Garden Co' }} onSearch={vi.fn()} />)
-    expect(screen.getByText('Clear filters')).toBeInTheDocument()
+  it('renders clear all link when vendor is set', () => {
+    render(<FilterBar search={{ vendor: 'Garden Co', page: 0 }} total={0} onSearch={vi.fn()} />)
+    expect(screen.getByText('Clear all')).toBeInTheDocument()
   })
 })
 

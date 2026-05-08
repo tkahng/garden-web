@@ -1,10 +1,65 @@
+import { useState } from 'react'
+import { subscribeNewsletter } from '#/lib/api'
+
+function NewsletterForm({ source }: { source: string }) {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = email.trim()
+    if (!trimmed) return
+    setStatus('loading')
+    try {
+      const res = await subscribeNewsletter(trimmed, source)
+      setStatus('success')
+      setMessage(res.alreadySubscribed ? "You're already subscribed." : "You're in! Thanks for subscribing.")
+      setEmail('')
+    } catch {
+      setStatus('error')
+      setMessage('Something went wrong. Please try again.')
+    }
+  }
+
+  if (status === 'success') {
+    return <p className="text-sm text-primary font-medium">{message}</p>
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
+      <div className="flex gap-2">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          disabled={status === 'loading'}
+          className="flex-1 min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={status === 'loading'}
+          className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+        >
+          {status === 'loading' ? 'Joining…' : 'Join'}
+        </button>
+      </div>
+      {status === 'error' && (
+        <p className="text-xs text-destructive">{message}</p>
+      )}
+    </form>
+  )
+}
+
 export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
     <footer className="border-t border-border bg-background px-4 py-12">
       <div className="page-wrap">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Col 1 — Brand */}
           <div>
             <p className="text-base font-bold text-foreground">The Garden Shop</p>
@@ -91,6 +146,17 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
+          </div>
+
+          {/* Col 4 — Newsletter */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Stay in the loop
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              New arrivals, seasonal picks, and garden tips — straight to your inbox.
+            </p>
+            <NewsletterForm source="footer" />
           </div>
         </div>
 

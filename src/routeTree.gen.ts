@@ -27,10 +27,15 @@ import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AccountWishlistRouteImport } from './routes/account/wishlist'
+import { Route as AccountReturnsRouteImport } from './routes/account/returns'
 import { Route as AccountQuoteCartRouteImport } from './routes/account/quote-cart'
+import { Route as AccountQuickOrderRouteImport } from './routes/account/quick-order'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountPricingRouteImport } from './routes/account/pricing'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
+import { Route as AccountOrderTemplatesRouteImport } from './routes/account/order-templates'
+import { Route as AccountNotificationsRouteImport } from './routes/account/notifications'
+import { Route as AccountGiftCardsRouteImport } from './routes/account/gift-cards'
 import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
 import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
@@ -132,9 +137,19 @@ const AccountWishlistRoute = AccountWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountReturnsRoute = AccountReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountQuoteCartRoute = AccountQuoteCartRouteImport.update({
   id: '/quote-cart',
   path: '/quote-cart',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountQuickOrderRoute = AccountQuickOrderRouteImport.update({
+  id: '/quick-order',
+  path: '/quick-order',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
@@ -150,6 +165,21 @@ const AccountPricingRoute = AccountPricingRouteImport.update({
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountOrderTemplatesRoute = AccountOrderTemplatesRouteImport.update({
+  id: '/order-templates',
+  path: '/order-templates',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountGiftCardsRoute = AccountGiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountCompanyRoute = AccountCompanyRouteImport.update({
@@ -213,10 +243,15 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/gift-cards': typeof AccountGiftCardsRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quick-order': typeof AccountQuickOrderRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -246,9 +281,14 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/gift-cards': typeof AccountGiftCardsRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quick-order': typeof AccountQuickOrderRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -280,10 +320,15 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/gift-cards': typeof AccountGiftCardsRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/order-templates': typeof AccountOrderTemplatesRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/quick-order': typeof AccountQuickOrderRoute
   '/account/quote-cart': typeof AccountQuoteCartRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -316,10 +361,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/gift-cards'
+    | '/account/notifications'
+    | '/account/order-templates'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
+    | '/account/quick-order'
     | '/account/quote-cart'
+    | '/account/returns'
     | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
@@ -349,9 +399,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/gift-cards'
+    | '/account/notifications'
+    | '/account/order-templates'
     | '/account/pricing'
     | '/account/profile'
+    | '/account/quick-order'
     | '/account/quote-cart'
+    | '/account/returns'
     | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
@@ -382,10 +437,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/gift-cards'
+    | '/account/notifications'
+    | '/account/order-templates'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
+    | '/account/quick-order'
     | '/account/quote-cart'
+    | '/account/returns'
     | '/account/wishlist'
     | '/auth/callback'
     | '/auth/reset-password'
@@ -557,11 +617,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountWishlistRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/returns': {
+      id: '/account/returns'
+      path: '/returns'
+      fullPath: '/account/returns'
+      preLoaderRoute: typeof AccountReturnsRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/quote-cart': {
       id: '/account/quote-cart'
       path: '/quote-cart'
       fullPath: '/account/quote-cart'
       preLoaderRoute: typeof AccountQuoteCartRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/quick-order': {
+      id: '/account/quick-order'
+      path: '/quick-order'
+      fullPath: '/account/quick-order'
+      preLoaderRoute: typeof AccountQuickOrderRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/profile': {
@@ -583,6 +657,27 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/account/orders'
       preLoaderRoute: typeof AccountOrdersRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/order-templates': {
+      id: '/account/order-templates'
+      path: '/order-templates'
+      fullPath: '/account/order-templates'
+      preLoaderRoute: typeof AccountOrderTemplatesRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/notifications': {
+      id: '/account/notifications'
+      path: '/notifications'
+      fullPath: '/account/notifications'
+      preLoaderRoute: typeof AccountNotificationsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/gift-cards': {
+      id: '/account/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/account/gift-cards'
+      preLoaderRoute: typeof AccountGiftCardsRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/company': {
@@ -675,10 +770,15 @@ const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountCompanyRoute: typeof AccountCompanyRoute
+  AccountGiftCardsRoute: typeof AccountGiftCardsRoute
+  AccountNotificationsRoute: typeof AccountNotificationsRoute
+  AccountOrderTemplatesRoute: typeof AccountOrderTemplatesRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
+  AccountQuickOrderRoute: typeof AccountQuickOrderRoute
   AccountQuoteCartRoute: typeof AccountQuoteCartRoute
+  AccountReturnsRoute: typeof AccountReturnsRoute
   AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
   AccountInvoicesInvoiceIdRoute: typeof AccountInvoicesInvoiceIdRoute
@@ -691,10 +791,15 @@ interface AccountRouteChildren {
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountCompanyRoute: AccountCompanyRoute,
+  AccountGiftCardsRoute: AccountGiftCardsRoute,
+  AccountNotificationsRoute: AccountNotificationsRoute,
+  AccountOrderTemplatesRoute: AccountOrderTemplatesRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,
+  AccountQuickOrderRoute: AccountQuickOrderRoute,
   AccountQuoteCartRoute: AccountQuoteCartRoute,
+  AccountReturnsRoute: AccountReturnsRoute,
   AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
   AccountInvoicesInvoiceIdRoute: AccountInvoicesInvoiceIdRoute,

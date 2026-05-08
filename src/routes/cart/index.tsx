@@ -1,13 +1,15 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useCart } from '#/context/cart'
 import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
-import { listAddresses } from '#/lib/account-api'
+import { toast } from 'sonner'
+import { listAddresses, createOrderTemplate } from '#/lib/account-api'
 import { getShippingRates, type ShippingRateOption } from '#/lib/guest-cart-api'
 import type { CartItemResponse } from '#/lib/cart-api'
 import { validateDiscount, validateGiftCard } from '#/lib/cart-api'
 import type { AddressResponse } from '#/lib/account-api'
+import { getCreditAccount, getCompany, type CreditAccountResponse, type CompanyResponse } from '#/lib/b2b-api'
 import { GuestCheckoutDialog } from '#/components/GuestCheckoutDialog'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -57,6 +59,7 @@ export function CartItemRow({
   const { id } = item
 
   const qty = item.quantity ?? 1
+  const moq = item.minimumOrderQty ?? 1
   const unitPrice = item.unitPrice ?? 0
   const lineTotal = unitPrice * qty
 
@@ -88,7 +91,7 @@ export function CartItemRow({
         <button
           type="button"
           aria-label="Decrease quantity"
-          disabled={qty <= 1}
+          disabled={qty <= moq}
           onClick={() => onUpdateQuantity(id, qty - 1)}
           className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 hover:border-primary"
         >
@@ -212,6 +215,7 @@ function ShippingRateSelector({
 function AuthCart() {
   const { cart, isLoading, removeItem, updateQuantity, abandon, checkout } = useCart()
   const { authFetch } = useAuth()
+  const navigate = useNavigate()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [defaultAddress, setDefaultAddress] = useState<AddressResponse | null | undefined>(undefined)
@@ -228,6 +232,12 @@ function AuthCart() {
   const [giftCardBalance, setGiftCardBalance] = useState<number | null>(null)
   const [giftCardError, setGiftCardError] = useState<string | null>(null)
   const [giftCardLoading, setGiftCardLoading] = useState(false)
+  const [creditAccount, setCreditAccount] = useState<CreditAccountResponse | null>(null)
+  const [company, setCompany] = useState<CompanyResponse | null>(null)
+  const [poNumber, setPoNumber] = useState('')
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
 
   useEffect(() => {
     listAddresses(authFetch)
@@ -236,6 +246,17 @@ function AuthCart() {
       })
       .catch(() => setDefaultAddress(null))
   }, [authFetch])
+
+  useEffect(() => {
+    const companyId = cart?.companyId
+    if (!companyId) { setCreditAccount(null); setCompany(null); return }
+    getCreditAccount(authFetch, companyId)
+      .then(setCreditAccount)
+      .catch(() => setCreditAccount(null))
+    getCompany(authFetch, companyId)
+      .then(setCompany)
+      .catch(() => setCompany(null))
+  }, [authFetch, cart])
 
   // Fetch shipping rates once we have the default address
   useEffect(() => {
@@ -322,9 +343,12 @@ function AuthCart() {
     setIsCheckingOut(true)
     setCheckoutError(null)
     try {
-      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined)
+      const result = await checkout(selectedRateId ?? undefined, appliedCode ?? undefined, appliedGiftCard ?? undefined, poNumber || undefined)
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
+      } else if (result.orderId) {
+        // Net terms or zero-total order — no Stripe redirect
+        await navigate({ to: '/account/orders/$orderId', params: { orderId: result.orderId } })
       } else {
         setCheckoutError('No checkout URL returned. Please try again.')
       }
@@ -332,6 +356,31 @@ function AuthCart() {
       setCheckoutError('Failed to start checkout. Please try again.')
     } finally {
       setIsCheckingOut(false)
+    }
+  }
+
+  async function handleSaveTemplate(e: React.FormEvent) {
+    e.preventDefault()
+    const name = templateName.trim()
+    if (!name) return
+    const cartItems = cart?.items ?? []
+    if (cartItems.length === 0) { toast.error('Cart is empty.'); return }
+    setIsSavingTemplate(true)
+    try {
+      await createOrderTemplate(
+        authFetch,
+        name,
+        cartItems
+          .filter((i) => i.variantId)
+          .map((i) => ({ variantId: i.variantId!, quantity: i.quantity ?? 1 })),
+      )
+      toast.success('Template saved.')
+      setSaveTemplateOpen(false)
+      setTemplateName('')
+    } catch {
+      toast.error('Failed to save template.')
+    } finally {
+      setIsSavingTemplate(false)
     }
   }
 
@@ -366,6 +415,13 @@ function AuthCart() {
   const discount = discountAmount ?? 0
   const giftCardApplied = giftCardBalance != null ? Math.min(giftCardBalance, subtotal + shippingCost - discount) : 0
   const total = subtotal + shippingCost - discount - giftCardApplied
+
+  const isTaxExempt = company?.taxExempt ?? false
+  const creditLimit = creditAccount?.creditLimit ?? 0
+  const availableCredit = creditAccount?.availableCredit ?? 0
+  const outstandingBalance = creditAccount?.outstandingBalance ?? 0
+  const utilizationPct = creditLimit > 0 ? Math.min(100, Math.round((outstandingBalance / creditLimit) * 100)) : 0
+  const overCreditLimit = creditAccount != null && total > availableCredit
 
   return (
     <main className="page-wrap px-4 py-10">
@@ -518,6 +574,29 @@ function AuthCart() {
           </div>
         )}
 
+        {/* Credit account utilization */}
+        {creditAccount && (
+          <div className="rounded-xl border border-border px-4 py-3 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-foreground">Credit account</span>
+              <span className="text-muted-foreground">
+                {formatPrice(availableCredit)} available of {formatPrice(creditLimit)}
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  utilizationPct > 80 ? 'bg-destructive' : utilizationPct > 50 ? 'bg-yellow-500' : 'bg-primary'
+                }`}
+                style={{ width: `${utilizationPct}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              NET {creditAccount.paymentTermsDays ?? 30} · {utilizationPct}% utilized
+            </p>
+          </div>
+        )}
+
         {/* Total */}
         {selectedRate && (
           <div className="flex flex-col gap-1 rounded-xl bg-muted/40 px-4 py-3 text-sm">
@@ -540,9 +619,41 @@ function AuthCart() {
                 <span>−{formatPrice(giftCardApplied)}</span>
               </div>
             )}
+            {isTaxExempt && (
+              <div className="flex justify-between text-green-600">
+                <span>Tax (exempt)</span>
+                <span>$0.00</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-border pt-1 font-bold text-foreground">
               <span>Total</span><span>{formatPrice(Math.max(0, total))}</span>
             </div>
+          </div>
+        )}
+
+        {overCreditLimit && (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <p className="font-semibold">Credit limit exceeded</p>
+            <p className="mt-0.5 text-xs">
+              This order ({formatPrice(total)}) exceeds your available credit ({formatPrice(availableCredit)}).
+              Please contact your account manager to increase your credit limit.
+            </p>
+          </div>
+        )}
+
+        {cart?.companyId && (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="po-number" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              PO Number <span className="font-normal normal-case">(optional)</span>
+            </label>
+            <input
+              id="po-number"
+              type="text"
+              value={poNumber}
+              onChange={(e) => setPoNumber(e.target.value)}
+              placeholder="e.g. PO-2026-0042"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            />
           </div>
         )}
 
@@ -550,14 +661,68 @@ function AuthCart() {
           <p className="text-sm text-destructive">{checkoutError}</p>
         )}
 
+        {creditAccount != null && (creditAccount.paymentTermsDays ?? 0) > 0 && (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <p className="font-semibold">Net {creditAccount.paymentTermsDays} payment terms</p>
+            <p className="mt-0.5 text-xs text-green-700">
+              This order will be invoiced. No payment is required at checkout.
+            </p>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleCheckout}
-          disabled={isCheckingOut || !defaultAddress || (rates.length > 0 && !selectedRateId)}
+          disabled={isCheckingOut || !defaultAddress || (rates.length > 0 && !selectedRateId) || overCreditLimit}
           className="w-full rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isCheckingOut ? 'Processing…' : 'Proceed to Checkout'}
+          {isCheckingOut
+            ? 'Processing…'
+            : (creditAccount?.paymentTermsDays ?? 0) > 0
+              ? `Place Order (Net ${creditAccount!.paymentTermsDays})`
+              : 'Proceed to Checkout'}
         </button>
+
+        {/* Save as template */}
+        {!saveTemplateOpen ? (
+          <button
+            type="button"
+            onClick={() => setSaveTemplateOpen(true)}
+            className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            Save cart as template
+          </button>
+        ) : (
+          <form
+            onSubmit={(e) => void handleSaveTemplate(e)}
+            className="flex flex-col gap-2"
+          >
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="Template name (e.g. Monthly supply)"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={isSavingTemplate || !templateName.trim()}
+                className="flex-1 rounded-full bg-primary py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {isSavingTemplate ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSaveTemplateOpen(false); setTemplateName('') }}
+                className="rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-muted"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   )

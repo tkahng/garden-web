@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
 import { Skeleton } from '#/components/ui/skeleton'
@@ -9,8 +9,18 @@ import {
   DialogTitle,
   DialogDescription,
 } from '#/components/ui/dialog'
-import { getOrder, cancelOrder, requestRefund } from '#/lib/account-api'
-import type { OrderResponse } from '#/lib/account-api'
+import { toast } from 'sonner'
+import {
+  getOrder,
+  cancelOrder,
+  requestRefund,
+  reorder,
+  approveOrder,
+  rejectApproval,
+  submitReturn,
+  listFulfillments,
+} from '#/lib/account-api'
+import type { OrderResponse, SubmitReturnRequest, FulfillmentResponse } from '#/lib/account-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +55,7 @@ const ORDER_STATUS_CLASS: Record<string, string> = {
 }
 
 const REFUNDABLE_STATUSES = new Set(['PAID', 'FULFILLED', 'PARTIALLY_FULFILLED'])
+const RETURNABLE_STATUSES = new Set(['PAID', 'FULFILLED', 'PARTIALLY_FULFILLED'])
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -70,20 +81,34 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams()
 
   const [order, setOrder] = useState<OrderResponse | null>(null)
+  const [fulfillments, setFulfillments] = useState<FulfillmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isReordering, setIsReordering] = useState(false)
   const [refundDialogOpen, setRefundDialogOpen] = useState(false)
   const [isRefunding, setIsRefunding] = useState(false)
   const [refundError, setRefundError] = useState<string | null>(null)
+  const [isApproving, setIsApproving] = useState(false)
+  const [isRejecting, setIsRejecting] = useState(false)
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false)
+  const [returnReason, setReturnReason] = useState<SubmitReturnRequest['reason']>('DAMAGED')
+  const [returnNotes, setReturnNotes] = useState('')
+  const [returnResolution, setReturnResolution] = useState<SubmitReturnRequest['resolution']>('REFUND')
+  const [isSubmittingReturn, setIsSubmittingReturn] = useState(false)
+  const [returnError, setReturnError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     setIsLoading(true)
     setError(null)
-    getOrder(authFetch, orderId)
-      .then((data) => {
-        if (!cancelled) setOrder(data)
+    Promise.all([
+      getOrder(authFetch, orderId),
+      listFulfillments(authFetch, orderId).catch(() => [] as FulfillmentResponse[]),
+    ])
+      .then(([data, fuls]) => {
+        if (!cancelled) { setOrder(data); setFulfillments(fuls) }
       })
       .catch(() => {
         if (!cancelled) setError('Failed to load order.')
@@ -107,6 +132,20 @@ function OrderDetailPage() {
     }
   }
 
+  async function handleReorder() {
+    if (!order?.id) return
+    setIsReordering(true)
+    try {
+      await reorder(authFetch, order.id)
+      toast.success('Items added to your cart')
+      await navigate({ to: '/cart' })
+    } catch {
+      toast.error('Failed to reorder. Some items may no longer be available.')
+    } finally {
+      setIsReordering(false)
+    }
+  }
+
   async function handleRefund() {
     if (!order?.id) return
     setIsRefunding(true)
@@ -119,6 +158,52 @@ function OrderDetailPage() {
       setRefundError('Failed to submit refund request. Please try again.')
     } finally {
       setIsRefunding(false)
+    }
+  }
+
+  async function handleApprove() {
+    if (!order?.id) return
+    setIsApproving(true)
+    try {
+      await approveOrder(authFetch, order.id)
+      const refreshed = await getOrder(authFetch, order.id)
+      setOrder(refreshed)
+    } catch {
+      toast.error('Failed to approve order.')
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  async function handleRejectApproval() {
+    if (!order?.id) return
+    setIsRejecting(true)
+    try {
+      const updated = await rejectApproval(authFetch, order.id)
+      setOrder(updated)
+    } catch {
+      toast.error('Failed to reject order.')
+    } finally {
+      setIsRejecting(false)
+    }
+  }
+
+  async function handleSubmitReturn() {
+    if (!order?.id) return
+    setIsSubmittingReturn(true)
+    setReturnError(null)
+    try {
+      await submitReturn(authFetch, order.id, {
+        reason: returnReason,
+        notes: returnNotes || undefined,
+        resolution: returnResolution,
+      })
+      setReturnDialogOpen(false)
+      toast.success('Return request submitted.')
+    } catch {
+      setReturnError('Failed to submit return request. Please try again.')
+    } finally {
+      setIsSubmittingReturn(false)
     }
   }
 
@@ -162,6 +247,11 @@ function OrderDetailPage() {
           <h2 className="text-lg font-semibold">Order details</h2>
           {order.createdAt && (
             <p className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</p>
+          )}
+          {order.poNumber && (
+            <p className="text-sm text-muted-foreground">
+              PO: <span className="font-medium text-foreground">{order.poNumber}</span>
+            </p>
           )}
         </div>
         <span
@@ -212,6 +302,45 @@ function OrderDetailPage() {
         })}
       </div>
 
+      {/* Shipments */}
+      {fulfillments.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {fulfillments.map((f) => (
+            <div key={f.id} className="flex flex-col gap-1 rounded-xl border border-border px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-xs uppercase tracking-wide text-muted-foreground">
+                  {f.status === 'SHIPPED' ? 'Shipped' : f.status === 'DELIVERED' ? 'Delivered' : f.status}
+                </span>
+                {f.status === 'DELIVERED' && (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">Delivered</span>
+                )}
+                {f.status === 'SHIPPED' && (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">In transit</span>
+                )}
+              </div>
+              {f.trackingCompany && (
+                <p className="text-muted-foreground">{f.trackingCompany}</p>
+              )}
+              {f.trackingNumber && (
+                f.trackingUrl ? (
+                  <a
+                    href={f.trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-primary hover:underline"
+                  >
+                    {f.trackingNumber}
+                  </a>
+                ) : (
+                  <span className="font-mono">{f.trackingNumber}</span>
+                )
+              )}
+              {f.note && <p className="text-xs text-muted-foreground mt-0.5">{f.note}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Summary */}
       <div className="flex flex-col gap-2 rounded-xl border border-border px-4 py-4">
         <div className="flex items-center justify-between text-sm">
@@ -230,8 +359,54 @@ function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Invoice notice */}
+      {order.status === 'INVOICED' && (
+        <div className="flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm">
+          <span className="text-purple-800 font-medium">This order has been invoiced.</span>
+          <Link
+            to="/account/invoices"
+            className="text-purple-700 font-semibold hover:underline"
+          >
+            View invoices →
+          </Link>
+        </div>
+      )}
+
+      {/* Approval notice */}
+      {order.status === 'PENDING_APPROVAL' && (
+        <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm">
+          <span className="text-orange-800 font-medium">This order is awaiting spending-limit approval.</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={isApproving}
+              onClick={() => void handleApprove()}
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {isApproving ? 'Approving…' : 'Approve'}
+            </button>
+            <button
+              type="button"
+              disabled={isRejecting}
+              onClick={() => void handleRejectApproval()}
+              className="rounded-full border border-destructive px-4 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+            >
+              {isRejecting ? 'Rejecting…' : 'Reject'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={isReordering}
+          onClick={handleReorder}
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          {isReordering ? 'Adding to cart…' : 'Reorder'}
+        </button>
         {order.status === 'PENDING_PAYMENT' && (
           <button
             type="button"
@@ -249,6 +424,15 @@ function OrderDetailPage() {
             className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
           >
             Request refund
+          </button>
+        )}
+        {RETURNABLE_STATUSES.has(order.status ?? '') && (
+          <button
+            type="button"
+            onClick={() => { setReturnError(null); setReturnDialogOpen(true) }}
+            className="rounded-full border border-border px-5 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+          >
+            Return items
           </button>
         )}
       </div>
@@ -290,6 +474,77 @@ function OrderDetailPage() {
                 className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
               >
                 {isRefunding ? 'Submitting…' : 'Submit request'}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Return request dialog */}
+      <Dialog open={returnDialogOpen} onOpenChange={(v) => { if (!v) setReturnDialogOpen(false) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request a return</DialogTitle>
+            <DialogDescription>
+              Select a reason and preferred resolution. Our team will review your request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Reason</label>
+              <select
+                value={returnReason}
+                onChange={(e) => setReturnReason(e.target.value as SubmitReturnRequest['reason'])}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="DAMAGED">Damaged</option>
+                <option value="WRONG_ITEM">Wrong item</option>
+                <option value="NOT_AS_DESCRIBED">Not as described</option>
+                <option value="CHANGED_MIND">Changed mind</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Resolution</label>
+              <select
+                value={returnResolution}
+                onChange={(e) => setReturnResolution(e.target.value as SubmitReturnRequest['resolution'])}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="REFUND">Refund</option>
+                <option value="EXCHANGE">Exchange</option>
+                <option value="STORE_CREDIT">Store credit</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Notes (optional)</label>
+              <textarea
+                value={returnNotes}
+                onChange={(e) => setReturnNotes(e.target.value)}
+                placeholder="Describe the issue…"
+                rows={3}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none"
+              />
+            </div>
+            {returnError && (
+              <p className="text-sm text-destructive">{returnError}</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setReturnDialogOpen(false)}
+                disabled={isSubmittingReturn}
+                className="rounded-full border border-border px-5 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSubmitReturn()}
+                disabled={isSubmittingReturn}
+                className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {isSubmittingReturn ? 'Submitting…' : 'Submit return'}
               </button>
             </div>
           </div>

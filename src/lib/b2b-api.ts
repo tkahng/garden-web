@@ -30,6 +30,10 @@ export type PriceListResponse = components['schemas']['PriceListResponse']
 export type CustomerPriceEntryResponse = components['schemas']['CustomerPriceEntryResponse']
 export type InvoiceResponse = components['schemas']['InvoiceResponse']
 export type InvoicePaymentResponse = components['schemas']['InvoicePaymentResponse']
+export type CreditAccountResponse = components['schemas']['CreditAccountResponse']
+export type VariantPriceTiersResponse = components['schemas']['VariantPriceTiersResponse']
+export type PriceTierEntry = components['schemas']['PriceTierEntry']
+export type VariantLookupResponse = components['schemas']['VariantLookupResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -51,11 +55,67 @@ export type UpdateMemberRoleRequest = {
 }
 
 export type UpdateSpendingLimitRequest = components['schemas']['UpdateSpendingLimitRequest']
+export type CompanyAddressResponse = components['schemas']['CompanyAddressResponse']
+export type CompanyAddressRequest = components['schemas']['CompanyAddressRequest']
 
 export type CreateInvitationRequest = {
   email: string
   role?: 'MANAGER' | 'MEMBER'
   spendingLimit?: number
+}
+
+// ─── Company shipping addresses ───────────────────────────────────────────────
+
+export function listCompanyAddresses(
+  client: ApiClient,
+  companyId: string,
+): Promise<CompanyAddressResponse[]> {
+  return callApi(client.GET('/api/v1/companies/{id}/addresses', {
+    params: { path: { id: companyId } },
+  })) as Promise<CompanyAddressResponse[]>
+}
+
+export function addCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  data: CompanyAddressRequest,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.POST('/api/v1/companies/{id}/addresses', {
+    params: { path: { id: companyId } },
+    body: data,
+  }))
+}
+
+export function updateCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+  data: CompanyAddressRequest,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.PUT('/api/v1/companies/{id}/addresses/{addressId}', {
+    params: { path: { id: companyId, addressId } },
+    body: data,
+  }))
+}
+
+export function deleteCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+): Promise<void> {
+  return callApi(client.DELETE('/api/v1/companies/{id}/addresses/{addressId}', {
+    params: { path: { id: companyId, addressId } },
+  })) as Promise<void>
+}
+
+export function setDefaultCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.PUT('/api/v1/companies/{id}/addresses/{addressId}/default', {
+    params: { path: { id: companyId, addressId } },
+  }))
 }
 
 // ─── Company ──────────────────────────────────────────────────────────────────
@@ -291,6 +351,40 @@ export function listPriceListEntries(
   })) as Promise<CustomerPriceEntryResponse[]>
 }
 
+// ─── Credit account ───────────────────────────────────────────────────────────
+
+export function getCreditAccount(
+  client: ApiClient,
+  companyId: string,
+): Promise<CreditAccountResponse | null> {
+  return client.GET('/api/v1/companies/{id}/credit-account', {
+    params: { path: { id: companyId } },
+  }).then(({ data, error }) => {
+    if (error) return null
+    return data?.data ?? null
+  })
+}
+
+// ─── Variant SKU lookup ───────────────────────────────────────────────────────
+
+export function lookupBySku(sku: string): Promise<VariantLookupResponse> {
+  return callApi(createPublicClient().GET('/api/v1/products/variants/lookup', {
+    params: { query: { sku } },
+  }))
+}
+
+// ─── Tiered pricing ───────────────────────────────────────────────────────────
+
+export function getVariantTiers(
+  client: ApiClient,
+  handle: string,
+  companyId: string,
+): Promise<VariantPriceTiersResponse[]> {
+  return callApi(client.GET('/api/v1/products/{handle}/tiers', {
+    params: { path: { handle }, query: { companyId } },
+  })) as Promise<VariantPriceTiersResponse[]>
+}
+
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 export function listInvoices(
@@ -300,4 +394,26 @@ export function listInvoices(
   return callApi(client.GET('/api/v1/companies/{id}/invoices', {
     params: { path: { id: companyId } },
   })) as Promise<InvoiceResponse[]>
+}
+
+export async function downloadStatement(
+  client: ApiClient,
+  companyId: string,
+  from?: string,
+  to?: string,
+): Promise<void> {
+  type TextResult = { data: string | undefined; error: unknown }
+  const rawRes = (await (client.GET as (...args: unknown[]) => Promise<TextResult>)(
+    '/api/v1/companies/{id}/statement',
+    { params: { path: { id: companyId }, query: { from, to } }, parseAs: 'text' },
+  ))
+  if (rawRes.error) throw rawRes.error
+  const csv = rawRes.data ?? ''
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `statement-${companyId}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }

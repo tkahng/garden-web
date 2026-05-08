@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { getCollection, listCollectionProducts } from '#/lib/api'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import type {
@@ -7,15 +8,26 @@ import type {
   ProductSummaryResponse,
 } from '#/lib/api'
 import { Pagination, ProductCard } from '#/routes/products/index'
+import { useCart } from '#/context/cart'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Search = { page: number }
+type Search = { page: number; sort?: string; companyId?: string }
+
+const COLLECTION_SORT_OPTIONS = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'title', label: 'A – Z' },
+  { value: 'title_desc', label: 'Z – A' },
+  { value: 'date_desc', label: 'Newest' },
+  { value: 'date_asc', label: 'Oldest' },
+] as const
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute('/collections/$handle')({
   validateSearch: (search: Record<string, unknown>): Search => ({
+    sort: typeof search.sort === 'string' ? search.sort : undefined,
+    companyId: typeof search.companyId === 'string' ? search.companyId : undefined,
     page: (() => {
       const raw = search.page
       const n = typeof raw === 'number' ? raw : Number(raw)
@@ -23,13 +35,25 @@ export const Route = createFileRoute('/collections/$handle')({
     })(),
   }),
   loaderDeps: ({ search }) => search,
-  loader: ({ params, deps }) =>
-    Promise.all([
+  loader: ({ params, deps }) => {
+    const [sortBy, sortDir] = parseSortParam(deps.sort)
+    return Promise.all([
       getCollection(params.handle),
-      listCollectionProducts(params.handle, deps.page, 20),
-    ]),
+      listCollectionProducts(params.handle, deps.page, 20, sortBy, sortDir, deps.companyId),
+    ])
+  },
   component: CollectionDetailPage,
 })
+
+function parseSortParam(sort?: string): [string | undefined, string | undefined] {
+  switch (sort) {
+    case 'title': return ['title', 'asc']
+    case 'title_desc': return ['title', 'desc']
+    case 'date_asc': return ['date_asc', undefined]
+    case 'date_desc': return ['date_desc', undefined]
+    default: return [undefined, undefined]
+  }
+}
 
 // ─── CollectionHeader ─────────────────────────────────────────────────────────
 
@@ -89,11 +113,28 @@ function toProductSummary(
 
 function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
-  useDocumentMeta(collection.metaTitle ?? collection.title, collection.metaDescription)
+  const { sort, companyId } = Route.useSearch()
+  useDocumentMeta(
+    collection.metaTitle ?? collection.title,
+    collection.metaDescription,
+    { image: collection.featuredImageUrl, type: 'website', url: window.location.href },
+  )
   const navigate = useNavigate({ from: '/collections/$handle' })
+  const { cart } = useCart()
+
+  useEffect(() => {
+    const cartCompanyId = cart?.companyId
+    if (cartCompanyId && !companyId) {
+      navigate({ search: (prev) => ({ ...prev, companyId: cartCompanyId }), replace: true })
+    }
+  }, [cart?.companyId, companyId, navigate])
 
   function handlePage(page: number) {
     navigate({ search: (prev) => ({ ...prev, page }) })
+  }
+
+  function handleSort(newSort: string) {
+    navigate({ search: (prev) => ({ ...prev, sort: newSort, page: 0 }) })
   }
 
   const { content, meta } = products
@@ -101,6 +142,29 @@ function CollectionDetailPage() {
   return (
     <main className="page-wrap px-4 py-10">
       <CollectionHeader collection={collection} />
+
+      {/* Toolbar */}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {(meta.total ?? 0).toLocaleString()} products
+        </p>
+        <div className="flex items-center gap-2">
+          <label htmlFor="collection-sort" className="text-sm text-muted-foreground whitespace-nowrap">
+            Sort by
+          </label>
+          <select
+            id="collection-sort"
+            value={sort ?? 'featured'}
+            onChange={(e) => handleSort(e.target.value)}
+            className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {COLLECTION_SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {content.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-muted-foreground">
@@ -116,7 +180,7 @@ function CollectionDetailPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {content.map((cp) => (
-            <ProductCard key={cp.id} product={toProductSummary(cp)} />
+            <ProductCard key={cp.id ?? cp.productId} product={toProductSummary(cp)} />
           ))}
         </div>
       )}

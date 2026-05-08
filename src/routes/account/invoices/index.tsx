@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
 import { Skeleton } from '#/components/ui/skeleton'
-import { listCompanies, listInvoices } from '#/lib/b2b-api'
+import { listCompanies, listInvoices, downloadStatement } from '#/lib/b2b-api'
 import type { InvoiceResponse } from '#/lib/b2b-api'
 import { toast } from 'sonner'
 
@@ -81,6 +81,9 @@ export function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceResponse[]>([])
   const [companyId, setCompanyId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [statementFrom, setStatementFrom] = useState('')
+  const [statementTo, setStatementTo] = useState('')
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -124,10 +127,60 @@ export function InvoicesPage() {
     )
   }
 
+  async function handleDownloadStatement() {
+    if (!companyId) return
+    setIsDownloading(true)
+    try {
+      await downloadStatement(
+        authFetch,
+        companyId,
+        statementFrom ? new Date(statementFrom).toISOString() : undefined,
+        statementTo ? new Date(statementTo).toISOString() : undefined,
+      )
+    } catch {
+      toast.error('Failed to download statement')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3 max-w-3xl">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Invoices</h2>
+      </div>
+
+      {/* Statement download */}
+      <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
+        <p className="mb-2 text-sm font-semibold text-foreground">Download Account Statement</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">From</label>
+            <input
+              type="date"
+              value={statementFrom}
+              onChange={(e) => setStatementFrom(e.target.value)}
+              className="rounded border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground">To</label>
+            <input
+              type="date"
+              value={statementTo}
+              onChange={(e) => setStatementTo(e.target.value)}
+              className="rounded border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleDownloadStatement}
+            disabled={isDownloading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDownloading ? 'Downloading…' : 'Download CSV'}
+          </button>
+        </div>
       </div>
 
       {invoices.length === 0 ? (

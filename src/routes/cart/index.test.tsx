@@ -8,6 +8,7 @@ vi.mock('@tanstack/react-router', () => ({
     <a href={to} className={className}>{children}</a>
   ),
   createFileRoute: () => (_config: unknown) => ({}),
+  useNavigate: () => vi.fn(),
 }))
 
 // Cart context mock state
@@ -60,6 +61,7 @@ function buildCart(overrides = {}) {
         variantId: 'v1',
         quantity: 2,
         unitPrice: 9.99,
+        minimumOrderQty: 1,
         product: {
           productId: 'p1',
           productTitle: 'Tomato Seeds',
@@ -155,12 +157,28 @@ describe('CartItemRow', () => {
     expect(onUpdateQuantity).toHaveBeenCalledWith('item-1', 1)
   })
 
-  it('disables - button when quantity is 1', () => {
-    const itemQty1 = { ...item, quantity: 1 }
+  it('disables - button when quantity equals MOQ of 1', () => {
+    const itemQty1 = { ...item, quantity: 1, minimumOrderQty: 1 }
     render(
       <CartItemRow item={itemQty1} onRemove={vi.fn()} onUpdateQuantity={vi.fn()} />,
     )
     expect(screen.getByRole('button', { name: /decrease quantity/i })).toBeDisabled()
+  })
+
+  it('disables - button when quantity equals MOQ > 1', () => {
+    const itemMoq3 = { ...item, quantity: 3, minimumOrderQty: 3 }
+    render(
+      <CartItemRow item={itemMoq3} onRemove={vi.fn()} onUpdateQuantity={vi.fn()} />,
+    )
+    expect(screen.getByRole('button', { name: /decrease quantity/i })).toBeDisabled()
+  })
+
+  it('enables - button when quantity is above MOQ', () => {
+    const itemMoq3 = { ...item, quantity: 5, minimumOrderQty: 3 }
+    render(
+      <CartItemRow item={itemMoq3} onRemove={vi.fn()} onUpdateQuantity={vi.fn()} />,
+    )
+    expect(screen.getByRole('button', { name: /decrease quantity/i })).not.toBeDisabled()
   })
 
   it('calls onRemove with itemId when remove button clicked', () => {

@@ -18,6 +18,8 @@ import {
 } from '#/lib/guest-cart-api'
 import type { CartResponse } from '#/lib/cart-api'
 import { validateGiftCard } from '#/lib/cart-api'
+import { createPublicClient, callApi } from '#/lib/client'
+import type { components } from '#/schema'
 import { useAuthModal } from '#/context/auth-modal'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -220,11 +222,9 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
       const subtotal = cart.items?.reduce(
         (sum, item) => sum + (item.unitPrice ?? 0) * (item.quantity ?? 1), 0,
       ) ?? 0
-      const res = await fetch(
-        `/api/v1/storefront/discounts/validate?code=${encodeURIComponent(code)}&orderAmount=${subtotal}`,
-      )
-      const json = await res.json() as { data?: { valid: boolean; discountedAmount?: number; message?: string } }
-      const data = json.data
+      const data = await callApi(createPublicClient().GET('/api/v1/storefront/discounts/validate', {
+        params: { query: { code, orderAmount: subtotal } },
+      })) as components['schemas']['DiscountValidationResponse']
       if (data?.valid) {
         setAppliedCode(code)
         setDiscountAmount(data.discountedAmount ?? 0)

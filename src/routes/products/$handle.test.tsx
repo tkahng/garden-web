@@ -36,13 +36,13 @@ const mockImages: ProductImageResponse[] = [
 
 describe('ProductGallery', () => {
   it('renders a placeholder when images array is empty', () => {
-    render(<ProductGallery images={[]} activeIndex={0} onSelect={vi.fn()} />)
+    render(<ProductGallery images={[]} activeIndex={0} onSelect={vi.fn()} onZoom={vi.fn()} />)
     expect(screen.getByTestId('gallery-placeholder')).toBeInTheDocument()
   })
 
   it('renders the featured image at activeIndex', () => {
     render(
-      <ProductGallery images={mockImages} activeIndex={1} onSelect={vi.fn()} />,
+      <ProductGallery images={mockImages} activeIndex={1} onSelect={vi.fn()} onZoom={vi.fn()} />,
     )
     const featured = screen.getByTestId('featured-image')
     expect(featured).toHaveAttribute('src', 'https://example.com/img2.jpg')
@@ -54,7 +54,7 @@ describe('ProductGallery', () => {
       <ProductGallery
         images={[mockImages[0]]}
         activeIndex={0}
-        onSelect={vi.fn()}
+        onSelect={vi.fn()} onZoom={vi.fn()}
       />,
     )
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
@@ -62,7 +62,7 @@ describe('ProductGallery', () => {
 
   it('renders a thumbnail button per image when multiple images exist', () => {
     render(
-      <ProductGallery images={mockImages} activeIndex={0} onSelect={vi.fn()} />,
+      <ProductGallery images={mockImages} activeIndex={0} onSelect={vi.fn()} onZoom={vi.fn()} />,
     )
     const buttons = screen.getAllByRole('button')
     expect(buttons).toHaveLength(2)
@@ -75,6 +75,7 @@ describe('ProductGallery', () => {
         images={mockImages}
         activeIndex={0}
         onSelect={onSelect}
+        onZoom={vi.fn()}
       />,
     )
     const buttons = screen.getAllByRole('button')
