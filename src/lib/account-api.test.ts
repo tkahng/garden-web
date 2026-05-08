@@ -10,6 +10,22 @@ import {
   listOrders,
   getOrder,
   cancelOrder,
+  requestRefund,
+  reorder,
+  approveOrder,
+  rejectApproval,
+  submitReturn,
+  listReturns,
+  getReturn,
+  listFulfillments,
+  getGiftCardBalance,
+  getGiftCardTransactions,
+  listOrderTemplates,
+  createOrderTemplate,
+  deleteOrderTemplate,
+  loadOrderTemplate,
+  getNotificationPreferences,
+  updateNotificationPreferences,
 } from './account-api'
 
 // Wraps payload the way callApi expects: { data: { data: payload } }
@@ -246,5 +262,222 @@ describe('error propagation', () => {
   it('propagates errors from the client', async () => {
     const c = makeFailingClient()
     await expect(getAccount(c)).rejects.toThrow('HTTP 401')
+  })
+})
+
+// ─── Helper for any-cast functions ────────────────────────────────────────────
+
+function makeAnyCastClient(payload: unknown, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET') {
+  const mock = vi.fn().mockResolvedValue({ data: { data: payload } })
+  const client = {
+    GET: method === 'GET' ? mock : vi.fn(),
+    POST: method === 'POST' ? mock : vi.fn(),
+    PUT: method === 'PUT' ? mock : vi.fn(),
+    DELETE: method === 'DELETE' ? mock : vi.fn().mockResolvedValue({}),
+  }
+  return { client: client as unknown as import('#/lib/client').ApiClient, mock }
+}
+
+// ─── requestRefund ────────────────────────────────────────────────────────────
+
+describe('requestRefund', () => {
+  it('calls POST /api/v1/storefront/orders/{id}/refund', async () => {
+    const c = makeClient(mockOrder, 'POST')
+    await requestRefund(c, 'order-1')
+    expect((c as unknown as { POST: ReturnType<typeof vi.fn> }).POST).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders/{id}/refund',
+      expect.objectContaining({ params: { path: { id: 'order-1' } } }),
+    )
+  })
+})
+
+describe('reorder', () => {
+  it('calls POST /api/v1/storefront/orders/{id}/reorder', async () => {
+    const c = makeClient({ id: 'cart-1' }, 'POST')
+    await reorder(c, 'order-1')
+    expect((c as unknown as { POST: ReturnType<typeof vi.fn> }).POST).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders/{id}/reorder',
+      expect.objectContaining({ params: { path: { id: 'order-1' } } }),
+    )
+  })
+})
+
+// ─── Order approval ───────────────────────────────────────────────────────────
+
+describe('approveOrder', () => {
+  it('returns CheckoutResponse', async () => {
+    const { client } = makeAnyCastClient({ checkoutUrl: null, orderId: 'order-1', pendingApproval: false }, 'POST')
+    const result = await approveOrder(client, 'order-1')
+    expect(result.orderId).toBe('order-1')
+  })
+})
+
+describe('rejectApproval', () => {
+  it('calls POST /api/v1/storefront/orders/{id}/reject-approval', async () => {
+    const c = makeClient(mockOrder, 'POST')
+    await rejectApproval(c, 'order-1')
+    expect((c as unknown as { POST: ReturnType<typeof vi.fn> }).POST).toHaveBeenCalledWith(
+      '/api/v1/storefront/orders/{id}/reject-approval',
+      expect.objectContaining({ params: { path: { id: 'order-1' } } }),
+    )
+  })
+})
+
+// ─── Return requests ──────────────────────────────────────────────────────────
+
+const mockReturn = {
+  id: 'rr-1',
+  orderId: 'order-1',
+  reason: 'DAMAGED' as const,
+  resolution: 'REFUND' as const,
+  status: 'PENDING' as const,
+}
+
+describe('submitReturn', () => {
+  it('calls POST /api/v1/storefront/returns/orders/{orderId}', async () => {
+    const c = makeClient(mockReturn, 'POST')
+    await submitReturn(c, 'order-1', { reason: 'DAMAGED', resolution: 'REFUND' })
+    expect((c as unknown as { POST: ReturnType<typeof vi.fn> }).POST).toHaveBeenCalledWith(
+      '/api/v1/storefront/returns/orders/{orderId}',
+      expect.objectContaining({
+        params: { path: { orderId: 'order-1' } },
+        body: { reason: 'DAMAGED', resolution: 'REFUND' },
+      }),
+    )
+  })
+})
+
+describe('listReturns', () => {
+  it('calls GET /api/v1/storefront/returns', async () => {
+    const c = makeClient({ content: [mockReturn], meta: {} }, 'GET')
+    await listReturns(c)
+    expect((c as unknown as { GET: ReturnType<typeof vi.fn> }).GET).toHaveBeenCalledWith(
+      '/api/v1/storefront/returns',
+      expect.any(Object),
+    )
+  })
+})
+
+describe('getReturn', () => {
+  it('returns the return request', async () => {
+    const c = makeClient(mockReturn, 'GET')
+    const result = await getReturn(c, 'rr-1')
+    expect(result.id).toBe('rr-1')
+  })
+})
+
+// ─── Fulfillments (any-cast) ──────────────────────────────────────────────────
+
+describe('listFulfillments', () => {
+  it('returns fulfillment array from nested data', async () => {
+    const mockFulfillments = [{ id: 'f-1', status: 'SHIPPED', trackingNumber: '1Z999' }]
+    const { client } = makeAnyCastClient(mockFulfillments, 'GET')
+    const result = await listFulfillments(client, 'order-1')
+    expect(result).toEqual(mockFulfillments)
+  })
+
+  it('returns empty array when data is missing', async () => {
+    const { client } = makeAnyCastClient(undefined, 'GET')
+    const result = await listFulfillments(client, 'order-1')
+    expect(result).toEqual([])
+  })
+})
+
+// ─── Gift card (any-cast) ─────────────────────────────────────────────────────
+
+describe('getGiftCardBalance', () => {
+  it('returns balance response', async () => {
+    const payload = { valid: true, code: 'GIFT-123', currentBalance: 50, currency: 'USD' }
+    const { client } = makeAnyCastClient(payload, 'GET')
+    const result = await getGiftCardBalance(client, 'GIFT-123')
+    expect(result.currentBalance).toBe(50)
+    expect(result.valid).toBe(true)
+  })
+})
+
+describe('getGiftCardTransactions', () => {
+  it('returns transaction array', async () => {
+    const txs = [{ id: 'tx-1', delta: -10, createdAt: '2026-01-01T00:00:00Z' }]
+    const { client } = makeAnyCastClient(txs, 'GET')
+    const result = await getGiftCardTransactions(client, 'GIFT-123')
+    expect(result).toHaveLength(1)
+    expect(result[0].delta).toBe(-10)
+  })
+
+  it('returns empty array when no transactions', async () => {
+    const { client } = makeAnyCastClient([], 'GET')
+    const result = await getGiftCardTransactions(client, 'GIFT-123')
+    expect(result).toEqual([])
+  })
+})
+
+// ─── Order templates (any-cast) ───────────────────────────────────────────────
+
+const mockTemplate = { id: 'tmpl-1', name: 'Monthly', items: [], userId: 'user-1' }
+
+describe('listOrderTemplates', () => {
+  it('returns template array', async () => {
+    const { client } = makeAnyCastClient([mockTemplate], 'GET')
+    const result = await listOrderTemplates(client)
+    expect(result).toHaveLength(1)
+    expect(result[0].name).toBe('Monthly')
+  })
+})
+
+describe('createOrderTemplate', () => {
+  it('posts name and items, returns template', async () => {
+    const { client, mock } = makeAnyCastClient(mockTemplate, 'POST')
+    const result = await createOrderTemplate(client, 'Monthly', [{ variantId: 'v-1', quantity: 2 }])
+    expect(result.id).toBe('tmpl-1')
+    expect(mock).toHaveBeenCalledWith(
+      '/api/v1/storefront/order-templates',
+      expect.objectContaining({ body: { name: 'Monthly', items: [{ variantId: 'v-1', quantity: 2 }] } }),
+    )
+  })
+})
+
+describe('deleteOrderTemplate', () => {
+  it('calls DELETE without throwing', async () => {
+    const { client } = makeAnyCastClient(undefined, 'DELETE')
+    await expect(deleteOrderTemplate(client, 'tmpl-1')).resolves.toBeUndefined()
+  })
+})
+
+describe('loadOrderTemplate', () => {
+  it('returns cart response', async () => {
+    const { client } = makeAnyCastClient({ id: 'cart-1', status: 'ACTIVE' }, 'POST')
+    const result = await loadOrderTemplate(client, 'tmpl-1')
+    expect((result as { id: string }).id).toBe('cart-1')
+  })
+})
+
+// ─── Notification preferences (any-cast) ─────────────────────────────────────
+
+describe('getNotificationPreferences', () => {
+  it('returns preference array', async () => {
+    const prefs = [{ type: 'ORDER_CONFIRMATION', enabled: true }]
+    const { client } = makeAnyCastClient(prefs, 'GET')
+    const result = await getNotificationPreferences(client)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('ORDER_CONFIRMATION')
+  })
+
+  it('returns empty array when data missing', async () => {
+    const { client } = makeAnyCastClient(undefined, 'GET')
+    const result = await getNotificationPreferences(client)
+    expect(result).toEqual([])
+  })
+})
+
+describe('updateNotificationPreferences', () => {
+  it('posts preferences map, returns updated array', async () => {
+    const prefs = [{ type: 'MARKETING', enabled: false }]
+    const { client, mock } = makeAnyCastClient(prefs, 'PUT')
+    const result = await updateNotificationPreferences(client, { MARKETING: false })
+    expect(result[0].enabled).toBe(false)
+    expect(mock).toHaveBeenCalledWith(
+      '/api/v1/account/notification-preferences',
+      expect.objectContaining({ body: { preferences: { MARKETING: false } } }),
+    )
   })
 })

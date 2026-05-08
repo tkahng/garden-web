@@ -89,7 +89,7 @@ function PreferenceRow({
 
 // ─── NotificationsPage ────────────────────────────────────────────────────────
 
-function NotificationsPage() {
+export function NotificationsPage() {
   const { authFetch } = useAuth()
   const [prefs, setPrefs] = useState<NotificationPreference[]>([])
   const [isLoading, setIsLoading] = useState(true)
