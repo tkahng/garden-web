@@ -157,6 +157,43 @@ export function listFulfillments(
   })
 }
 
+// ─── Notification preferences ─────────────────────────────────────────────────
+
+export type NotificationType =
+  | 'ORDER_CONFIRMATION'
+  | 'ORDER_SHIPPED'
+  | 'ORDER_DELIVERED'
+  | 'ORDER_CANCELLED'
+  | 'QUOTE_UPDATE'
+  | 'MARKETING'
+
+export interface NotificationPreference {
+  type: NotificationType
+  enabled: boolean
+}
+
+export function getNotificationPreferences(client: ApiClient): Promise<NotificationPreference[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).GET('/api/v1/account/notification-preferences')
+    .then((res: { data?: { data?: NotificationPreference[] }; error?: unknown }) => {
+      if (res.error) throw res.error
+      return res.data?.data ?? []
+    })
+}
+
+export function updateNotificationPreferences(
+  client: ApiClient,
+  preferences: Partial<Record<NotificationType, boolean>>,
+): Promise<NotificationPreference[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).PUT('/api/v1/account/notification-preferences', {
+    body: { preferences },
+  }).then((res: { data?: { data?: NotificationPreference[] }; error?: unknown }) => {
+    if (res.error) throw res.error
+    return res.data?.data ?? []
+  })
+}
+
 // ─── Auth (authenticated) ─────────────────────────────────────────────────────
 
 export function updatePassword(

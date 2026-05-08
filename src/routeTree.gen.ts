@@ -33,6 +33,7 @@ import { Route as AccountQuickOrderRouteImport } from './routes/account/quick-or
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountPricingRouteImport } from './routes/account/pricing'
 import { Route as AccountOrdersRouteImport } from './routes/account/orders'
+import { Route as AccountNotificationsRouteImport } from './routes/account/notifications'
 import { Route as AccountCompanyRouteImport } from './routes/account/company'
 import { Route as AccountAddressesRouteImport } from './routes/account/addresses'
 import { Route as AccountQuotesIndexRouteImport } from './routes/account/quotes/index'
@@ -164,6 +165,11 @@ const AccountOrdersRoute = AccountOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountCompanyRoute = AccountCompanyRouteImport.update({
   id: '/company',
   path: '/company',
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/notifications': typeof AccountNotificationsRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/notifications': typeof AccountNotificationsRoute
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/quick-order': typeof AccountQuickOrderRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/company': typeof AccountCompanyRoute
+  '/account/notifications': typeof AccountNotificationsRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/pricing': typeof AccountPricingRoute
   '/account/profile': typeof AccountProfileRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/notifications'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/notifications'
     | '/account/pricing'
     | '/account/profile'
     | '/account/quick-order'
@@ -404,6 +415,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/account/addresses'
     | '/account/company'
+    | '/account/notifications'
     | '/account/orders'
     | '/account/pricing'
     | '/account/profile'
@@ -623,6 +635,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountOrdersRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/notifications': {
+      id: '/account/notifications'
+      path: '/notifications'
+      fullPath: '/account/notifications'
+      preLoaderRoute: typeof AccountNotificationsRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/company': {
       id: '/account/company'
       path: '/company'
@@ -713,6 +732,7 @@ const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountCompanyRoute: typeof AccountCompanyRoute
+  AccountNotificationsRoute: typeof AccountNotificationsRoute
   AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountPricingRoute: typeof AccountPricingRoute
   AccountProfileRoute: typeof AccountProfileRoute
@@ -731,6 +751,7 @@ interface AccountRouteChildren {
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountCompanyRoute: AccountCompanyRoute,
+  AccountNotificationsRoute: AccountNotificationsRoute,
   AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountPricingRoute: AccountPricingRoute,
   AccountProfileRoute: AccountProfileRoute,

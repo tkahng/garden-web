@@ -14,6 +14,7 @@ export const Route = createFileRoute('/account')({
 const NAV_ITEMS = [
   { to: '/account/profile', label: 'Profile' },
   { to: '/account/addresses', label: 'Addresses' },
+  { to: '/account/notifications', label: 'Notifications' },
   { to: '/account/orders', label: 'Orders' },
   { to: '/account/returns', label: 'Returns' },
   { to: '/account/quick-order', label: 'Quick Order' },
