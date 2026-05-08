@@ -84,9 +84,61 @@ export function requestRefund(client: ApiClient, id: string): Promise<OrderRespo
 }
 
 export type CartResponse = components['schemas']['CartResponse']
+export type CheckoutResponse = components['schemas']['CheckoutResponse']
+export type ReturnRequestResponse = components['schemas']['ReturnRequestResponse']
+export type SubmitReturnRequest = components['schemas']['SubmitReturnRequest']
+export type PagedResultReturnRequestResponse = components['schemas']['PagedResultReturnRequestResponse']
 
 export function reorder(client: ApiClient, id: string): Promise<CartResponse> {
   return callApi(client.POST('/api/v1/storefront/orders/{id}/reorder', {
+    params: { path: { id } },
+  }))
+}
+
+export function approveOrder(client: ApiClient, id: string): Promise<CheckoutResponse> {
+  return callApi(client.POST('/api/v1/storefront/orders/{id}/approve', {
+    params: { path: { id } },
+  }))
+}
+
+export function rejectApproval(client: ApiClient, id: string): Promise<OrderResponse> {
+  return callApi(client.POST('/api/v1/storefront/orders/{id}/reject-approval', {
+    params: { path: { id } },
+  }))
+}
+
+export function listPendingApprovals(
+  client: ApiClient,
+  companyId: string,
+  params?: { page?: number; size?: number },
+): Promise<PagedResultOrderResponse> {
+  return callApi(client.GET('/api/v1/storefront/orders/pending-approvals', {
+    params: { query: { companyId, page: params?.page, size: params?.size } },
+  }))
+}
+
+export function submitReturn(
+  client: ApiClient,
+  orderId: string,
+  data: SubmitReturnRequest,
+): Promise<ReturnRequestResponse> {
+  return callApi(client.POST('/api/v1/storefront/returns/orders/{orderId}', {
+    params: { path: { orderId } },
+    body: data,
+  }))
+}
+
+export function listReturns(
+  client: ApiClient,
+  params?: { page?: number; size?: number },
+): Promise<PagedResultReturnRequestResponse> {
+  return callApi(client.GET('/api/v1/storefront/returns', {
+    params: { query: { page: params?.page, size: params?.size } },
+  }))
+}
+
+export function getReturn(client: ApiClient, id: string): Promise<ReturnRequestResponse> {
+  return callApi(client.GET('/api/v1/storefront/returns/{id}', {
     params: { path: { id } },
   }))
 }

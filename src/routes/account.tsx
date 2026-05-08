@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/account/profile', label: 'Profile' },
   { to: '/account/addresses', label: 'Addresses' },
   { to: '/account/orders', label: 'Orders' },
+  { to: '/account/returns', label: 'Returns' },
   { to: '/account/quick-order', label: 'Quick Order' },
   { to: '/account/company', label: 'Company' },
   { to: '/account/pricing', label: 'Pricing' },

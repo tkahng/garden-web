@@ -55,11 +55,67 @@ export type UpdateMemberRoleRequest = {
 }
 
 export type UpdateSpendingLimitRequest = components['schemas']['UpdateSpendingLimitRequest']
+export type CompanyAddressResponse = components['schemas']['CompanyAddressResponse']
+export type CompanyAddressRequest = components['schemas']['CompanyAddressRequest']
 
 export type CreateInvitationRequest = {
   email: string
   role?: 'MANAGER' | 'MEMBER'
   spendingLimit?: number
+}
+
+// ─── Company shipping addresses ───────────────────────────────────────────────
+
+export function listCompanyAddresses(
+  client: ApiClient,
+  companyId: string,
+): Promise<CompanyAddressResponse[]> {
+  return callApi(client.GET('/api/v1/companies/{id}/addresses', {
+    params: { path: { id: companyId } },
+  })) as Promise<CompanyAddressResponse[]>
+}
+
+export function addCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  data: CompanyAddressRequest,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.POST('/api/v1/companies/{id}/addresses', {
+    params: { path: { id: companyId } },
+    body: data,
+  }))
+}
+
+export function updateCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+  data: CompanyAddressRequest,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.PUT('/api/v1/companies/{id}/addresses/{addressId}', {
+    params: { path: { id: companyId, addressId } },
+    body: data,
+  }))
+}
+
+export function deleteCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+): Promise<void> {
+  return callApi(client.DELETE('/api/v1/companies/{id}/addresses/{addressId}', {
+    params: { path: { id: companyId, addressId } },
+  })) as Promise<void>
+}
+
+export function setDefaultCompanyAddress(
+  client: ApiClient,
+  companyId: string,
+  addressId: string,
+): Promise<CompanyAddressResponse> {
+  return callApi(client.PUT('/api/v1/companies/{id}/addresses/{addressId}/default', {
+    params: { path: { id: companyId, addressId } },
+  }))
 }
 
 // ─── Company ──────────────────────────────────────────────────────────────────
