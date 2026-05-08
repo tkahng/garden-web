@@ -157,6 +157,45 @@ export function listFulfillments(
   })
 }
 
+// ─── Gift cards ───────────────────────────────────────────────────────────────
+
+export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']
+
+export interface GiftCardTransaction {
+  id?: string
+  giftCardId?: string
+  delta?: number
+  orderId?: string
+  note?: string
+  createdAt?: string
+}
+
+export function getGiftCardBalance(
+  client: ApiClient,
+  code: string,
+): Promise<GiftCardValidationResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).GET('/api/v1/storefront/gift-cards/balance', {
+    params: { query: { code } },
+  }).then((res: { data?: { data?: GiftCardValidationResponse }; error?: unknown }) => {
+    if (res.error) throw res.error
+    return res.data?.data ?? {}
+  })
+}
+
+export function getGiftCardTransactions(
+  client: ApiClient,
+  code: string,
+): Promise<GiftCardTransaction[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (client as any).GET('/api/v1/storefront/gift-cards/transactions', {
+    params: { query: { code } },
+  }).then((res: { data?: { data?: GiftCardTransaction[] }; error?: unknown }) => {
+    if (res.error) throw res.error
+    return res.data?.data ?? []
+  })
+}
+
 // ─── Notification preferences ─────────────────────────────────────────────────
 
 export type NotificationType =
