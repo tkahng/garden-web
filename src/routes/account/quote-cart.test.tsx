@@ -103,7 +103,7 @@ describe('QuoteCartPage', () => {
     mockListCompanies.mockResolvedValue([])
     render(<QuoteCartPage />)
     await waitFor(() => screen.getByText('Rush order'))
-    expect(screen.getByText(/create a company/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /create a company/i })).toHaveAttribute('href', '/account/company')
     expect(screen.queryByLabelText(/delivery address/i)).not.toBeInTheDocument()
   })
 

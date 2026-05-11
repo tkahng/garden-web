@@ -111,7 +111,7 @@ function toProductSummary(
 
 // ─── CollectionDetailPage ─────────────────────────────────────────────────────
 
-function CollectionDetailPage() {
+export function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
   const { sort, companyId } = Route.useSearch()
   useDocumentMeta(

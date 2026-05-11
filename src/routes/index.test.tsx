@@ -83,10 +83,8 @@ describe('HeroSection', () => {
 
   it('renders Shop Now and View Collections links', () => {
     render(<HeroSection page={mockPage} />)
-    expect(screen.getByRole('link', { name: /Shop Now/i })).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /View Collections/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Shop Now/i })).toHaveAttribute('href', '/products')
+    expect(screen.getByRole('link', { name: /View Collections/i })).toHaveAttribute('href', '/collections')
   })
 })
 

@@ -8,19 +8,22 @@ vi.mock('@tanstack/react-router', () => ({
     to,
     children,
     className,
-    activeProps: _activeProps,
-    ...rest
+    params,
   }: {
     to: string
     children: React.ReactNode
     className?: string
-    activeProps?: unknown
+    params?: Record<string, string>
     [key: string]: unknown
-  }) => (
-    <a href={to} className={className} {...rest}>
-      {children}
-    </a>
-  ),
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
   useNavigate: () => vi.fn(),
 }))
 
@@ -137,6 +140,12 @@ describe('Header — authenticated state', () => {
     fireEvent.click(screen.getByRole('button', { name: /user menu/i }))
     fireEvent.click(screen.getAllByText('Sign out')[0])
     expect(mockLogout).toHaveBeenCalled()
+  })
+
+  it('Account link in dropdown points to /account', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /user menu/i }))
+    expect(screen.getByRole('link', { name: /account/i })).toHaveAttribute('href', '/account')
   })
 
   it('mobile nav shows Sign out button instead of Sign in link', () => {
