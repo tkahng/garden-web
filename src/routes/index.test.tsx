@@ -12,17 +12,22 @@ vi.mock('@tanstack/react-router', () => ({
     to,
     children,
     className,
-    ...rest
+    params,
   }: {
     to: string
     children: React.ReactNode
     className?: string
+    params?: Record<string, string>
     [key: string]: unknown
-  }) => (
-    <a href={to} className={className} {...rest}>
-      {children}
-    </a>
-  ),
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
   useNavigate: () => vi.fn(),
   lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
   createFileRoute: () => (_config: unknown) => ({}),
@@ -78,10 +83,8 @@ describe('HeroSection', () => {
 
   it('renders Shop Now and View Collections links', () => {
     render(<HeroSection page={mockPage} />)
-    expect(screen.getByRole('link', { name: /Shop Now/i })).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /View Collections/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Shop Now/i })).toHaveAttribute('href', '/products')
+    expect(screen.getByRole('link', { name: /View Collections/i })).toHaveAttribute('href', '/collections')
   })
 })
 

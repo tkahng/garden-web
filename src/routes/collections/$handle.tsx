@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { getCollection, listCollectionProducts } from '#/lib/api'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
@@ -111,7 +111,7 @@ function toProductSummary(
 
 // ─── CollectionDetailPage ─────────────────────────────────────────────────────
 
-function CollectionDetailPage() {
+export function CollectionDetailPage() {
   const [collection, products] = Route.useLoaderData()
   const { sort, companyId } = Route.useSearch()
   useDocumentMeta(
@@ -170,12 +170,13 @@ function CollectionDetailPage() {
           <p className="text-muted-foreground">
             No products in this collection.
           </p>
-          <a
-            href="/collections"
+          <Link
+            to="/collections"
+            search={{ page: 0 }}
             className="text-sm text-primary underline mt-2 inline-block"
           >
             Back to collections
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">

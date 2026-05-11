@@ -1,6 +1,30 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import Footer from './Footer'
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    params,
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    params?: Record<string, string>
+    [key: string]: unknown
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
+  useNavigate: () => vi.fn(),
+}))
 
 describe('Footer', () => {
   it('renders the store name', () => {

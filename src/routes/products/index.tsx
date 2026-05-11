@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { listProducts } from '#/lib/api'
 import type { ProductSummaryResponse } from '#/lib/api'
@@ -59,7 +59,7 @@ function formatPrice(amount: number): string {
 export function ProductCard({ product }: { product: ProductSummaryResponse }) {
   return (
     <div className="group relative block">
-      <a href={`/products/${product.handle}`} className="block">
+      <Link to="/products/$handle" params={{ handle: product.handle ?? '' }} className="block">
         <div className="island-shell aspect-[3/4] overflow-hidden mb-3">
           {product.featuredImageUrl ? (
             <img
@@ -98,7 +98,7 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
               )}
           </div>
         )}
-      </a>
+      </Link>
       <div className="absolute top-2 right-2">
         <WishlistButton
           productId={product.id ?? ''}
@@ -164,9 +164,9 @@ function ActiveFilters({
           <span aria-hidden className="ml-0.5 text-muted-foreground">×</span>
         </button>
       ))}
-      <a href="/products" className="text-xs text-primary hover:underline">
+      <Link to="/products" search={{ page: 0 }} className="text-xs text-primary hover:underline">
         Clear all
-      </a>
+      </Link>
     </div>
   )
 }
@@ -340,12 +340,13 @@ function ProductListingPage() {
       {products.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-muted-foreground">No products found.</p>
-          <a
-            href="/products"
+          <Link
+            to="/products"
+            search={{ page: 0 }}
             className="text-sm text-primary underline mt-2 inline-block"
           >
             Clear filters
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">

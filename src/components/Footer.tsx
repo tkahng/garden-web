@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { subscribeNewsletter } from '#/lib/api'
 
 function NewsletterForm({ source }: { source: string }) {
@@ -105,20 +106,22 @@ export default function Footer() {
             </p>
             <ul className="mt-4 space-y-3">
               <li>
-                <a
-                  href="/products"
+                <Link
+                  to="/products"
+                  search={{ page: 0 }}
                   className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Products
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/collections"
+                <Link
+                  to="/collections"
+                  search={{ page: 0 }}
                   className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Collections
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -130,20 +133,20 @@ export default function Footer() {
             </p>
             <ul className="mt-4 space-y-3">
               <li>
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/"
+                <Link
+                  to="/"
                   className="text-sm text-foreground no-underline transition hover:text-primary"
                 >
                   Home
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

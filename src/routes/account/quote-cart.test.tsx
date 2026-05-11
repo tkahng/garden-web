@@ -6,6 +6,26 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 const mockNavigate = vi.fn()
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    params,
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    params?: Record<string, string>
+    [key: string]: unknown
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
   createFileRoute: () => (config: unknown) => config,
   useNavigate: () => mockNavigate,
 }))
@@ -83,7 +103,7 @@ describe('QuoteCartPage', () => {
     mockListCompanies.mockResolvedValue([])
     render(<QuoteCartPage />)
     await waitFor(() => screen.getByText('Rush order'))
-    expect(screen.getByText(/create a company/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /create a company/i })).toHaveAttribute('href', '/account/company')
     expect(screen.queryByLabelText(/delivery address/i)).not.toBeInTheDocument()
   })
 
