@@ -115,13 +115,13 @@ export default function Header() {
                     <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
                   </div>
                   <div className="border-t border-border" />
-                  <a
-                    href="/account"
+                  <Link
+                    to="/account"
                     className="block px-2 py-2 text-xs hover:bg-accent"
                     role="menuitem"
                   >
                     Account
-                  </a>
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/context/auth'
 import { Button } from '#/components/ui/button'
@@ -281,9 +281,9 @@ export function QuoteCartPage() {
           {companies.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               You need to{' '}
-              <a href="/account/company" className="underline">
+              <Link to="/account/company" className="underline">
                 create a company
-              </a>{' '}
+              </Link>{' '}
               before submitting a quote request.
             </p>
           ) : (

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, Link } from '@tanstack/react-router'
 import { ShoppingBagIcon } from '@phosphor-icons/react'
 import {
   Sheet,
@@ -102,12 +102,13 @@ export function CartDrawer() {
                 <p className="text-sm font-semibold text-foreground">Your cart is empty</p>
                 <p className="text-xs text-muted-foreground">Add some items to get started.</p>
                 <SheetClose asChild>
-                  <a
-                    href="/products"
+                  <Link
+                    to="/products"
+                    search={{ page: 0 }}
                     className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
                   >
                     Shop now
-                  </a>
+                  </Link>
                 </SheetClose>
               </div>
             ) : (

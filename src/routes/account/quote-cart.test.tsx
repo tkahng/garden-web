@@ -6,6 +6,26 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 const mockNavigate = vi.fn()
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    params,
+  }: {
+    to: string
+    children: React.ReactNode
+    className?: string
+    params?: Record<string, string>
+    [key: string]: unknown
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
   createFileRoute: () => (config: unknown) => config,
   useNavigate: () => mockNavigate,
 }))

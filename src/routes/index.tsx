@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { Card, CardContent } from '#/components/ui/card'
 import { getPage, listCollections, listProducts } from '#/lib/api'
 import { ProductCard } from '#/routes/products/index'
@@ -63,18 +63,20 @@ export function HeroSection({ page }: { page: PageResponse | null }) {
           {body}
         </p>
         <div className="flex flex-wrap gap-3">
-          <a
-            href="/products"
+          <Link
+            to="/products"
+            search={{ page: 0 }}
             className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline transition hover:-translate-y-0.5 hover:opacity-90"
           >
             Shop Now
-          </a>
-          <a
-            href="/collections"
+          </Link>
+          <Link
+            to="/collections"
+            search={{ page: 0 }}
             className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground no-underline transition hover:-translate-y-0.5 hover:bg-accent"
           >
             View Collections
-          </a>
+          </Link>
         </div>
       </div>
     </section>
@@ -109,12 +111,14 @@ export function FeaturedCollection({
             {collection.title}
           </h2>
         </div>
-        <a
-          href={`/collections/${collection.handle}`}
+        <Link
+          to="/collections/$handle"
+          params={{ handle: collection.handle ?? '' }}
+          search={{ page: 0 }}
           className="text-sm font-semibold text-primary no-underline hover:underline"
         >
           View all →
-        </a>
+        </Link>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => (
@@ -167,12 +171,14 @@ export function CollectionsGrid({
               <p className="mb-3 text-base font-bold text-foreground">
                 {collection.title}
               </p>
-              <a
-                href={`/collections/${collection.handle}`}
+              <Link
+                to="/collections/$handle"
+                params={{ handle: collection.handle ?? '' }}
+                search={{ page: 0 }}
                 className="text-sm font-semibold text-primary no-underline hover:underline"
               >
                 Browse →
-              </a>
+              </Link>
             </CardContent>
           </Card>
         ))}

@@ -12,17 +12,22 @@ vi.mock('@tanstack/react-router', () => ({
     to,
     children,
     className,
-    ...rest
+    params,
   }: {
     to: string
     children: React.ReactNode
     className?: string
+    params?: Record<string, string>
     [key: string]: unknown
-  }) => (
-    <a href={to} className={className} {...rest}>
-      {children}
-    </a>
-  ),
+  }) => {
+    let href = to
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        href = href.replace(`$${key}`, value)
+      })
+    }
+    return <a href={href} className={className}>{children}</a>
+  },
   useNavigate: () => vi.fn(),
   lazyRouteComponent: (fn: () => Promise<unknown>) => fn,
   createFileRoute: () => (_config: unknown) => ({}),
