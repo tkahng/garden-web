@@ -242,7 +242,7 @@ function AuthCart() {
   useEffect(() => {
     listAddresses(authFetch)
       .then((addresses) => {
-        setDefaultAddress(addresses.find((a) => a.isDefault) ?? null)
+        setDefaultAddress(addresses.find((a) => a.isDefault) ?? addresses[0] ?? null)
       })
       .catch(() => setDefaultAddress(null))
   }, [authFetch])

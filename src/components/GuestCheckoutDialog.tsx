@@ -9,6 +9,7 @@ import {
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Button } from '#/components/ui/button'
+import { CountrySelect } from '#/components/CountrySelect'
 import {
   checkEmailExists,
   getShippingRates,
@@ -27,24 +28,6 @@ import { useAuthModal } from '#/context/auth-modal'
 function formatPrice(amount: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 }
-
-const COUNTRIES = [
-  { code: 'US', label: 'United States' },
-  { code: 'CA', label: 'Canada' },
-  { code: 'GB', label: 'United Kingdom' },
-  { code: 'AU', label: 'Australia' },
-  { code: 'NZ', label: 'New Zealand' },
-  { code: 'DE', label: 'Germany' },
-  { code: 'FR', label: 'France' },
-  { code: 'NL', label: 'Netherlands' },
-  { code: 'SE', label: 'Sweden' },
-  { code: 'NO', label: 'Norway' },
-  { code: 'DK', label: 'Denmark' },
-  { code: 'JP', label: 'Japan' },
-  { code: 'SG', label: 'Singapore' },
-  { code: 'MX', label: 'Mexico' },
-  { code: 'BR', label: 'Brazil' },
-]
 
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value)
@@ -426,20 +409,12 @@ export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="g-country">Country</Label>
-                <select
+                <CountrySelect
                   id="g-country"
-                  autoComplete="country"
                   value={address.country}
-                  onChange={(e) => setAddr('country', e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  required
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(country) => setAddr('country', country)}
+                  className="w-full"
+                />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="g-province">
