@@ -21,18 +21,13 @@ export function createAuthClient(config: AuthClientConfig): ApiClient {
 
   function refreshTokens(refreshToken: string) {
     if (!refreshPromise) {
-      refreshPromise = fetch(`${getBaseUrl()}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      })
-        .then(async refreshRes => {
-          if (!refreshRes.ok) throw new Error('Refresh failed')
-          const json = await refreshRes.json()
-          const newTokens = {
-            accessToken: json.data.accessToken as string,
-            refreshToken: json.data.refreshToken as string,
-          }
+      refreshPromise = callApi<{ accessToken?: string; refreshToken?: string }>(
+        createPublicClient().POST('/api/v1/auth/refresh', { body: { refreshToken } }),
+      )
+        .then(tokens => {
+          const { accessToken, refreshToken: nextRefreshToken } = tokens
+          if (!accessToken || !nextRefreshToken) throw new Error('Invalid refresh response')
+          const newTokens = { accessToken, refreshToken: nextRefreshToken }
           rotatedRefreshToken = refreshToken
           latestTokens = newTokens
           config.onTokensRefreshed(newTokens)
