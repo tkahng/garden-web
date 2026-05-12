@@ -15,31 +15,52 @@ function getBaseUrl(): string {
 
 export function createAuthClient(config: AuthClientConfig): ApiClient {
   const client = createClient<paths>({ baseUrl: getBaseUrl() })
+  let latestTokens = config.getTokens()
+  let refreshPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null
+  let rotatedRefreshToken: string | null = null
+
+  function refreshTokens(refreshToken: string) {
+    if (!refreshPromise) {
+      refreshPromise = callApi<{ accessToken?: string; refreshToken?: string }>(
+        createPublicClient().POST('/api/v1/auth/refresh', { body: { refreshToken } }),
+      )
+        .then(tokens => {
+          const { accessToken, refreshToken: nextRefreshToken } = tokens
+          if (!accessToken || !nextRefreshToken) throw new Error('Invalid refresh response')
+          const newTokens = { accessToken, refreshToken: nextRefreshToken }
+          rotatedRefreshToken = refreshToken
+          latestTokens = newTokens
+          config.onTokensRefreshed(newTokens)
+          return newTokens
+        })
+        .finally(() => {
+          refreshPromise = null
+        })
+    }
+    return refreshPromise
+  }
+
   client.use({
     async onRequest({ request }) {
-      const { accessToken } = config.getTokens()
+      const configuredTokens = config.getTokens()
+      if (configuredTokens.refreshToken !== rotatedRefreshToken) {
+        latestTokens = configuredTokens
+      }
+      const { accessToken } = latestTokens
       if (accessToken) request.headers.set('Authorization', `Bearer ${accessToken}`)
       return request
     },
     async onResponse({ request, response }) {
       if (response.status !== 401) return response
-      const { refreshToken } = config.getTokens()
+      const { refreshToken } = latestTokens
       if (refreshToken) {
-        const refreshRes = await fetch(`${getBaseUrl()}/api/v1/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        })
-        if (refreshRes.ok) {
-          const json = await refreshRes.json()
-          const newTokens = {
-            accessToken: json.data.accessToken as string,
-            refreshToken: json.data.refreshToken as string,
-          }
-          config.onTokensRefreshed(newTokens)
+        try {
+          const newTokens = await refreshTokens(refreshToken)
           const retryRequest = request.clone()
           retryRequest.headers.set('Authorization', `Bearer ${newTokens.accessToken}`)
           return fetch(retryRequest)
+        } catch {
+          // Fall through to auth failure below.
         }
       }
       config.onAuthFailure()
