@@ -15,13 +15,14 @@ vi.mock('@tanstack/react-router', () => ({
 let mockCart: ReturnType<typeof buildCart> | null = null
 let mockIsLoading = false
 let mockIsAuthenticated = true
+let mockAddresses: unknown[] = []
 const mockRemoveItem = vi.fn()
 const mockUpdateQuantity = vi.fn()
 const mockAbandon = vi.fn()
 
 vi.mock('#/context/auth', () => ({
   useAuth: () => ({
-    authFetch: { GET: vi.fn().mockResolvedValue({ data: { data: [] } }), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() },
+    authFetch: { GET: vi.fn().mockResolvedValue({ data: { data: mockAddresses } }), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn(), PATCH: vi.fn() },
     isAuthenticated: mockIsAuthenticated,
     user: null,
   }),
@@ -76,6 +77,7 @@ function buildCart(overrides = {}) {
 
 beforeEach(() => {
   mockCart = null
+  mockAddresses = []
   mockIsLoading = false
   mockIsAuthenticated = true
   mockRemoveItem.mockClear()
@@ -214,6 +216,26 @@ describe('CartPage', () => {
     mockCart = buildCart()
     render(<CartPage />)
     expect(screen.getByText('Tomato Seeds')).toBeInTheDocument()
+  })
+
+  it('uses the first saved address when none is marked default', async () => {
+    mockCart = buildCart()
+    mockAddresses = [{
+      id: 'addr-1',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      address1: '123 Garden St',
+      city: 'Portland',
+      province: 'OR',
+      zip: '97201',
+      country: 'US',
+      isDefault: false,
+    }]
+
+    render(<CartPage />)
+
+    expect(await screen.findByText('123 Garden St')).toBeInTheDocument()
+    expect(screen.queryByText(/no shipping address on file/i)).not.toBeInTheDocument()
   })
 
   it('renders the cart subtotal', () => {
