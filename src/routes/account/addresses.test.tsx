@@ -111,7 +111,6 @@ describe('AddressesPage', () => {
     })
     fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Portland' } })
     fireEvent.change(screen.getByLabelText(/zip/i), { target: { value: '97201' } })
-    fireEvent.change(screen.getByLabelText(/country/i), { target: { value: 'US' } })
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /save address/i }))

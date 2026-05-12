@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/context/auth'
 import { Button } from '#/components/ui/button'
+import { CountrySelect } from '#/components/CountrySelect'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Skeleton } from '#/components/ui/skeleton'
@@ -150,12 +151,11 @@ function SubmitForm({
 
       <div className="space-y-1">
         <Label htmlFor="country">Country *</Label>
-        <Input
+        <CountrySelect
           id="country"
           value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          placeholder="US"
-          required
+          onValueChange={setCountry}
+          className="w-full"
         />
       </div>
 

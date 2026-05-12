@@ -130,7 +130,6 @@ describe('QuoteCartPage', () => {
     })
     fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Portland' } })
     fireEvent.change(screen.getByLabelText(/postal code/i), { target: { value: '97201' } })
-    fireEvent.change(screen.getByLabelText(/country/i), { target: { value: 'US' } })
     fireEvent.click(screen.getByRole('button', { name: /submit quote request/i }))
     await waitFor(() =>
       expect(mockSubmitQuote).toHaveBeenCalledWith(

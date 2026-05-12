@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/context/auth'
+import { CountrySelect } from '#/components/CountrySelect'
 import { Skeleton } from '#/components/ui/skeleton'
 import {
   listAddresses,
@@ -50,7 +51,7 @@ export function AddressForm({
     city: initial?.city ?? '',
     province: initial?.province ?? '',
     zip: initial?.zip ?? '',
-    country: initial?.country ?? '',
+    country: initial?.country ?? 'US',
     isDefault: initial?.isDefault ?? false,
   })
 
@@ -181,13 +182,13 @@ export function AddressForm({
           <label htmlFor="addrCountry" className="text-sm font-medium">
             Country
           </label>
-          <input
+          <CountrySelect
             id="addrCountry"
-            aria-label="Country"
-            required
             value={fields.country}
-            onChange={field('country')}
-            className="rounded-md border border-border px-3 py-2 text-sm"
+            onValueChange={(country) =>
+              setFields((prev) => ({ ...prev, country }))
+            }
+            className="w-full"
           />
         </div>
       </div>
