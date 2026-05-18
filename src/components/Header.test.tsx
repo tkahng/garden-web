@@ -9,11 +9,15 @@ vi.mock('@tanstack/react-router', () => ({
     children,
     className,
     params,
+    'data-testid': dataTestId,
+    'aria-label': ariaLabel,
   }: {
     to: string
     children: React.ReactNode
     className?: string
     params?: Record<string, string>
+    'data-testid'?: string
+    'aria-label'?: string
     [key: string]: unknown
   }) => {
     let href = to
@@ -22,7 +26,7 @@ vi.mock('@tanstack/react-router', () => ({
         href = href.replace(`$${key}`, value)
       })
     }
-    return <a href={href} className={className}>{children}</a>
+    return <a href={href} className={className} data-testid={dataTestId} aria-label={ariaLabel}>{children}</a>
   },
   useNavigate: () => vi.fn(),
 }))
@@ -156,5 +160,25 @@ describe('Header — authenticated state', () => {
     ).not.toBeInTheDocument()
     // Mobile sheet has a Sign out button somewhere
     expect(screen.getAllByText('Sign out').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows quote cart link for authenticated users', () => {
+    render(<Header />)
+    const link = screen.getByTestId('quote-cart-link')
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute('href', '/account/quote-cart')
+  })
+})
+
+describe('Header — guest state: no quote cart link', () => {
+  beforeEach(() => {
+    mockUser = null
+    mockIsAuthenticated = false
+    mockItemCount = 0
+  })
+
+  it('does not show quote cart link for guests', () => {
+    render(<Header />)
+    expect(screen.queryByTestId('quote-cart-link')).not.toBeInTheDocument()
   })
 })

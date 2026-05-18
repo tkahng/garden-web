@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ListIcon } from '@phosphor-icons/react'
+import { ClipboardTextIcon, ListIcon } from '@phosphor-icons/react'
 import ThemeToggle from './ThemeToggle'
 import { PredictiveSearch } from '#/components/PredictiveSearch'
 import {
@@ -87,6 +87,18 @@ export default function Header() {
 
           {/* Cart drawer */}
           <CartDrawer />
+
+          {/* Quote cart link — authenticated only */}
+          {isAuthenticated && (
+            <Link
+              to="/account/quote-cart"
+              aria-label="Quote cart"
+              data-testid="quote-cart-link"
+              className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            >
+              <ClipboardTextIcon size={22} />
+            </Link>
+          )}
 
           {/* User avatar / sign-in */}
           {isAuthenticated && user ? (
