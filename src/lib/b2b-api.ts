@@ -326,6 +326,10 @@ export function rejectApproval(client: ApiClient, id: string): Promise<QuoteRequ
   return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', { params: { path: { id } } }))
 }
 
+export function rejectQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject', { params: { path: { id } } }))
+}
+
 export function getQuotePdfUrl(id: string): string {
   return `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/v1/quotes/${id}/pdf`
 }
