@@ -5,6 +5,7 @@ import type {
   ProductDetailResponse,
   ProductVariantResponse,
 } from '#/lib/api'
+import type { VariantPriceTiersResponse } from '#/lib/b2b-api'
 import { ProductGallery, ProductInfo } from './$handle'
 
 vi.mock('#/context/auth', () => ({
@@ -326,5 +327,97 @@ describe('ProductInfo — Add to quote cart', () => {
     const quoteOnlyVariant = { ...mockVariants[0], price: undefined }
     render(<ProductInfo {...defaultProps} activeVariant={quoteOnlyVariant} />)
     expect(screen.queryByText('$19.99')).not.toBeInTheDocument()
+  })
+})
+
+describe('ProductInfo — volume pricing tiers', () => {
+  const mockTiers: VariantPriceTiersResponse[] = [
+    {
+      variantId: 'v1',
+      tiers: [
+        { minQty: 1, price: 19.99 },
+        { minQty: 10, price: 17.99 },
+        { minQty: 50, price: 14.99 },
+      ],
+    },
+    {
+      variantId: 'v2',
+      tiers: [
+        { minQty: 1, price: 21.99 },
+      ],
+    },
+  ]
+
+  it('renders the volume pricing section when priceTiers has rows for the active variant', () => {
+    render(<ProductInfo {...defaultProps} priceTiers={mockTiers} />)
+    expect(screen.getByText(/volume pricing/i)).toBeInTheDocument()
+  })
+
+  it('renders a row for each tier of the active variant', () => {
+    render(<ProductInfo {...defaultProps} priceTiers={mockTiers} />)
+    expect(screen.getByText('1+ units')).toBeInTheDocument()
+    expect(screen.getByText('10+ units')).toBeInTheDocument()
+    expect(screen.getByText('50+ units')).toBeInTheDocument()
+  })
+
+  it('renders the price for each tier row', () => {
+    render(<ProductInfo {...defaultProps} priceTiers={mockTiers} />)
+    const table = screen.getByTestId('price-tiers-table')
+    expect(table).toHaveTextContent('$17.99')
+    expect(table).toHaveTextContent('$14.99')
+    // first tier price may equal the variant display price; check it's in the table specifically
+    expect(table.querySelectorAll('tr')[0]).toHaveTextContent('$19.99')
+  })
+
+  it('only shows tiers for the active variant, not other variants', () => {
+    render(<ProductInfo {...defaultProps} activeVariant={mockVariants[0]} priceTiers={mockTiers} />)
+    // v1 has 3 tiers; v2 has 1 — only v1 tiers should be visible
+    const table = screen.getByTestId('price-tiers-table')
+    expect(table.querySelectorAll('tr').length).toBe(3)
+  })
+
+  it('shows — for a tier with a null price', () => {
+    const tiersWithNull: VariantPriceTiersResponse[] = [
+      { variantId: 'v1', tiers: [{ minQty: 1, price: undefined }] },
+    ]
+    render(<ProductInfo {...defaultProps} priceTiers={tiersWithNull} />)
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
+  it('hides the volume pricing section when priceTiers is empty', () => {
+    render(<ProductInfo {...defaultProps} priceTiers={[]} />)
+    expect(screen.queryByText(/volume pricing/i)).not.toBeInTheDocument()
+  })
+
+  it('hides the volume pricing section when priceTiers is not provided', () => {
+    render(<ProductInfo {...defaultProps} />)
+    expect(screen.queryByText(/volume pricing/i)).not.toBeInTheDocument()
+  })
+
+  it('hides the volume pricing section when active variant has no matching tiers', () => {
+    const otherTiers: VariantPriceTiersResponse[] = [
+      { variantId: 'v99', tiers: [{ minQty: 1, price: 9.99 }] },
+    ]
+    render(<ProductInfo {...defaultProps} priceTiers={otherTiers} />)
+    expect(screen.queryByText(/volume pricing/i)).not.toBeInTheDocument()
+  })
+
+  it('switches displayed tiers when the active variant changes', () => {
+    const tiersDistinct: VariantPriceTiersResponse[] = [
+      { variantId: 'v1', tiers: [{ minQty: 1, price: 19.99 }, { minQty: 10, price: 17.99 }, { minQty: 50, price: 14.99 }] },
+      { variantId: 'v2', tiers: [{ minQty: 1, price: 8.88 }] },
+    ]
+    const { rerender } = render(
+      <ProductInfo {...defaultProps} activeVariant={mockVariants[0]} priceTiers={tiersDistinct} />,
+    )
+    // v1 has 3 tiers
+    expect(screen.getByTestId('price-tiers-table').querySelectorAll('tr').length).toBe(3)
+
+    rerender(
+      <ProductInfo {...defaultProps} activeVariant={mockVariants[1]} priceTiers={tiersDistinct} />,
+    )
+    // v2 has 1 tier
+    expect(screen.getByTestId('price-tiers-table').querySelectorAll('tr').length).toBe(1)
+    expect(screen.getByTestId('price-tiers-table')).toHaveTextContent('$8.88')
   })
 })
