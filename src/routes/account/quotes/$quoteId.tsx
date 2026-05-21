@@ -143,6 +143,8 @@ export function QuoteDetailPage() {
   const [quote, setQuote] = useState<QuoteRequestResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAccepting, setIsAccepting] = useState(false)
+  const [showCancelForm, setShowCancelForm] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
   const [isCancelling, setIsCancelling] = useState(false)
 
   useEffect(() => {
@@ -181,8 +183,10 @@ export function QuoteDetailPage() {
   async function handleCancel() {
     setIsCancelling(true)
     try {
-      const updated = await cancelQuote(authFetch, quoteId)
+      const updated = await cancelQuote(authFetch, quoteId, cancelReason || undefined)
       setQuote(updated)
+      setShowCancelForm(false)
+      setCancelReason('')
       toast.success('Quote cancelled')
     } catch {
       toast.error('Failed to cancel quote')
@@ -299,6 +303,14 @@ export function QuoteDetailPage() {
         </div>
       )}
 
+      {/* Rejection reason */}
+      {(quote.status === 'REJECTED' || quote.status === 'CANCELLED') && quote.rejectionReason && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800" data-testid="rejection-reason">
+          <p className="font-medium mb-0.5">Reason</p>
+          <p>{quote.rejectionReason}</p>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-3">
         {canAccept && (
@@ -316,12 +328,35 @@ export function QuoteDetailPage() {
             Download PDF
           </a>
         )}
-        {canCancel && (
-          <Button variant="outline" onClick={handleCancel} disabled={isCancelling}>
-            {isCancelling ? 'Cancelling…' : 'Cancel quote'}
+        {canCancel && !showCancelForm && (
+          <Button variant="outline" onClick={() => setShowCancelForm(true)}>
+            Cancel quote
           </Button>
         )}
       </div>
+
+      {/* Cancel confirmation with optional reason */}
+      {canCancel && showCancelForm && (
+        <div className="rounded-lg border border-border p-4 space-y-3" data-testid="cancel-form">
+          <p className="text-sm font-medium">Cancel this quote?</p>
+          <textarea
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+            rows={3}
+            placeholder="Reason for cancellation (optional)"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            data-testid="cancel-reason-input"
+          />
+          <div className="flex gap-2">
+            <Button variant="destructive" size="sm" onClick={handleCancel} disabled={isCancelling}>
+              {isCancelling ? 'Cancelling…' : 'Confirm cancel'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => { setShowCancelForm(false); setCancelReason('') }}>
+              Keep quote
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

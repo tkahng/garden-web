@@ -161,16 +161,50 @@ describe('QuoteDetailPage', () => {
     )
   })
 
-  it('calls cancelQuote and updates status on cancel', async () => {
+  it('shows cancel form when cancel quote button is clicked', async () => {
+    mockGetQuote.mockResolvedValue(sentQuote)
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByRole('button', { name: /cancel quote/i }))
+    fireEvent.click(screen.getByRole('button', { name: /cancel quote/i }))
+    expect(screen.getByTestId('cancel-form')).toBeInTheDocument()
+    expect(screen.getByTestId('cancel-reason-input')).toBeInTheDocument()
+  })
+
+  it('calls cancelQuote without reason when confirmed with empty textarea', async () => {
     mockGetQuote.mockResolvedValue(sentQuote)
     mockCancelQuote.mockResolvedValue({ ...sentQuote, status: 'CANCELLED' })
     render(<QuoteDetailPage />)
     await waitFor(() => screen.getByRole('button', { name: /cancel quote/i }))
     fireEvent.click(screen.getByRole('button', { name: /cancel quote/i }))
+    fireEvent.click(screen.getByRole('button', { name: /confirm cancel/i }))
     await waitFor(() =>
-      expect(mockCancelQuote).toHaveBeenCalledWith(mockAuthFetch, 'q-1'),
+      expect(mockCancelQuote).toHaveBeenCalledWith(mockAuthFetch, 'q-1', undefined),
     )
     await waitFor(() => expect(screen.getByText('cancelled')).toBeInTheDocument())
+  })
+
+  it('calls cancelQuote with reason when confirmed with text in textarea', async () => {
+    mockGetQuote.mockResolvedValue(sentQuote)
+    mockCancelQuote.mockResolvedValue({ ...sentQuote, status: 'CANCELLED' })
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByRole('button', { name: /cancel quote/i }))
+    fireEvent.click(screen.getByRole('button', { name: /cancel quote/i }))
+    fireEvent.change(screen.getByTestId('cancel-reason-input'), { target: { value: 'No longer needed' } })
+    fireEvent.click(screen.getByRole('button', { name: /confirm cancel/i }))
+    await waitFor(() =>
+      expect(mockCancelQuote).toHaveBeenCalledWith(mockAuthFetch, 'q-1', 'No longer needed'),
+    )
+  })
+
+  it('dismisses cancel form when Keep quote is clicked', async () => {
+    mockGetQuote.mockResolvedValue(sentQuote)
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByRole('button', { name: /cancel quote/i }))
+    fireEvent.click(screen.getByRole('button', { name: /cancel quote/i }))
+    expect(screen.getByTestId('cancel-form')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /keep quote/i }))
+    expect(screen.queryByTestId('cancel-form')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel quote/i })).toBeInTheDocument()
   })
 
   it('shows PDF download link when pdfBlobId present', async () => {
@@ -277,5 +311,36 @@ describe('QuoteDetailPage', () => {
     await act(async () => { vi.advanceTimersByTime(5000) })
     expect(screen.getByText(/25s/)).toBeInTheDocument()
     vi.useRealTimers()
+  })
+
+  // ── Rejection reason display ─────────────────────────────────────────────────
+
+  it('shows rejection reason for REJECTED quote when reason is present', async () => {
+    mockGetQuote.mockResolvedValue({
+      ...sentQuote,
+      status: 'REJECTED' as const,
+      rejectionReason: 'Price too high',
+    })
+    render(<QuoteDetailPage />)
+    await waitFor(() => expect(screen.getByTestId('rejection-reason')).toBeInTheDocument())
+    expect(screen.getByTestId('rejection-reason')).toHaveTextContent('Price too high')
+  })
+
+  it('shows rejection reason for CANCELLED quote when reason is present', async () => {
+    mockGetQuote.mockResolvedValue({
+      ...sentQuote,
+      status: 'CANCELLED' as const,
+      rejectionReason: 'Order no longer needed',
+    })
+    render(<QuoteDetailPage />)
+    await waitFor(() => expect(screen.getByTestId('rejection-reason')).toBeInTheDocument())
+    expect(screen.getByTestId('rejection-reason')).toHaveTextContent('Order no longer needed')
+  })
+
+  it('does not show rejection reason block when reason is absent', async () => {
+    mockGetQuote.mockResolvedValue({ ...sentQuote, status: 'REJECTED' as const })
+    render(<QuoteDetailPage />)
+    await waitFor(() => screen.getByText('rejected'))
+    expect(screen.queryByTestId('rejection-reason')).not.toBeInTheDocument()
   })
 })

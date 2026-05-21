@@ -305,8 +305,11 @@ export function acceptQuote(client: ApiClient, id: string): Promise<QuoteAcceptR
   return callApi(client.POST('/api/v1/quotes/{id}/accept', { params: { path: { id } } }))
 }
 
-export function cancelQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/cancel', { params: { path: { id } } }))
+export function cancelQuote(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/cancel', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
 export function listPendingApprovals(
@@ -322,12 +325,18 @@ export function approveQuote(client: ApiClient, id: string): Promise<QuoteAccept
   return callApi(client.POST('/api/v1/quotes/{id}/approve', { params: { path: { id } } }))
 }
 
-export function rejectApproval(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', { params: { path: { id } } }))
+export function rejectApproval(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
-export function rejectQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/reject', { params: { path: { id } } }))
+export function rejectQuote(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
 export function getQuotePdfUrl(id: string): string {
