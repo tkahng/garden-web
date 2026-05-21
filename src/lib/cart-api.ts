@@ -12,6 +12,8 @@ export type CheckoutReturnResponse = components['schemas']['CheckoutReturnRespon
 export type CheckoutRequest = components['schemas']['CheckoutRequest']
 export type DiscountValidationResponse = components['schemas']['DiscountValidationResponse']
 export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']
+export type BulkAddToCartResponse = components['schemas']['BulkAddToCartResponse']
+export type BulkAddToCartLineResult = components['schemas']['BulkAddToCartLineResult']
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
@@ -75,4 +77,23 @@ export function validateGiftCard(code: string): Promise<GiftCardValidationRespon
   return callApi(createPublicClient().GET('/api/v1/storefront/gift-cards/validate', {
     params: { query: { code } },
   }))
+}
+
+// ─── CSV bulk import ──────────────────────────────────────────────────────────
+
+export async function importCsvToCart(
+  accessToken: string,
+  file: File,
+): Promise<BulkAddToCartResponse> {
+  const base = import.meta.env.VITE_API_BASE_URL ?? ''
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch(`${base}/api/v1/cart/import-csv`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: form,
+  })
+  if (!res.ok) throw new Error(String(res.status))
+  const json = await res.json() as { data: BulkAddToCartResponse }
+  return json.data
 }

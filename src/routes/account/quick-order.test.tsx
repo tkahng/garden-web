@@ -10,8 +10,9 @@ vi.mock('@tanstack/react-router', () => ({
 // ─── Auth mock ────────────────────────────────────────────────────────────────
 
 let mockIsAuthenticated = true
+const MOCK_ACCESS_TOKEN = 'test-token-123'
 vi.mock('#/context/auth', () => ({
-  useAuth: () => ({ isAuthenticated: mockIsAuthenticated }),
+  useAuth: () => ({ isAuthenticated: mockIsAuthenticated, accessToken: MOCK_ACCESS_TOKEN }),
 }))
 
 // ─── Cart mock ────────────────────────────────────────────────────────────────
@@ -28,13 +29,17 @@ vi.mock('#/lib/b2b-api', () => ({
   lookupBySku: (...a: unknown[]) => mockLookupBySku(...a),
 }))
 
+// ─── cart-api mock ────────────────────────────────────────────────────────────
+
+const mockImportCsvToCart = vi.fn()
+vi.mock('#/lib/cart-api', () => ({
+  importCsvToCart: (...a: unknown[]) => mockImportCsvToCart(...a),
+}))
+
 // ─── Toast mock ───────────────────────────────────────────────────────────────
 
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
-vi.mock('sonner', () => ({
-  toast: { success: (...a: unknown[]) => mockToastSuccess(...a), error: (...a: unknown[]) => mockToastError(...a) },
-}))
 
 import { QuickOrderPage } from './quick-order'
 
@@ -50,12 +55,23 @@ const stubVariant = {
   featuredImageUrl: 'https://cdn.example.com/tomato.jpg',
 }
 
+const mockToastInfo = vi.fn()
+vi.mock('sonner', () => ({
+  toast: {
+    success: (...a: unknown[]) => mockToastSuccess(...a),
+    error: (...a: unknown[]) => mockToastError(...a),
+    info: (...a: unknown[]) => mockToastInfo(...a),
+  },
+}))
+
 beforeEach(() => {
   mockIsAuthenticated = true
   mockAddItem.mockReset()
   mockLookupBySku.mockReset()
+  mockImportCsvToCart.mockReset()
   mockToastSuccess.mockReset()
   mockToastError.mockReset()
+  mockToastInfo.mockReset()
 })
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -232,5 +248,97 @@ describe('QuickOrderPage', () => {
     await waitFor(() => {
       expect(mockAddItem).toHaveBeenCalledWith('v-1', 5)
     })
+  })
+})
+
+describe('QuickOrderPage — CSV upload', () => {
+  it('renders CSV upload section with file input', () => {
+    render(<QuickOrderPage />)
+    expect(screen.getByTestId('csv-file-input')).toBeInTheDocument()
+    expect(screen.getByText(/bulk import via csv/i)).toBeInTheDocument()
+  })
+
+  it('calls importCsvToCart when a CSV file is selected', async () => {
+    mockImportCsvToCart.mockResolvedValue({ results: [], cart: null })
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,quantity\nTSS-001,5\n'], 'order.csv', { type: 'text/csv' })
+    const input = screen.getByTestId('csv-file-input')
+    fireEvent.change(input, { target: { files: [file] } })
+
+    await waitFor(() =>
+      expect(mockImportCsvToCart).toHaveBeenCalledWith(MOCK_ACCESS_TOKEN, file),
+    )
+  })
+
+  it('shows import results table after upload', async () => {
+    mockImportCsvToCart.mockResolvedValue({
+      cart: null,
+      results: [
+        { sku: 'TSS-001', quantity: 5, status: 'ADDED', productTitle: 'Tomato Seeds', variantId: 'v-1', message: null },
+        { sku: 'BAD-SKU', quantity: 2, status: 'NOT_FOUND', productTitle: null, variantId: null, message: 'SKU not found' },
+      ],
+    })
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,quantity\nTSS-001,5\nBAD-SKU,2\n'], 'order.csv', { type: 'text/csv' })
+    fireEvent.change(screen.getByTestId('csv-file-input'), { target: { files: [file] } })
+
+    await waitFor(() => expect(screen.getByTestId('import-results')).toBeInTheDocument())
+    expect(screen.getByText('TSS-001')).toBeInTheDocument()
+    expect(screen.getByText('Added')).toBeInTheDocument()
+    expect(screen.getByText('BAD-SKU')).toBeInTheDocument()
+    expect(screen.getByText('Not found')).toBeInTheDocument()
+  })
+
+  it('shows success toast with count of added items', async () => {
+    mockImportCsvToCart.mockResolvedValue({
+      cart: null,
+      results: [
+        { sku: 'TSS-001', quantity: 5, status: 'ADDED', productTitle: 'Tomato Seeds' },
+        { sku: 'TSS-002', quantity: 2, status: 'ADDED', productTitle: 'Basil Seeds' },
+      ],
+    })
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,qty\n'], 'order.csv', { type: 'text/csv' })
+    fireEvent.change(screen.getByTestId('csv-file-input'), { target: { files: [file] } })
+
+    await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith('2 items added to cart'))
+  })
+
+  it('shows info toast when no items are added', async () => {
+    mockImportCsvToCart.mockResolvedValue({
+      cart: null,
+      results: [{ sku: 'BAD', quantity: 1, status: 'NOT_FOUND' }],
+    })
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,qty\n'], 'order.csv', { type: 'text/csv' })
+    fireEvent.change(screen.getByTestId('csv-file-input'), { target: { files: [file] } })
+
+    await waitFor(() => expect(mockToastInfo).toHaveBeenCalled())
+  })
+
+  it('shows empty-CSV notice when results is empty', async () => {
+    mockImportCsvToCart.mockResolvedValue({ cart: null, results: [] })
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,qty\n'], 'empty.csv', { type: 'text/csv' })
+    fireEvent.change(screen.getByTestId('csv-file-input'), { target: { files: [file] } })
+
+    await waitFor(() =>
+      expect(screen.getByText(/no rows were processed/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows error toast on upload failure', async () => {
+    mockImportCsvToCart.mockRejectedValue(new Error('network error'))
+    render(<QuickOrderPage />)
+
+    const file = new File(['sku,qty\n'], 'order.csv', { type: 'text/csv' })
+    fireEvent.change(screen.getByTestId('csv-file-input'), { target: { files: [file] } })
+
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Failed to import CSV.'))
   })
 })

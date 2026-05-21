@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { useCart } from '#/context/cart'
 import { useAuth } from '#/context/auth'
 import { lookupBySku } from '#/lib/b2b-api'
 import type { VariantLookupResponse } from '#/lib/b2b-api'
+import { importCsvToCart } from '#/lib/cart-api'
+import type { BulkAddToCartLineResult } from '#/lib/cart-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -35,10 +37,13 @@ export function makeRow(): OrderRow {
 }
 
 export function QuickOrderPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, accessToken } = useAuth()
   const { addItem } = useCart()
   const [rows, setRows] = useState<OrderRow[]>([makeRow(), makeRow(), makeRow()])
   const [isAdding, setIsAdding] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResults, setImportResults] = useState<BulkAddToCartLineResult[] | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const updateRow = useCallback((id: number, patch: Partial<OrderRow>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
@@ -78,6 +83,27 @@ export function QuickOrderPage() {
     if (failed > 0) toast.error(`${failed} item${failed > 1 ? 's' : ''} failed to add`)
     if (added > 0) {
       setRows([makeRow(), makeRow(), makeRow()])
+    }
+  }
+
+  async function handleCsvUpload(file: File) {
+    if (!accessToken) {
+      toast.error('Please sign in to upload an order.')
+      return
+    }
+    setIsImporting(true)
+    setImportResults(null)
+    try {
+      const result = await importCsvToCart(accessToken, file)
+      setImportResults(result.results ?? [])
+      const added = (result.results ?? []).filter((r) => r.status === 'ADDED').length
+      if (added > 0) toast.success(`${added} item${added > 1 ? 's' : ''} added to cart`)
+      else toast.info('No items were added. Check the results below.')
+    } catch {
+      toast.error('Failed to import CSV.')
+    } finally {
+      setIsImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -186,6 +212,73 @@ export function QuickOrderPage() {
         >
           {isAdding ? 'Adding…' : `Add ${validCount > 0 ? validCount : ''} item${validCount !== 1 ? 's' : ''} to cart`}
         </button>
+      </div>
+
+      {/* CSV upload */}
+      <div className="border-t border-border pt-6 space-y-3">
+        <div>
+          <p className="text-sm font-medium">Bulk import via CSV</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Two columns: <code className="font-mono">sku</code> and <code className="font-mono">quantity</code>. Header row optional.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            data-testid="csv-file-input"
+            className="text-sm text-muted-foreground file:mr-3 file:rounded-full file:border file:border-border file:bg-background file:px-4 file:py-1.5 file:text-xs file:font-semibold hover:file:border-primary"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void handleCsvUpload(file)
+            }}
+            disabled={isImporting || !isAuthenticated}
+          />
+          {isImporting && (
+            <span className="text-sm text-muted-foreground">Importing…</span>
+          )}
+        </div>
+
+        {/* Import results */}
+        {importResults != null && importResults.length > 0 && (
+          <div className="rounded-lg border border-border overflow-hidden" data-testid="import-results">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">SKU</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Qty</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Product</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {importResults.map((r, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-2 font-mono text-xs">{r.sku}</td>
+                    <td className="px-3 py-2">{r.quantity}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{r.productTitle ?? '—'}</td>
+                    <td className="px-3 py-2">
+                      {r.status === 'ADDED' && (
+                        <span className="text-xs font-medium text-green-700 dark:text-green-400">Added</span>
+                      )}
+                      {r.status === 'NOT_FOUND' && (
+                        <span className="text-xs font-medium text-destructive">Not found</span>
+                      )}
+                      {r.status === 'ERROR' && (
+                        <span className="text-xs font-medium text-orange-600 dark:text-orange-400" title={r.message ?? undefined}>Error</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {importResults != null && importResults.length === 0 && (
+          <p className="text-sm text-muted-foreground">No rows were processed from the CSV.</p>
+        )}
       </div>
     </div>
   )

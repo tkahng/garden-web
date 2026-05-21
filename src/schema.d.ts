@@ -2932,6 +2932,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cart/import-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["importCsv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cart": {
         parameters: {
             query?: never;
@@ -3781,6 +3797,25 @@ export interface components {
             product?: components["schemas"]["CartItemProductInfo"];
             /** Format: int32 */
             minimumOrderQty?: number;
+        };
+        ApiResponseBulkAddToCartResponse: {
+            data?: components["schemas"]["BulkAddToCartResponse"];
+            meta?: unknown;
+        };
+        BulkAddToCartResponse: {
+            cart?: components["schemas"]["CartResponse"];
+            results?: components["schemas"]["BulkAddToCartLineResult"][];
+        };
+        BulkAddToCartLineResult: {
+            sku?: string;
+            /** Format: int32 */
+            quantity?: number;
+            /** @enum {string} */
+            status?: "ADDED" | "NOT_FOUND" | "ERROR";
+            /** Format: uuid */
+            variantId?: string;
+            productTitle?: string;
+            message?: string;
         };
         CartResponse: {
             /** Format: uuid */
@@ -12368,6 +12403,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCheckoutReturnResponse"];
+                };
+            };
+        };
+    };
+    importCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: { "multipart/form-data": { file: Blob } };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseBulkAddToCartResponse"];
                 };
             };
         };
