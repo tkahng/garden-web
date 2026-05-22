@@ -37,7 +37,7 @@ export function makeRow(): OrderRow {
 }
 
 export function QuickOrderPage() {
-  const { isAuthenticated, accessToken } = useAuth()
+  const { isAuthenticated } = useAuth()
   const { addItem } = useCart()
   const [rows, setRows] = useState<OrderRow[]>([makeRow(), makeRow(), makeRow()])
   const [isAdding, setIsAdding] = useState(false)
@@ -87,14 +87,14 @@ export function QuickOrderPage() {
   }
 
   async function handleCsvUpload(file: File) {
-    if (!accessToken) {
+    if (!isAuthenticated) {
       toast.error('Please sign in to upload an order.')
       return
     }
     setIsImporting(true)
     setImportResults(null)
     try {
-      const result = await importCsvToCart(accessToken, file)
+      const result = await importCsvToCart(file)
       setImportResults(result.results ?? [])
       const added = (result.results ?? []).filter((r) => r.status === 'ADDED').length
       if (added > 0) toast.success(`${added} item${added > 1 ? 's' : ''} added to cart`)

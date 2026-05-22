@@ -81,16 +81,30 @@ export function validateGiftCard(code: string): Promise<GiftCardValidationRespon
 
 // ─── CSV bulk import ──────────────────────────────────────────────────────────
 
+// Reads the access token from the same localStorage slot the auth context uses,
+// avoiding the need to expose the raw JWT through the React context value.
+function getStoredAccessToken(): string | null {
+  try {
+    const raw = localStorage.getItem('garden:auth')
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { accessToken?: string | null }
+    return parsed.accessToken ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function importCsvToCart(
-  accessToken: string,
   file: File,
 ): Promise<BulkAddToCartResponse> {
+  const token = getStoredAccessToken()
+  if (!token) throw new Error('Not authenticated')
   const base = import.meta.env.VITE_API_BASE_URL ?? ''
   const form = new FormData()
   form.append('file', file)
   const res = await fetch(`${base}/api/v1/cart/import-csv`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${token}` },
     body: form,
   })
   if (!res.ok) throw new Error(String(res.status))

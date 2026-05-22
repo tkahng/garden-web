@@ -22,7 +22,6 @@ interface AuthState {
 interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
-  accessToken: string | null
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
   loginWithTokens: (accessToken: string, refreshToken: string) => Promise<void>
@@ -127,7 +126,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user: state.user,
         isAuthenticated: !!state.user,
-        accessToken: state.accessToken,
         login,
         register,
         loginWithTokens,

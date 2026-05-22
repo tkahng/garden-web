@@ -10,9 +10,8 @@ vi.mock('@tanstack/react-router', () => ({
 // ─── Auth mock ────────────────────────────────────────────────────────────────
 
 let mockIsAuthenticated = true
-const MOCK_ACCESS_TOKEN = 'test-token-123'
 vi.mock('#/context/auth', () => ({
-  useAuth: () => ({ isAuthenticated: mockIsAuthenticated, accessToken: MOCK_ACCESS_TOKEN }),
+  useAuth: () => ({ isAuthenticated: mockIsAuthenticated }),
 }))
 
 // ─── Cart mock ────────────────────────────────────────────────────────────────
@@ -40,6 +39,14 @@ vi.mock('#/lib/cart-api', () => ({
 
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
+const mockToastInfo = vi.fn()
+vi.mock('sonner', () => ({
+  toast: {
+    success: (...a: unknown[]) => mockToastSuccess(...a),
+    error: (...a: unknown[]) => mockToastError(...a),
+    info: (...a: unknown[]) => mockToastInfo(...a),
+  },
+}))
 
 import { QuickOrderPage } from './quick-order'
 
@@ -54,15 +61,6 @@ const stubVariant = {
   price: 9.99,
   featuredImageUrl: 'https://cdn.example.com/tomato.jpg',
 }
-
-const mockToastInfo = vi.fn()
-vi.mock('sonner', () => ({
-  toast: {
-    success: (...a: unknown[]) => mockToastSuccess(...a),
-    error: (...a: unknown[]) => mockToastError(...a),
-    info: (...a: unknown[]) => mockToastInfo(...a),
-  },
-}))
 
 beforeEach(() => {
   mockIsAuthenticated = true
@@ -267,7 +265,7 @@ describe('QuickOrderPage — CSV upload', () => {
     fireEvent.change(input, { target: { files: [file] } })
 
     await waitFor(() =>
-      expect(mockImportCsvToCart).toHaveBeenCalledWith(MOCK_ACCESS_TOKEN, file),
+      expect(mockImportCsvToCart).toHaveBeenCalledWith(file),
     )
   })
 
