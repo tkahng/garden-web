@@ -35,9 +35,13 @@ vi.mock('#/lib/b2b-api', () => ({
   addMember: (...a: unknown[]) => mockAddMember(...a),
   removeMember: (...a: unknown[]) => mockRemoveMember(...a),
   updateMemberRole: (...a: unknown[]) => mockUpdateMemberRole(...a),
+  updateSpendingLimit: vi.fn().mockResolvedValue(undefined),
   listInvitations: (...a: unknown[]) => mockListInvitations(...a),
   sendInvitation: (...a: unknown[]) => mockSendInvitation(...a),
   cancelInvitation: (...a: unknown[]) => mockCancelInvitation(...a),
+  listDepartments: vi.fn().mockResolvedValue([]),
+  createDepartment: vi.fn().mockResolvedValue({ id: 'dept-1', name: 'Eng', children: [] }),
+  deleteDepartment: vi.fn().mockResolvedValue(undefined),
 }))
 
 import { CompanyPage, CreateCompanyForm } from './company'

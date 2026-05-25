@@ -1012,6 +1012,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{companyId}/departments": {
+        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
+        get: operations["listDepartmentsStorefront"];
+        put?: never;
+        post: operations["createDepartmentStorefront"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{companyId}/departments/{deptId}": {
+        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
+        get?: never;
+        put: operations["updateDepartmentStorefront"];
+        post?: never;
+        delete: operations["deleteDepartmentStorefront"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/{id}/members": {
         parameters: {
             query?: never;
@@ -2932,6 +2954,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cart/import-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["importCsv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cart": {
         parameters: {
             query?: never;
@@ -3782,6 +3820,25 @@ export interface components {
             /** Format: int32 */
             minimumOrderQty?: number;
         };
+        ApiResponseBulkAddToCartResponse: {
+            data?: components["schemas"]["BulkAddToCartResponse"];
+            meta?: unknown;
+        };
+        BulkAddToCartResponse: {
+            cart?: components["schemas"]["CartResponse"];
+            results?: components["schemas"]["BulkAddToCartLineResult"][];
+        };
+        BulkAddToCartLineResult: {
+            sku?: string;
+            /** Format: int32 */
+            quantity?: number;
+            /** @enum {string} */
+            status?: "ADDED" | "NOT_FOUND" | "ERROR";
+            /** Format: uuid */
+            variantId?: string;
+            productTitle?: string;
+            message?: string;
+        };
         CartResponse: {
             /** Format: uuid */
             id?: string;
@@ -3850,8 +3907,56 @@ export interface components {
             /** @enum {string} */
             role?: "OWNER" | "MANAGER" | "MEMBER";
             spendingLimit?: number;
+            /** Format: uuid */
+            departmentId?: string;
             /** Format: date-time */
             joinedAt?: string;
+        };
+        ApiResponseListDepartmentResponse: {
+            data?: components["schemas"]["DepartmentResponse"][];
+            meta?: unknown;
+        };
+        ApiResponseDepartmentResponse: {
+            data?: components["schemas"]["DepartmentResponse"];
+            meta?: unknown;
+        };
+        DepartmentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            parentId?: string;
+            name?: string;
+            children?: components["schemas"]["DepartmentResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        DepartmentRequest: {
+            name: string;
+            /** Format: uuid */
+            parentId?: string;
+        };
+        AssignDepartmentRequest: {
+            /** Format: uuid */
+            departmentId?: string;
+        };
+        ApiResponseListCompanyApprovalRuleResponse: {
+            data?: components["schemas"]["CompanyApprovalRuleResponse"][];
+            meta?: unknown;
+        };
+        CompanyApprovalRuleResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            companyId?: string;
+            name?: string;
+            thresholdAmount?: number;
+            /** @enum {string} */
+            requiredRole?: "MANAGER" | "OWNER";
+            active?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
         };
         UpdateMemberRoleRequest: {
             /** @enum {string} */
@@ -4065,6 +4170,7 @@ export interface components {
             shippingRequirements?: string;
             customerNotes?: string;
             staffNotes?: string;
+            rejectionReason?: string;
             /** Format: date-time */
             expiresAt?: string;
             /** Format: uuid */
@@ -8290,7 +8396,9 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: { "application/json": { reason?: string } };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -8312,7 +8420,9 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: { "application/json": { reason?: string } };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -8334,7 +8444,9 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: { "application/json": { reason?: string } };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -8603,6 +8715,26 @@ export interface operations {
                 };
             };
         };
+    };
+    listDepartmentsStorefront: {
+        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
+        requestBody?: never;
+        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseListDepartmentResponse"] } } };
+    };
+    createDepartmentStorefront: {
+        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
+        requestBody: { content: { "application/json": components["schemas"]["DepartmentRequest"] } };
+        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseDepartmentResponse"] } } };
+    };
+    updateDepartmentStorefront: {
+        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
+        requestBody: { content: { "application/json": components["schemas"]["DepartmentRequest"] } };
+        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseDepartmentResponse"] } } };
+    };
+    deleteDepartmentStorefront: {
+        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
+        requestBody?: never;
+        responses: { 204: { headers: { [name: string]: unknown }; content?: never } };
     };
     addMember: {
         parameters: {
@@ -12361,6 +12493,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCheckoutReturnResponse"];
+                };
+            };
+        };
+    };
+    importCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: { "multipart/form-data": { file: Blob } };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: { [name: string]: unknown };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseBulkAddToCartResponse"];
                 };
             };
         };

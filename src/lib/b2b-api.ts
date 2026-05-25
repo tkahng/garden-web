@@ -34,6 +34,8 @@ export type CreditAccountResponse = components['schemas']['CreditAccountResponse
 export type VariantPriceTiersResponse = components['schemas']['VariantPriceTiersResponse']
 export type PriceTierEntry = components['schemas']['PriceTierEntry']
 export type VariantLookupResponse = components['schemas']['VariantLookupResponse']
+export type DepartmentResponse = components['schemas']['DepartmentResponse']
+export type CompanyApprovalRuleResponse = components['schemas']['CompanyApprovalRuleResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -305,8 +307,11 @@ export function acceptQuote(client: ApiClient, id: string): Promise<QuoteAcceptR
   return callApi(client.POST('/api/v1/quotes/{id}/accept', { params: { path: { id } } }))
 }
 
-export function cancelQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/cancel', { params: { path: { id } } }))
+export function cancelQuote(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/cancel', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
 export function listPendingApprovals(
@@ -322,12 +327,18 @@ export function approveQuote(client: ApiClient, id: string): Promise<QuoteAccept
   return callApi(client.POST('/api/v1/quotes/{id}/approve', { params: { path: { id } } }))
 }
 
-export function rejectApproval(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', { params: { path: { id } } }))
+export function rejectApproval(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject-approval', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
-export function rejectQuote(client: ApiClient, id: string): Promise<QuoteRequestResponse> {
-  return callApi(client.POST('/api/v1/quotes/{id}/reject', { params: { path: { id } } }))
+export function rejectQuote(client: ApiClient, id: string, reason?: string): Promise<QuoteRequestResponse> {
+  return callApi(client.POST('/api/v1/quotes/{id}/reject', {
+    params: { path: { id } },
+    body: reason ? { reason } : undefined,
+  }))
 }
 
 export function getQuotePdfUrl(id: string): string {
@@ -421,3 +432,36 @@ export async function downloadStatement(
   a.click()
   URL.revokeObjectURL(url)
 }
+
+// ─── Departments ──────────────────────────────────────────────────────────────
+
+export function listDepartments(
+  client: ApiClient,
+  companyId: string,
+): Promise<DepartmentResponse[]> {
+  return callApi(client.GET('/api/v1/companies/{companyId}/departments', {
+    params: { path: { companyId } },
+  })) as Promise<DepartmentResponse[]>
+}
+
+export function createDepartment(
+  client: ApiClient,
+  companyId: string,
+  body: { name: string; parentId?: string },
+): Promise<DepartmentResponse> {
+  return callApi(client.POST('/api/v1/companies/{companyId}/departments', {
+    params: { path: { companyId } },
+    body,
+  }))
+}
+
+export function deleteDepartment(
+  client: ApiClient,
+  companyId: string,
+  deptId: string,
+): Promise<void> {
+  return callApi(client.DELETE('/api/v1/companies/{companyId}/departments/{deptId}', {
+    params: { path: { companyId, deptId } },
+  })) as Promise<void>
+}
+

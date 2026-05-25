@@ -10,7 +10,7 @@ import { useCart } from '#/context/cart'
 import { useGuestCart } from '#/context/guest-cart'
 import { useAuth } from '#/context/auth'
 import { useAuthModal } from '#/context/auth-modal'
-import { addToQuoteCart, getVariantTiers } from '#/lib/b2b-api'
+import { addToQuoteCart, getVariantTiers, listCompanies } from '#/lib/b2b-api'
 import type { VariantPriceTiersResponse } from '#/lib/b2b-api'
 import { WishlistButton } from '#/components/WishlistButton'
 import { ProductReviews } from '#/components/ProductReviews'
@@ -276,7 +276,7 @@ function PriceTiersTable({
   const variantTiers = tiers.find((t) => t.variantId === variantId)?.tiers ?? []
   if (variantTiers.length === 0) return null
   return (
-    <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
+    <div className="rounded-lg border border-border bg-muted/40 px-4 py-3" data-testid="price-tiers-table">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Volume pricing
       </p>
@@ -645,17 +645,23 @@ function ProductDetailPage() {
   }, [product.id])
   const { isAuthenticated, authFetch } = useAuth()
   const { openAuthModal } = useAuthModal()
-  const { cart, addItem } = useCart()
+  const { addItem } = useCart()
   const { addItem: addGuestItem } = useGuestCart()
   const [priceTiers, setPriceTiers] = useState<VariantPriceTiersResponse[]>([])
 
   useEffect(() => {
-    const companyId = cart?.companyId
-    if (!isAuthenticated || !companyId || !product.handle) return
-    getVariantTiers(authFetch, product.handle, companyId)
-      .then(setPriceTiers)
-      .catch(() => setPriceTiers([]))
-  }, [isAuthenticated, cart?.companyId, product.handle, authFetch])
+    if (!isAuthenticated || !product.handle) return
+    let cancelled = false
+    listCompanies(authFetch)
+      .then((companies) => {
+        const companyId = companies[0]?.id
+        if (!companyId || cancelled) return
+        return getVariantTiers(authFetch, product.handle!, companyId)
+      })
+      .then((tiers) => { if (!cancelled && tiers) setPriceTiers(tiers) })
+      .catch(() => { if (!cancelled) setPriceTiers([]) })
+    return () => { cancelled = true }
+  }, [isAuthenticated, product.handle, authFetch])
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const atcRef = useRef<HTMLDivElement>(null)

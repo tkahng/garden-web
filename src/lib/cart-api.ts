@@ -12,6 +12,8 @@ export type CheckoutReturnResponse = components['schemas']['CheckoutReturnRespon
 export type CheckoutRequest = components['schemas']['CheckoutRequest']
 export type DiscountValidationResponse = components['schemas']['DiscountValidationResponse']
 export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']
+export type BulkAddToCartResponse = components['schemas']['BulkAddToCartResponse']
+export type BulkAddToCartLineResult = components['schemas']['BulkAddToCartLineResult']
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
@@ -75,4 +77,37 @@ export function validateGiftCard(code: string): Promise<GiftCardValidationRespon
   return callApi(createPublicClient().GET('/api/v1/storefront/gift-cards/validate', {
     params: { query: { code } },
   }))
+}
+
+// ─── CSV bulk import ──────────────────────────────────────────────────────────
+
+// Reads the access token from the same localStorage slot the auth context uses,
+// avoiding the need to expose the raw JWT through the React context value.
+function getStoredAccessToken(): string | null {
+  try {
+    const raw = localStorage.getItem('garden:auth')
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { accessToken?: string | null }
+    return parsed.accessToken ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function importCsvToCart(
+  file: File,
+): Promise<BulkAddToCartResponse> {
+  const token = getStoredAccessToken()
+  if (!token) throw new Error('Not authenticated')
+  const base = import.meta.env.VITE_API_BASE_URL ?? ''
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch(`${base}/api/v1/cart/import-csv`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  })
+  if (!res.ok) throw new Error(String(res.status))
+  const json = await res.json() as { data: BulkAddToCartResponse }
+  return json.data
 }

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/context/auth'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
@@ -18,11 +18,15 @@ import {
   listInvitations,
   sendInvitation,
   cancelInvitation,
+  listDepartments,
+  createDepartment,
+  deleteDepartment,
 } from '#/lib/b2b-api'
 import type {
   CompanyResponse,
   CompanyMemberResponse,
   InvitationResponse,
+  DepartmentResponse,
 } from '#/lib/b2b-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -33,7 +37,7 @@ export const Route = createFileRoute('/account/company')({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-type Tab = 'members' | 'invitations'
+type Tab = 'members' | 'invitations' | 'departments'
 
 function RoleBadge({ role }: { role?: string }) {
   const cls =
@@ -212,16 +216,25 @@ function MembersTab({
 }) {
   const { authFetch } = useAuth()
   const [members, setMembers] = useState<CompanyMemberResponse[]>([])
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [addEmail, setAddEmail] = useState('')
   const [adding, setAdding] = useState(false)
 
   const canManage = myRole === 'OWNER' || myRole === 'MANAGER'
 
+  function flattenDepts(depts: DepartmentResponse[]): DepartmentResponse[] {
+    return depts.flatMap((d) => [d, ...flattenDepts(d.children ?? [])])
+  }
+  const deptMap = Object.fromEntries(flattenDepts(departments).map((d) => [d.id, d.name]))
+
   const load = useCallback(() => {
     setIsLoading(true)
-    listMembers(authFetch, companyId)
-      .then(setMembers)
+    Promise.all([
+      listMembers(authFetch, companyId),
+      listDepartments(authFetch, companyId).catch(() => []),
+    ])
+      .then(([m, d]) => { setMembers(m); setDepartments(d as DepartmentResponse[]) })
       .catch(() => toast.error('Failed to load members'))
       .finally(() => setIsLoading(false))
   }, [authFetch, companyId])
@@ -279,6 +292,11 @@ function MembersTab({
                 {m.firstName} {m.lastName}
               </p>
               <p className="text-xs text-muted-foreground">{m.email}</p>
+              {m.departmentId && deptMap[m.departmentId] && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Dept: {deptMap[m.departmentId]}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <RoleBadge role={m.role} />
@@ -461,6 +479,146 @@ function InvitationsTab({ companyId }: { companyId: string }) {
   )
 }
 
+// ─── DepartmentsTab ───────────────────────────────────────────────────────────
+
+function DepartmentsTab({
+  companyId,
+  canManage,
+}: {
+  companyId: string
+  canManage: boolean
+}) {
+  const { authFetch } = useAuth()
+  const [tree, setTree] = useState<DepartmentResponse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [newName, setNewName] = useState('')
+  const [parentId, setParentId] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+
+  function loadTree() {
+    setIsLoading(true)
+    listDepartments(authFetch, companyId)
+      .then(setTree)
+      .catch(() => toast.error('Failed to load departments'))
+      .finally(() => setIsLoading(false))
+  }
+
+  useEffect(() => { loadTree() }, [authFetch, companyId])
+
+  async function handleCreate() {
+    if (!newName.trim()) return
+    setIsSaving(true)
+    try {
+      await createDepartment(authFetch, companyId, { name: newName, parentId: parentId ?? undefined })
+      setNewName('')
+      setParentId(null)
+      setShowForm(false)
+      loadTree()
+      toast.success('Department created')
+    } catch {
+      toast.error('Failed to create department')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function handleDelete(deptId: string) {
+    try {
+      await deleteDepartment(authFetch, companyId, deptId)
+      loadTree()
+      toast.success('Department deleted')
+    } catch {
+      toast.error('Failed to delete department')
+    }
+  }
+
+  function flatten(depts: DepartmentResponse[]): DepartmentResponse[] {
+    return depts.flatMap((d) => [d, ...flatten(d.children ?? [])])
+  }
+  const allDepts = flatten(tree)
+
+  function renderTree(depts: DepartmentResponse[], depth = 0): React.ReactNode {
+    return depts.map((dept) => (
+      <div key={dept.id} style={{ paddingLeft: depth * 16 }}>
+        <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+          <div className="flex items-center gap-2">
+            {depth > 0 && <span className="text-muted-foreground text-xs">└</span>}
+            <span className="text-sm">{dept.name}</span>
+          </div>
+          {canManage && (
+            <button
+              type="button"
+              onClick={() => dept.id && handleDelete(dept.id)}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        {(dept.children ?? []).length > 0 && renderTree(dept.children!, depth + 1)}
+      </div>
+    ))
+  }
+
+  if (isLoading) return <div className="h-16 bg-muted animate-pulse rounded-lg" />
+
+  return (
+    <div className="space-y-4">
+      {canManage && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="text-sm text-primary hover:underline"
+          >
+            {showForm ? 'Cancel' : '+ Add department'}
+          </button>
+        </div>
+      )}
+
+      {showForm && (
+        <div className="rounded-lg border border-border p-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label>Name</Label>
+            <Input
+              placeholder="Engineering"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </div>
+          {allDepts.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Parent department (optional)</Label>
+              <select
+                value={parentId ?? ''}
+                onChange={(e) => setParentId(e.target.value || null)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Top level</option>
+                {allDepts.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <Button size="sm" onClick={handleCreate} disabled={isSaving || !newName.trim()}>
+            {isSaving ? 'Creating…' : 'Create'}
+          </Button>
+        </div>
+      )}
+
+      {tree.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4">No departments configured.</p>
+      ) : (
+        <div className="rounded-lg border border-border px-4">
+          {renderTree(tree)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── CompanyPage ──────────────────────────────────────────────────────────────
 
 export function CompanyPage() {
@@ -516,7 +674,7 @@ export function CompanyPage() {
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-border">
-        {(['members', ...(canManageInvitations ? ['invitations'] : [])] as Tab[]).map(
+        {(['members', ...(canManageInvitations ? ['invitations'] : []), 'departments'] as Tab[]).map(
           (t) => (
             <button
               key={t}
@@ -539,6 +697,9 @@ export function CompanyPage() {
       )}
       {tab === 'invitations' && canManageInvitations && (
         <InvitationsTab companyId={company.id!} />
+      )}
+      {tab === 'departments' && (
+        <DepartmentsTab companyId={company.id!} canManage={canManageInvitations} />
       )}
     </div>
   )
