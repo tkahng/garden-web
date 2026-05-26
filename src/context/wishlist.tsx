@@ -26,6 +26,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const [wishlistProductIds, setWishlistProductIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(false)
+  const inFlightRef = useRef(new Set<string>())
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -55,12 +56,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   )
 
   const toggleWishlist = useCallback(async (productId: string) => {
-    if (wishlistProductIds.has(productId)) {
-      const updated = await removeWishlistItem(productId, authFetchRef.current)
-      setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
-    } else {
-      const updated = await addWishlistItem(productId, authFetchRef.current)
-      setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
+    if (inFlightRef.current.has(productId)) return
+    inFlightRef.current.add(productId)
+    try {
+      if (wishlistProductIds.has(productId)) {
+        const updated = await removeWishlistItem(productId, authFetchRef.current)
+        setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
+      } else {
+        const updated = await addWishlistItem(productId, authFetchRef.current)
+        setWishlistProductIds(new Set((updated.items ?? []).map((i) => i.productId ?? '')))
+      }
+    } finally {
+      inFlightRef.current.delete(productId)
     }
   }, [wishlistProductIds])
 
