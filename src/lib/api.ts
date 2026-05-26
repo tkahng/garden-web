@@ -54,7 +54,8 @@ export async function authLogin(email: string, password: string): Promise<AuthTo
     body: { email, password },
   })
   if (error) throw error
-  const t = data!.data!
+  const t = data?.data
+  if (!t) throw new Error('Invalid response')
   return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
@@ -68,7 +69,8 @@ export async function authRegister(
     body: { email, password, firstName, lastName },
   })
   if (error) throw error
-  const t = data!.data!
+  const t = data?.data
+  if (!t) throw new Error('Invalid response')
   return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
@@ -84,7 +86,8 @@ export async function authRefresh(refreshToken: string): Promise<AuthTokens> {
     body: { refreshToken },
   })
   if (error) throw error
-  const t = data!.data!
+  const t = data?.data
+  if (!t) throw new Error('Invalid response')
   return { accessToken: t.accessToken!, refreshToken: t.refreshToken! }
 }
 
@@ -119,7 +122,8 @@ export async function getAccount(accessToken: string): Promise<User> {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   if (error) throw error
-  const d = data!.data!
+  const d = data?.data
+  if (!d) throw new Error('Invalid response')
   return {
     id: d.id ?? '',
     email: d.email ?? '',
@@ -254,7 +258,8 @@ export async function subscribeNewsletter(email: string, source: string): Promis
     body: { email, source },
   })
   if (error) throw error
-  return data!.data! as { alreadySubscribed: boolean }
+  if (!data?.data) throw new Error('Invalid response')
+  return data.data as { alreadySubscribed: boolean }
 }
 
 // ─── Internal ─────────────────────────────────────────────────────────────────
