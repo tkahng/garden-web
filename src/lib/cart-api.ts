@@ -17,8 +17,8 @@ export type BulkAddToCartLineResult = components['schemas']['BulkAddToCartLineRe
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
-export function getCart(client: ApiClient): Promise<CartResponse> {
-  return callApi(client.GET('/api/v1/cart'))
+export function getCart(client: ApiClient, signal?: AbortSignal): Promise<CartResponse> {
+  return callApi(client.GET('/api/v1/cart', { signal }))
 }
 
 export function addCartItem(
