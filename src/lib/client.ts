@@ -15,9 +15,11 @@ function getBaseUrl(): string {
 
 export function createAuthClient(config: AuthClientConfig): ApiClient {
   const client = createClient<paths>({ baseUrl: getBaseUrl() })
-  let latestTokens = config.getTokens()
+  // Cache tokens after a successful refresh so sequential requests use the new
+  // token immediately, before the provider state has re-rendered.
+  let cachedTokens: { accessToken: string; refreshToken: string } | null = null
+  const getLatestTokens = () => cachedTokens ?? config.getTokens()
   let refreshPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null
-  let rotatedRefreshToken: string | null = null
 
   function refreshTokens(refreshToken: string) {
     if (!refreshPromise) {
@@ -28,8 +30,7 @@ export function createAuthClient(config: AuthClientConfig): ApiClient {
           const { accessToken, refreshToken: nextRefreshToken } = tokens
           if (!accessToken || !nextRefreshToken) throw new Error('Invalid refresh response')
           const newTokens = { accessToken, refreshToken: nextRefreshToken }
-          rotatedRefreshToken = refreshToken
-          latestTokens = newTokens
+          cachedTokens = newTokens
           config.onTokensRefreshed(newTokens)
           return newTokens
         })
@@ -42,17 +43,13 @@ export function createAuthClient(config: AuthClientConfig): ApiClient {
 
   client.use({
     async onRequest({ request }) {
-      const configuredTokens = config.getTokens()
-      if (configuredTokens.refreshToken !== rotatedRefreshToken) {
-        latestTokens = configuredTokens
-      }
-      const { accessToken } = latestTokens
+      const { accessToken } = getLatestTokens()
       if (accessToken) request.headers.set('Authorization', `Bearer ${accessToken}`)
       return request
     },
     async onResponse({ request, response }) {
       if (response.status !== 401) return response
-      const { refreshToken } = latestTokens
+      const { refreshToken } = getLatestTokens()
       if (refreshToken) {
         try {
           const newTokens = await refreshTokens(refreshToken)

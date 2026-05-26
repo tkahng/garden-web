@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { useAuth } from '#/context/auth'
 
 export const Route = createFileRoute('/auth/callback')({
@@ -26,7 +27,10 @@ function AuthCallbackRoute() {
 
     loginWithTokens(accessToken, refreshToken)
       .then(() => navigate({ to: '/' }))
-      .catch(() => navigate({ to: '/' }))
+      .catch(() => {
+        toast.error('Sign-in failed. Please try again.')
+        navigate({ to: '/' })
+      })
   }, [loginWithTokens, navigate])
 
   return (

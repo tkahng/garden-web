@@ -102,8 +102,8 @@ export function ProductGallery({
           <>
             <img
               data-testid="featured-image"
-              src={images[safeIndex].url}
-              alt={images[safeIndex].altText ?? ''}
+              src={images[safeIndex]?.url ?? ''}
+              alt={images[safeIndex]?.altText ?? ''}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute bottom-3 right-3 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100">

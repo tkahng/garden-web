@@ -29,6 +29,7 @@ export interface GuestCheckoutRequest {
   shippingRateId: string
   discountCode?: string
   giftCardCode?: string
+  poNumber?: string
 }
 
 // ─── Session management ───────────────────────────────────────────────────────
@@ -111,6 +112,6 @@ export function submitGuestCheckout(
 ): Promise<CheckoutResponse> {
   return callApi(createPublicClient().POST('/api/v1/checkout/guest', {
     params: { header: { 'X-Guest-Session': sessionId } },
-    body: request as never,
+    body: request,
   })) as Promise<CheckoutResponse>
 }

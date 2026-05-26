@@ -57,15 +57,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    let cancelled = false
+    const controller = new AbortController()
     setIsLoading(true)
 
-    getCart(authFetchRef.current)
-      .then((data) => { if (!cancelled) setCart(data) })
-      .catch(() => { if (!cancelled) setCart(null) })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+    getCart(authFetchRef.current, controller.signal)
+      .then((data) => { if (!controller.signal.aborted) setCart(data) })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        if (!controller.signal.aborted) setCart(null)
+      })
+      .finally(() => { if (!controller.signal.aborted) setIsLoading(false) })
 
-    return () => { cancelled = true }
+    return () => { controller.abort() }
   }, [isAuthenticated])
 
   const addItem = useCallback(async (variantId: string, qty = 1) => {
