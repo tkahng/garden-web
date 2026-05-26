@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import { useDocumentMeta } from '#/hooks/useDocumentMeta'
 import { useJsonLd } from '#/hooks/useJsonLd'
 import { getArticle } from '#/lib/api'
@@ -100,7 +101,7 @@ function ArticleDetailPage() {
         {/* Body */}
         {article.body && (
           <div className="prose prose-neutral dark:prose-invert max-w-none">
-            <ReactMarkdown>{article.body}</ReactMarkdown>
+            <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{article.body}</ReactMarkdown>
           </div>
         )}
 
