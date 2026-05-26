@@ -24,8 +24,7 @@ export function VerifyEmailPage({ token }: { token: string | null }) {
     let cancelled = false
     authVerifyEmail(token)
       .then(() => { if (!cancelled) setStatus('success') })
-      .catch((err) => {
-        console.error(err)
+      .catch(() => {
         if (!cancelled) setStatus('error')
       })
     return () => { cancelled = true }
