@@ -36,6 +36,7 @@ export type PriceTierEntry = components['schemas']['PriceTierEntry']
 export type VariantLookupResponse = components['schemas']['VariantLookupResponse']
 export type DepartmentResponse = components['schemas']['DepartmentResponse']
 export type CompanyApprovalRuleResponse = components['schemas']['CompanyApprovalRuleResponse']
+export type CompanySpendingSummaryResponse = components['schemas']['CompanySpendingSummaryResponse']
 
 // Extend status to include PENDING_APPROVAL (added in newer backend version)
 export type QuoteStatus =
@@ -463,5 +464,35 @@ export function deleteDepartment(
   return callApi(client.DELETE('/api/v1/companies/{companyId}/departments/{deptId}', {
     params: { path: { companyId, deptId } },
   })) as Promise<void>
+}
+
+export async function getSpendingSummary(
+  client: ApiClient,
+  companyId: string,
+): Promise<CompanySpendingSummaryResponse> {
+  const res = await client.GET('/api/v1/companies/{id}/spending-summary', {
+    params: { path: { id: companyId } },
+  })
+  if (res.error) throw new Error('Failed to load spending summary')
+  return res.data.data ?? ({} as CompanySpendingSummaryResponse)
+}
+
+export async function uploadTaxCertificate(
+  companyId: string,
+  file: File,
+  accessToken: string | null,
+): Promise<CompanyResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const headers: Record<string, string> = {}
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
+  const res = await fetch(`/api/v1/companies/${companyId}/tax-certificate`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  })
+  if (!res.ok) throw new Error('Failed to upload certificate')
+  const json = await res.json() as { data: CompanyResponse }
+  return json.data
 }
 

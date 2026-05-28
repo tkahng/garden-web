@@ -13,7 +13,7 @@ export type CheckoutRequest = components['schemas']['CheckoutRequest']
 export type DiscountValidationResponse = components['schemas']['DiscountValidationResponse']
 export type GiftCardValidationResponse = components['schemas']['GiftCardValidationResponse']
 export type BulkAddToCartResponse = components['schemas']['BulkAddToCartResponse']
-export type BulkAddToCartLineResult = components['schemas']['BulkAddToCartLineResult']
+export type BulkAddToCartLineResult = components['schemas']['LineResult']
 
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
