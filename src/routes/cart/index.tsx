@@ -20,8 +20,8 @@ export const Route = createFileRoute('/cart/')({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatPrice(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+function formatPrice(amount: number, currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount)
 }
 
 // ─── CartEmpty ────────────────────────────────────────────────────────────────
@@ -406,6 +406,7 @@ function AuthCart() {
     )
   }
 
+  const cartCurrency = cart?.currency ?? 'USD'
   const subtotal = items.reduce(
     (sum, item) => sum + (item.unitPrice ?? 0) * (item.quantity ?? 1),
     0,
@@ -443,7 +444,7 @@ function AuthCart() {
           <div>
             <p className="text-sm text-muted-foreground">Subtotal</p>
             <p data-testid="cart-subtotal" className="text-xl font-bold text-foreground">
-              {formatPrice(subtotal)}
+              {formatPrice(subtotal, cartCurrency)}
             </p>
           </div>
           <button
@@ -463,7 +464,7 @@ function AuthCart() {
               <span className="font-mono font-semibold text-green-700 dark:text-green-400">
                 {appliedCode}
                 {discountAmount != null && discountAmount > 0 && (
-                  <span className="ml-2 font-normal text-green-600">−{formatPrice(discountAmount)}</span>
+                  <span className="ml-2 font-normal text-green-600">−{formatPrice(discountAmount, cartCurrency)}</span>
                 )}
               </span>
               <button
@@ -601,32 +602,32 @@ function AuthCart() {
         {selectedRate && (
           <div className="flex flex-col gap-1 rounded-xl bg-muted/40 px-4 py-3 text-sm">
             <div className="flex justify-between text-muted-foreground">
-              <span>Subtotal</span><span>{formatPrice(subtotal)}</span>
+              <span>Subtotal</span><span>{formatPrice(subtotal, cartCurrency)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Shipping</span>
-              <span>{shippingCost === 0 ? 'Free' : formatPrice(shippingCost)}</span>
+              <span>{shippingCost === 0 ? 'Free' : formatPrice(shippingCost, cartCurrency)}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount ({appliedCode})</span>
-                <span>−{formatPrice(discount)}</span>
+                <span>−{formatPrice(discount, cartCurrency)}</span>
               </div>
             )}
             {giftCardApplied > 0 && (
               <div className="flex justify-between text-blue-600">
                 <span>Gift card ({appliedGiftCard})</span>
-                <span>−{formatPrice(giftCardApplied)}</span>
+                <span>−{formatPrice(giftCardApplied, cartCurrency)}</span>
               </div>
             )}
             {isTaxExempt && (
               <div className="flex justify-between text-green-600">
                 <span>Tax (exempt)</span>
-                <span>$0.00</span>
+                <span>{formatPrice(0, cartCurrency)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-border pt-1 font-bold text-foreground">
-              <span>Total</span><span>{formatPrice(Math.max(0, total))}</span>
+              <span>Total</span><span>{formatPrice(Math.max(0, total), cartCurrency)}</span>
             </div>
           </div>
         )}

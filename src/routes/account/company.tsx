@@ -21,12 +21,15 @@ import {
   listDepartments,
   createDepartment,
   deleteDepartment,
+  getSpendingSummary,
+  uploadTaxCertificate,
 } from '#/lib/b2b-api'
 import type {
   CompanyResponse,
   CompanyMemberResponse,
   InvitationResponse,
   DepartmentResponse,
+  CompanySpendingSummaryResponse,
 } from '#/lib/b2b-api'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -37,7 +40,7 @@ export const Route = createFileRoute('/account/company')({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-type Tab = 'members' | 'invitations' | 'departments'
+type Tab = 'members' | 'invitations' | 'departments' | 'spending' | 'compliance'
 
 function RoleBadge({ role }: { role?: string }) {
   const cls =
@@ -619,6 +622,185 @@ function DepartmentsTab({
   )
 }
 
+// ─── SpendingTab ─────────────────────────────────────────────────────────────
+
+function formatCurrency(amount: number, currency = 'USD') {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
+}
+
+function SpendingTab({ companyId }: { companyId: string }) {
+  const { authFetch } = useAuth()
+  const [summary, setSummary] = useState<CompanySpendingSummaryResponse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    setIsLoading(true)
+    getSpendingSummary(authFetch, companyId)
+      .then(setSummary)
+      .catch(() => toast.error('Failed to load spending summary'))
+      .finally(() => setIsLoading(false))
+  }, [authFetch, companyId])
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />
+  if (!summary) return null
+
+  const inv = summary.invoiceSummary
+  const currency = summary.currency ?? 'USD'
+  return (
+    <div className="space-y-6">
+      {/* Overview */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border border-border p-4">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total orders</p>
+          <p className="mt-1 text-2xl font-bold">{summary.totalOrders ?? 0}</p>
+        </div>
+        <div className="rounded-xl border border-border p-4">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total spend</p>
+          <p className="mt-1 text-2xl font-bold">{formatCurrency(summary.totalSpend ?? 0, currency)}</p>
+        </div>
+      </div>
+
+      {/* Invoice summary */}
+      {inv && (
+        <div className="rounded-xl border border-border p-4 space-y-2">
+          <p className="text-sm font-semibold text-foreground">Invoices</p>
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Pending</p>
+              <p className="font-medium">{inv.pendingCount ?? 0} · {formatCurrency(inv.pendingAmount ?? 0, currency)}</p>
+            </div>
+            <div>
+              <p className="text-destructive">Overdue</p>
+              <p className="font-medium text-destructive">{inv.overdueCount ?? 0} · {formatCurrency(inv.overdueAmount ?? 0, currency)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Paid</p>
+              <p className="font-medium">{inv.paidCount ?? 0} · {formatCurrency(inv.paidAmount ?? 0, currency)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Per-member spending */}
+      {(summary.memberSpending ?? []).length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-foreground">Team spending</p>
+          {summary.memberSpending!.map((m) => (
+            <div key={m.userId} className="rounded-xl border border-border px-4 py-3 space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium truncate">{m.email}</span>
+                <span className="shrink-0 ml-3">{formatCurrency(m.totalSpend ?? 0, currency)}</span>
+              </div>
+              {m.spendingLimit != null && (
+                <>
+                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${(m.utilizationPercent ?? 0) > 80 ? 'bg-destructive' : 'bg-primary'}`}
+                      style={{ width: `${Math.min(100, m.utilizationPercent ?? 0)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {m.utilizationPercent ?? 0}% of {formatCurrency(m.spendingLimit, currency)} limit
+                  </p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── ComplianceTab ────────────────────────────────────────────────────────────
+
+function ComplianceTab({ company, onUpdated }: { company: CompanyResponse; onUpdated: (c: CompanyResponse) => void }) {
+  const { accessToken } = useAuth()
+  const [isUploading, setIsUploading] = useState(false)
+  const fileRef = React.useRef<HTMLInputElement>(null)
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !company.id) return
+    setIsUploading(true)
+    try {
+      const updated = await uploadTaxCertificate(company.id, file, accessToken)
+      onUpdated(updated)
+      toast.success('Tax certificate uploaded.')
+    } catch {
+      toast.error('Failed to upload certificate.')
+    } finally {
+      setIsUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Tax exemption</p>
+            <p className="text-sm text-muted-foreground">
+              {company.taxExempt ? 'This company is tax exempt.' : 'This company is not tax exempt.'}
+            </p>
+          </div>
+          {company.taxExempt && (
+            <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              Exempt
+            </span>
+          )}
+        </div>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground">Tax exemption certificate</p>
+          {company.taxCertificateUrl ? (
+            <div className="flex items-center gap-3">
+              <a
+                href={company.taxCertificateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                View certificate
+              </a>
+              <span className="text-xs text-muted-foreground">·</span>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={isUploading}
+                className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                Replace
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No certificate on file.</p>
+          )}
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={isUploading}
+            className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+          >
+            {isUploading ? 'Uploading…' : company.taxCertificateUrl ? 'Replace certificate' : 'Upload certificate'}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            className="hidden"
+            onChange={(e) => void handleFileChange(e)}
+          />
+          <p className="text-xs text-muted-foreground">PDF, JPG, or PNG. Max 10 MB.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── CompanyPage ──────────────────────────────────────────────────────────────
 
 export function CompanyPage() {
@@ -673,8 +855,8 @@ export function CompanyPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-border">
-        {(['members', ...(canManageInvitations ? ['invitations'] : []), 'departments'] as Tab[]).map(
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
+        {(['members', ...(canManageInvitations ? ['invitations'] : []), 'departments', 'spending', 'compliance'] as Tab[]).map(
           (t) => (
             <button
               key={t}
@@ -700,6 +882,12 @@ export function CompanyPage() {
       )}
       {tab === 'departments' && (
         <DepartmentsTab companyId={company.id!} canManage={canManageInvitations} />
+      )}
+      {tab === 'spending' && (
+        <SpendingTab companyId={company.id!} />
+      )}
+      {tab === 'compliance' && (
+        <ComplianceTab company={company} onUpdated={setCompany} />
       )}
     </div>
   )

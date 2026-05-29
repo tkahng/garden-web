@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{companyId}/departments/{deptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_1"];
+        post?: never;
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cart/items/{itemId}": {
         parameters: {
             query?: never;
@@ -172,9 +188,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_1"];
-        put: operations["update_1"];
+        put: operations["update_2"];
         post?: never;
-        delete: operations["delete"];
+        delete: operations["delete_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -364,9 +380,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_2"];
-        put: operations["update_2"];
+        put: operations["update_3"];
         post?: never;
-        delete: operations["delete_1"];
+        delete: operations["delete_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -396,9 +412,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_3"];
-        put: operations["update_3"];
+        put: operations["update_4"];
         post?: never;
-        delete: operations["delete_2"];
+        delete: operations["delete_3"];
         options?: never;
         head?: never;
         patch?: never;
@@ -412,7 +428,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getById"];
-        put: operations["update_4"];
+        put: operations["update_5"];
         post?: never;
         delete?: never;
         options?: never;
@@ -508,7 +524,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getById_1"];
-        put: operations["update_5"];
+        put: operations["update_6"];
         post?: never;
         delete?: never;
         options?: never;
@@ -540,9 +556,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getById_2"];
-        put: operations["update_6"];
+        put: operations["update_7"];
         post?: never;
-        delete: operations["delete_3"];
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch?: never;
@@ -556,9 +572,9 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getByCompany"];
-        put: operations["update_7"];
+        put: operations["update_8"];
         post?: never;
-        delete: operations["delete_4"];
+        delete: operations["delete_5"];
         options?: never;
         head?: never;
         patch?: never;
@@ -572,7 +588,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_4"];
-        put: operations["update_8"];
+        put: operations["update_9"];
         post?: never;
         delete?: never;
         options?: never;
@@ -591,6 +607,54 @@ export interface paths {
         put: operations["updateMetadata_3"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{companyId}/departments/{deptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_10"];
+        post?: never;
+        delete: operations["delete_6"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{companyId}/departments/members/{userId}/department": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["assignDepartment"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{companyId}/approval-rules/{ruleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_11"];
+        post?: never;
+        delete: operations["delete_7"];
         options?: never;
         head?: never;
         patch?: never;
@@ -668,7 +732,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_5"];
-        put: operations["update_9"];
+        put: operations["update_12"];
         post?: never;
         delete?: never;
         options?: never;
@@ -868,6 +932,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quotes/{id}/pendencies/{ruleId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["rejectPendency"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/pendencies/{ruleId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["approvePendency"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes/{id}/cancel": {
         parameters: {
             query?: never;
@@ -1012,23 +1108,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/companies/{companyId}/departments": {
-        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
-        get: operations["listDepartmentsStorefront"];
-        put?: never;
-        post: operations["createDepartmentStorefront"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/companies/{companyId}/departments/{deptId}": {
-        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
+    "/api/v1/companies/{id}/tax-certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get?: never;
-        put: operations["updateDepartmentStorefront"];
-        post?: never;
-        delete: operations["deleteDepartmentStorefront"];
+        put?: never;
+        post: operations["uploadTaxCertificate"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1082,6 +1172,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{companyId}/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tree"];
+        put?: never;
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/checkout": {
         parameters: {
             query?: never;
@@ -1124,6 +1230,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["addItem_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cart/import-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["importCsv"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1267,7 +1389,7 @@ export interface paths {
         };
         get: operations["list_4"];
         put?: never;
-        post: operations["create_3"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1284,6 +1406,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["assignRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/impersonate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["impersonate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1475,7 +1613,7 @@ export interface paths {
         };
         get: operations["list_5"];
         put?: never;
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1571,7 +1709,7 @@ export interface paths {
         };
         get: operations["listByCompany"];
         put?: never;
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1587,7 +1725,7 @@ export interface paths {
         };
         get: operations["list_6"];
         put?: never;
-        post: operations["create_6"];
+        post: operations["create_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1603,7 +1741,7 @@ export interface paths {
         };
         get: operations["list_7"];
         put?: never;
-        post: operations["create_7"];
+        post: operations["create_8"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1715,7 +1853,7 @@ export interface paths {
         };
         get: operations["list_9"];
         put?: never;
-        post: operations["create_8"];
+        post: operations["create_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1859,7 +1997,7 @@ export interface paths {
         };
         get: operations["list_10"];
         put?: never;
-        post: operations["create_9"];
+        post: operations["create_10"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1891,7 +2029,7 @@ export interface paths {
         };
         get: operations["list_11"];
         put?: never;
-        post: operations["create_10"];
+        post: operations["create_11"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1907,7 +2045,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["create_11"];
+        post: operations["create_12"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{id}/tax-certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["uploadTaxCertificate_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1930,7 +2084,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/collections": {
+    "/api/v1/admin/companies/{companyId}/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tree_1"];
+        put?: never;
+        post: operations["create_13"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{companyId}/approval-rules": {
         parameters: {
             query?: never;
             header?: never;
@@ -1939,7 +2109,23 @@ export interface paths {
         };
         get: operations["list_12"];
         put?: never;
-        post: operations["create_12"];
+        post: operations["create_14"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_13"];
+        put?: never;
+        post: operations["create_15"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2033,7 +2219,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_13"];
+        get: operations["list_14"];
         put?: never;
         post: operations["upload"];
         delete: operations["bulkDelete_1"];
@@ -2090,6 +2276,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{companyId}/departments/members/{userId}/department": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["assignDepartment_1"];
+        trace?: never;
+    };
     "/api/v1/admin/reviews/{id}/status": {
         parameters: {
             query?: never;
@@ -2116,10 +2318,10 @@ export interface paths {
         get: operations["get_6"];
         put?: never;
         post?: never;
-        delete: operations["delete_5"];
+        delete: operations["delete_8"];
         options?: never;
         head?: never;
-        patch: operations["update_10"];
+        patch: operations["update_13"];
         trace?: never;
     };
     "/api/v1/admin/products/{id}/variants/{vId}": {
@@ -2247,7 +2449,7 @@ export interface paths {
         delete: operations["deactivate_1"];
         options?: never;
         head?: never;
-        patch: operations["update_11"];
+        patch: operations["update_14"];
         trace?: never;
     };
     "/api/v1/admin/inventory/{itemId}": {
@@ -2263,7 +2465,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["update_12"];
+        patch: operations["update_15"];
         trace?: never;
     };
     "/api/v1/admin/inventory/variants/{variantId}/fulfillment": {
@@ -2282,6 +2484,22 @@ export interface paths {
         patch: operations["updateFulfillment"];
         trace?: never;
     };
+    "/api/v1/admin/companies/{companyId}/approval-rules/{ruleId}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["toggle"];
+        trace?: never;
+    };
     "/api/v1/admin/collections/{id}": {
         parameters: {
             query?: never;
@@ -2292,10 +2510,10 @@ export interface paths {
         get: operations["get_8"];
         put?: never;
         post?: never;
-        delete: operations["delete_6"];
+        delete: operations["delete_9"];
         options?: never;
         head?: never;
-        patch: operations["update_13"];
+        patch: operations["update_16"];
         trace?: never;
     };
     "/api/v1/admin/collections/{id}/status": {
@@ -2372,10 +2590,10 @@ export interface paths {
         get: operations["getById_3"];
         put?: never;
         post?: never;
-        delete: operations["delete_7"];
+        delete: operations["delete_10"];
         options?: never;
         head?: never;
-        patch: operations["update_14"];
+        patch: operations["update_17"];
         trace?: never;
     };
     "/api/v1/storefront/shipping/rates": {
@@ -2401,7 +2619,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_14"];
+        get: operations["list_15"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2500,7 +2718,7 @@ export interface paths {
         get: operations["get_10"];
         put?: never;
         post?: never;
-        delete: operations["delete_8"];
+        delete: operations["delete_11"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2602,6 +2820,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quotes/{id}/pendencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPendencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes/{id}/pdf": {
         parameters: {
             query?: never;
@@ -2657,7 +2891,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_15"];
+        get: operations["list_16"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2737,7 +2971,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_16"];
+        get: operations["list_17"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2802,6 +3036,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["downloadStatement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/spending-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["spendingSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2897,7 +3147,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_17"];
+        get: operations["list_18"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2948,22 +3198,6 @@ export interface paths {
         get: operations["checkoutReturn"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/cart/import-csv": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["importCsv"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3217,7 +3451,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_18"];
+        get: operations["list_19"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3249,7 +3483,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_19"];
+        get: operations["list_20"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3361,7 +3595,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_20"];
+        get: operations["list_21"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3457,7 +3691,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_21"];
+        get: operations["list_22"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{id}/spending-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["spendingSummary_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3521,7 +3771,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_22"];
+        get: operations["list_23"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3820,25 +4070,6 @@ export interface components {
             /** Format: int32 */
             minimumOrderQty?: number;
         };
-        ApiResponseBulkAddToCartResponse: {
-            data?: components["schemas"]["BulkAddToCartResponse"];
-            meta?: unknown;
-        };
-        BulkAddToCartResponse: {
-            cart?: components["schemas"]["CartResponse"];
-            results?: components["schemas"]["BulkAddToCartLineResult"][];
-        };
-        BulkAddToCartLineResult: {
-            sku?: string;
-            /** Format: int32 */
-            quantity?: number;
-            /** @enum {string} */
-            status?: "ADDED" | "NOT_FOUND" | "ERROR";
-            /** Format: uuid */
-            variantId?: string;
-            productTitle?: string;
-            message?: string;
-        };
         CartResponse: {
             /** Format: uuid */
             id?: string;
@@ -3846,6 +4077,7 @@ export interface components {
             status?: "ACTIVE" | "CHECKED_OUT" | "ABANDONED";
             /** Format: uuid */
             companyId?: string;
+            currency?: string;
             items?: components["schemas"]["CartItemResponse"][];
             /** Format: date-time */
             createdAt?: string;
@@ -3881,6 +4113,7 @@ export interface components {
             taxExempt?: boolean;
             /** Format: uuid */
             salesRepUserId?: string;
+            taxCertificateUrl?: string;
             metadata?: {
                 [key: string]: unknown;
             };
@@ -3911,52 +4144,6 @@ export interface components {
             departmentId?: string;
             /** Format: date-time */
             joinedAt?: string;
-        };
-        ApiResponseListDepartmentResponse: {
-            data?: components["schemas"]["DepartmentResponse"][];
-            meta?: unknown;
-        };
-        ApiResponseDepartmentResponse: {
-            data?: components["schemas"]["DepartmentResponse"];
-            meta?: unknown;
-        };
-        DepartmentResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            companyId?: string;
-            /** Format: uuid */
-            parentId?: string;
-            name?: string;
-            children?: components["schemas"]["DepartmentResponse"][];
-            /** Format: date-time */
-            createdAt?: string;
-        };
-        DepartmentRequest: {
-            name: string;
-            /** Format: uuid */
-            parentId?: string;
-        };
-        AssignDepartmentRequest: {
-            /** Format: uuid */
-            departmentId?: string;
-        };
-        ApiResponseListCompanyApprovalRuleResponse: {
-            data?: components["schemas"]["CompanyApprovalRuleResponse"][];
-            meta?: unknown;
-        };
-        CompanyApprovalRuleResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            companyId?: string;
-            name?: string;
-            thresholdAmount?: number;
-            /** @enum {string} */
-            requiredRole?: "MANAGER" | "OWNER";
-            active?: boolean;
-            /** Format: date-time */
-            createdAt?: string;
         };
         UpdateMemberRoleRequest: {
             /** @enum {string} */
@@ -3999,6 +4186,27 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        DepartmentRequest: {
+            name: string;
+            /** Format: uuid */
+            parentId?: string;
+        };
+        ApiResponseDepartmentResponse: {
+            data?: components["schemas"]["DepartmentResponse"];
+            meta?: unknown;
+        };
+        DepartmentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            parentId?: string;
+            name?: string;
+            children?: components["schemas"]["DepartmentResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
         };
         SetCartCompanyRequest: {
             /** Format: uuid */
@@ -4547,6 +4755,31 @@ export interface components {
             /** Format: uuid */
             salesRepUserId?: string;
         };
+        AssignDepartmentRequest: {
+            /** Format: uuid */
+            departmentId?: string;
+        };
+        CompanyApprovalRuleRequest: {
+            name: string;
+            thresholdAmount: number;
+            requiredRole: string;
+        };
+        ApiResponseCompanyApprovalRuleResponse: {
+            data?: components["schemas"]["CompanyApprovalRuleResponse"];
+            meta?: unknown;
+        };
+        CompanyApprovalRuleResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            companyId?: string;
+            name?: string;
+            thresholdAmount?: number;
+            requiredRole?: string;
+            active?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
         UpdateBlogRequest: {
             title?: string;
             handle?: string;
@@ -4815,6 +5048,9 @@ export interface components {
             shippingRequirements?: string;
             customerNotes?: string;
         };
+        RejectQuoteRequest: {
+            reason?: string;
+        };
         ApiResponseQuoteAcceptResponse: {
             data?: components["schemas"]["QuoteAcceptResponse"];
             meta?: unknown;
@@ -4955,6 +5191,25 @@ export interface components {
             giftCardCode?: string;
             poNumber?: string;
         };
+        ApiResponseBulkAddToCartResponse: {
+            data?: components["schemas"]["BulkAddToCartResponse"];
+            meta?: unknown;
+        };
+        BulkAddToCartResponse: {
+            cart?: components["schemas"]["CartResponse"];
+            results?: components["schemas"]["LineResult"][];
+        };
+        LineResult: {
+            sku?: string;
+            /** Format: int32 */
+            quantity?: number;
+            /** @enum {string} */
+            status?: "ADDED" | "NOT_FOUND" | "ERROR";
+            /** Format: uuid */
+            variantId?: string;
+            productTitle?: string;
+            message?: string;
+        };
         UpdatePasswordRequest: {
             currentPassword: string;
             newPassword: string;
@@ -4997,6 +5252,18 @@ export interface components {
         };
         AssignRoleRequest: {
             roleName: string;
+        };
+        ApiResponseImpersonateResponse: {
+            data?: components["schemas"]["ImpersonateResponse"];
+            meta?: unknown;
+        };
+        ImpersonateResponse: {
+            accessToken?: string;
+            /** Format: uuid */
+            targetUserId?: string;
+            targetEmail?: string;
+            /** Format: date-time */
+            expiresAt?: string;
         };
         BulkIdsRequest: {
             ids: string[];
@@ -5722,6 +5989,24 @@ export interface components {
             content?: components["schemas"]["QuoteRequestResponse"][];
             meta?: components["schemas"]["PageMeta"];
         };
+        ApiResponseListQuoteApprovalPendencyResponse: {
+            data?: components["schemas"]["QuoteApprovalPendencyResponse"][];
+            meta?: unknown;
+        };
+        QuoteApprovalPendencyResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            ruleId?: string;
+            ruleName?: string;
+            requiredRole?: string;
+            action?: string;
+            /** Format: uuid */
+            resolvedBy?: string;
+            rejectionReason?: string;
+            /** Format: date-time */
+            resolvedAt?: string;
+        };
         ApiResponsePagedResultProductSummaryResponse: {
             data?: components["schemas"]["PagedResultProductSummaryResponse"];
             meta?: unknown;
@@ -5836,6 +6121,38 @@ export interface components {
             data?: components["schemas"]["CompanyResponse"][];
             meta?: unknown;
         };
+        ApiResponseCompanySpendingSummaryResponse: {
+            data?: components["schemas"]["CompanySpendingSummaryResponse"];
+            meta?: unknown;
+        };
+        CompanySpendingSummaryResponse: {
+            /** Format: int64 */
+            totalOrders?: number;
+            totalSpend?: number;
+            currency?: string;
+            invoiceSummary?: components["schemas"]["InvoiceSummary"];
+            memberSpending?: components["schemas"]["MemberSpend"][];
+        };
+        InvoiceSummary: {
+            /** Format: int64 */
+            pendingCount?: number;
+            pendingAmount?: number;
+            /** Format: int64 */
+            overdueCount?: number;
+            overdueAmount?: number;
+            /** Format: int64 */
+            paidCount?: number;
+            paidAmount?: number;
+        };
+        MemberSpend: {
+            /** Format: uuid */
+            userId?: string;
+            email?: string;
+            totalSpend?: number;
+            spendingLimit?: number;
+            /** Format: int32 */
+            utilizationPercent?: number;
+        };
         ApiResponseResolvedPriceResponse: {
             data?: components["schemas"]["ResolvedPriceResponse"];
             meta?: unknown;
@@ -5887,6 +6204,10 @@ export interface components {
         };
         ApiResponseListCompanyAddressResponse: {
             data?: components["schemas"]["CompanyAddressResponse"][];
+            meta?: unknown;
+        };
+        ApiResponseListDepartmentResponse: {
+            data?: components["schemas"]["DepartmentResponse"][];
             meta?: unknown;
         };
         ApiResponsePagedResultCollectionSummaryResponse: {
@@ -6183,6 +6504,10 @@ export interface components {
         };
         ApiResponseListUUID: {
             data?: string[];
+            meta?: unknown;
+        };
+        ApiResponseListCompanyApprovalRuleResponse: {
+            data?: components["schemas"]["CompanyApprovalRuleResponse"][];
             meta?: unknown;
         };
         AdminCollectionSummaryResponse: {
@@ -6587,6 +6912,54 @@ export interface operations {
             };
         };
     };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                deptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDepartmentResponse"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                deptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     updateItem_2: {
         parameters: {
             query?: never;
@@ -6701,7 +7074,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -6727,7 +7100,7 @@ export interface operations {
             };
         };
     };
-    delete: {
+    delete_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -7174,7 +7547,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -7200,7 +7573,7 @@ export interface operations {
             };
         };
     };
-    delete_1: {
+    delete_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -7290,7 +7663,7 @@ export interface operations {
             };
         };
     };
-    update_3: {
+    update_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -7316,7 +7689,7 @@ export interface operations {
             };
         };
     };
-    delete_2: {
+    delete_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -7359,7 +7732,7 @@ export interface operations {
             };
         };
     };
-    update_4: {
+    update_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -7576,7 +7949,7 @@ export interface operations {
             };
         };
     };
-    update_5: {
+    update_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -7646,7 +8019,7 @@ export interface operations {
             };
         };
     };
-    update_6: {
+    update_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -7672,7 +8045,7 @@ export interface operations {
             };
         };
     };
-    delete_3: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -7714,7 +8087,7 @@ export interface operations {
             };
         };
     };
-    update_7: {
+    update_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -7740,7 +8113,7 @@ export interface operations {
             };
         };
     };
-    delete_4: {
+    delete_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -7782,7 +8155,7 @@ export interface operations {
             };
         };
     };
-    update_8: {
+    update_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -7831,6 +8204,127 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ApiResponseCompanyResponse"];
                 };
+            };
+        };
+    };
+    update_10: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                deptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDepartmentResponse"];
+                };
+            };
+        };
+    };
+    delete_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                deptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    assignDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignDepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_11: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyApprovalRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanyApprovalRuleResponse"];
+                };
+            };
+        };
+    };
+    delete_7: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8066,7 +8560,7 @@ export interface operations {
             };
         };
     };
-    update_9: {
+    update_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -8397,7 +8891,9 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: {
-            content: { "application/json": { reason?: string } };
+            content: {
+                "application/json": components["schemas"]["RejectQuoteRequest"];
+            };
         };
         responses: {
             /** @description OK */
@@ -8421,7 +8917,9 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: {
-            content: { "application/json": { reason?: string } };
+            content: {
+                "application/json": components["schemas"]["RejectQuoteRequest"];
+            };
         };
         responses: {
             /** @description OK */
@@ -8431,6 +8929,56 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseQuoteRequestResponse"];
+                };
+            };
+        };
+    };
+    rejectPendency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RejectQuoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseQuoteRequestResponse"];
+                };
+            };
+        };
+    };
+    approvePendency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseQuoteAcceptResponse"];
                 };
             };
         };
@@ -8445,7 +8993,9 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: {
-            content: { "application/json": { reason?: string } };
+            content: {
+                "application/json": components["schemas"]["RejectQuoteRequest"];
+            };
         };
         responses: {
             /** @description OK */
@@ -8694,6 +9244,35 @@ export interface operations {
             };
         };
     };
+    uploadTaxCertificate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanyResponse"];
+                };
+            };
+        };
+    };
     listMembers: {
         parameters: {
             query?: never;
@@ -8715,26 +9294,6 @@ export interface operations {
                 };
             };
         };
-    };
-    listDepartmentsStorefront: {
-        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
-        requestBody?: never;
-        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseListDepartmentResponse"] } } };
-    };
-    createDepartmentStorefront: {
-        parameters: { query?: never; header?: never; path: { companyId: string }; cookie?: never };
-        requestBody: { content: { "application/json": components["schemas"]["DepartmentRequest"] } };
-        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseDepartmentResponse"] } } };
-    };
-    updateDepartmentStorefront: {
-        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
-        requestBody: { content: { "application/json": components["schemas"]["DepartmentRequest"] } };
-        responses: { 200: { headers: { [name: string]: unknown }; content: { "*/*": components["schemas"]["ApiResponseDepartmentResponse"] } } };
-    };
-    deleteDepartmentStorefront: {
-        parameters: { query?: never; header?: never; path: { companyId: string; deptId: string }; cookie?: never };
-        requestBody?: never;
-        responses: { 204: { headers: { [name: string]: unknown }; content?: never } };
     };
     addMember: {
         parameters: {
@@ -8858,6 +9417,54 @@ export interface operations {
             };
         };
     };
+    tree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListDepartmentResponse"];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDepartmentResponse"];
+                };
+            };
+        };
+    };
     checkout: {
         parameters: {
             query?: never;
@@ -8928,6 +9535,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCartResponse"];
+                };
+            };
+        };
+    };
+    importCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseBulkAddToCartResponse"];
                 };
             };
         };
@@ -9136,7 +9770,7 @@ export interface operations {
             };
         };
     };
-    create_3: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -9181,6 +9815,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    impersonate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseImpersonateResponse"];
+                };
             };
         };
     };
@@ -9458,7 +10114,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RejectQuoteRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -9524,7 +10184,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -9697,7 +10357,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -9748,7 +10408,7 @@ export interface operations {
             };
         };
     };
-    create_6: {
+    create_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -9794,7 +10454,7 @@ export interface operations {
             };
         };
     };
-    create_7: {
+    create_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -10000,7 +10660,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -10267,7 +10927,7 @@ export interface operations {
             };
         };
     };
-    create_9: {
+    create_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -10366,7 +11026,7 @@ export interface operations {
             };
         };
     };
-    create_10: {
+    create_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -10390,7 +11050,7 @@ export interface operations {
             };
         };
     };
-    create_11: {
+    create_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -10410,6 +11070,35 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCreditAccountResponse"];
+                };
+            };
+        };
+    };
+    uploadTaxCertificate_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanyResponse"];
                 };
             };
         };
@@ -10460,7 +11149,103 @@ export interface operations {
             };
         };
     };
+    tree_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListDepartmentResponse"];
+                };
+            };
+        };
+    };
+    create_13: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDepartmentResponse"];
+                };
+            };
+        };
+    };
     list_12: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListCompanyApprovalRuleResponse"];
+                };
+            };
+        };
+    };
+    create_14: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyApprovalRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanyApprovalRuleResponse"];
+                };
+            };
+        };
+    };
+    list_13: {
         parameters: {
             query?: {
                 collectionType?: "MANUAL" | "AUTOMATED";
@@ -10486,7 +11271,7 @@ export interface operations {
             };
         };
     };
-    create_12: {
+    create_15: {
         parameters: {
             query?: never;
             header?: never;
@@ -10742,7 +11527,7 @@ export interface operations {
             };
         };
     };
-    list_13: {
+    list_14: {
         parameters: {
             query?: {
                 contentType?: string;
@@ -10910,6 +11695,31 @@ export interface operations {
             };
         };
     };
+    assignDepartment_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignDepartmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     updateStatus: {
         parameters: {
             query?: never;
@@ -10958,7 +11768,7 @@ export interface operations {
             };
         };
     };
-    delete_5: {
+    delete_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -10978,7 +11788,7 @@ export interface operations {
             };
         };
     };
-    update_10: {
+    update_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -11290,7 +12100,7 @@ export interface operations {
             };
         };
     };
-    update_11: {
+    update_14: {
         parameters: {
             query?: never;
             header?: never;
@@ -11316,7 +12126,7 @@ export interface operations {
             };
         };
     };
-    update_12: {
+    update_15: {
         parameters: {
             query?: never;
             header?: never;
@@ -11368,6 +12178,29 @@ export interface operations {
             };
         };
     };
+    toggle: {
+        parameters: {
+            query: {
+                active: boolean;
+            };
+            header?: never;
+            path: {
+                companyId: string;
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_8: {
         parameters: {
             query?: never;
@@ -11390,7 +12223,7 @@ export interface operations {
             };
         };
     };
-    delete_6: {
+    delete_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -11410,7 +12243,7 @@ export interface operations {
             };
         };
     };
-    update_13: {
+    update_16: {
         parameters: {
             query?: never;
             header?: never;
@@ -11563,7 +12396,7 @@ export interface operations {
             };
         };
     };
-    delete_7: {
+    delete_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -11583,7 +12416,7 @@ export interface operations {
             };
         };
     };
-    update_14: {
+    update_17: {
         parameters: {
             query?: never;
             header?: never;
@@ -11633,7 +12466,7 @@ export interface operations {
             };
         };
     };
-    list_14: {
+    list_15: {
         parameters: {
             query?: {
                 page?: number;
@@ -11791,7 +12624,7 @@ export interface operations {
             };
         };
     };
-    delete_8: {
+    delete_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -11948,6 +12781,28 @@ export interface operations {
             };
         };
     };
+    getPendencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListQuoteApprovalPendencyResponse"];
+                };
+            };
+        };
+    };
     downloadPdf: {
         parameters: {
             query?: never;
@@ -12031,7 +12886,7 @@ export interface operations {
             };
         };
     };
-    list_15: {
+    list_16: {
         parameters: {
             query?: {
                 titleContains?: string;
@@ -12153,7 +13008,7 @@ export interface operations {
             };
         };
     };
-    list_16: {
+    list_17: {
         parameters: {
             query?: {
                 page?: number;
@@ -12288,6 +13143,28 @@ export interface operations {
             };
         };
     };
+    spendingSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanySpendingSummaryResponse"];
+                };
+            };
+        };
+    };
     resolvePrice: {
         parameters: {
             query: {
@@ -12402,7 +13279,7 @@ export interface operations {
             };
         };
     };
-    list_17: {
+    list_18: {
         parameters: {
             query?: {
                 page?: number;
@@ -12493,26 +13370,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCheckoutReturnResponse"];
-                };
-            };
-        };
-    };
-    importCsv: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: { "multipart/form-data": { file: Blob } };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: { [name: string]: unknown };
-                content: {
-                    "*/*": components["schemas"]["ApiResponseBulkAddToCartResponse"];
                 };
             };
         };
@@ -12880,7 +13737,7 @@ export interface operations {
             };
         };
     };
-    list_18: {
+    list_19: {
         parameters: {
             query?: {
                 status?: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
@@ -12926,7 +13783,7 @@ export interface operations {
             };
         };
     };
-    list_19: {
+    list_20: {
         parameters: {
             query?: {
                 status?: "PENDING" | "ASSIGNED" | "DRAFT" | "SENT" | "ACCEPTED" | "PAID" | "REJECTED" | "EXPIRED" | "CANCELLED" | "PENDING_APPROVAL";
@@ -13074,6 +13931,7 @@ export interface operations {
                 userId?: string;
                 from?: string;
                 to?: string;
+                maxRows?: number;
             };
             header?: never;
             path?: never;
@@ -13092,7 +13950,7 @@ export interface operations {
             };
         };
     };
-    list_20: {
+    list_21: {
         parameters: {
             query?: {
                 companyId?: string;
@@ -13252,7 +14110,7 @@ export interface operations {
             };
         };
     };
-    list_21: {
+    list_22: {
         parameters: {
             query?: never;
             header?: never;
@@ -13268,6 +14126,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListCompanyResponse"];
+                };
+            };
+        };
+    };
+    spendingSummary_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseCompanySpendingSummaryResponse"];
                 };
             };
         };
@@ -13334,7 +14214,7 @@ export interface operations {
             };
         };
     };
-    list_22: {
+    list_23: {
         parameters: {
             query?: {
                 entityType?: string;
