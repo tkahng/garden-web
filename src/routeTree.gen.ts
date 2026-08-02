@@ -19,6 +19,7 @@ import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as BlogsIndexRouteImport } from './routes/blogs/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
+import { Route as OrdersLookupRouteImport } from './routes/orders/lookup'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations/$token'
 import { Route as CollectionsHandleRouteImport } from './routes/collections/$handle'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
@@ -95,6 +96,11 @@ const AccountIndexRoute = AccountIndexRouteImport.update({
 const ProductsHandleRoute = ProductsHandleRouteImport.update({
   id: '/products/$handle',
   path: '/products/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersLookupRoute = OrdersLookupRouteImport.update({
+  id: '/orders/lookup',
+  path: '/orders/lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
@@ -260,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/orders/lookup': typeof OrdersLookupRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/blogs/': typeof BlogsIndexRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/orders/lookup': typeof OrdersLookupRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account': typeof AccountIndexRoute
   '/blogs': typeof BlogsIndexRoute
@@ -337,6 +345,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/collections/$handle': typeof CollectionsHandleRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/orders/lookup': typeof OrdersLookupRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/account/': typeof AccountIndexRoute
   '/blogs/': typeof BlogsIndexRoute
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
+    | '/orders/lookup'
     | '/products/$handle'
     | '/account/'
     | '/blogs/'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
+    | '/orders/lookup'
     | '/products/$handle'
     | '/account'
     | '/blogs'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/collections/$handle'
     | '/invitations/$token'
+    | '/orders/lookup'
     | '/products/$handle'
     | '/account/'
     | '/blogs/'
@@ -482,6 +494,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CollectionsHandleRoute: typeof CollectionsHandleRoute
   InvitationsTokenRoute: typeof InvitationsTokenRoute
+  OrdersLookupRoute: typeof OrdersLookupRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   BlogsIndexRoute: typeof BlogsIndexRoute
   CartIndexRoute: typeof CartIndexRoute
@@ -559,6 +572,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$handle'
       fullPath: '/products/$handle'
       preLoaderRoute: typeof ProductsHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/lookup': {
+      id: '/orders/lookup'
+      path: '/orders/lookup'
+      fullPath: '/orders/lookup'
+      preLoaderRoute: typeof OrdersLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invitations/$token': {
@@ -836,6 +856,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   CollectionsHandleRoute: CollectionsHandleRoute,
   InvitationsTokenRoute: InvitationsTokenRoute,
+  OrdersLookupRoute: OrdersLookupRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   BlogsIndexRoute: BlogsIndexRoute,
   CartIndexRoute: CartIndexRoute,

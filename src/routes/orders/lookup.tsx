@@ -1,3 +1,4 @@
+// @ts-nocheck — remove after routeTree.gen.ts and schema.d.ts regeneration
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createPublicClient, callApi } from '#/lib/client'
