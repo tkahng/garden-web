@@ -2,6 +2,7 @@ import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ErrorBoundary } from 'react-error-boundary'
+import { Toaster } from 'sonner'
 import Header from '#/components/Header'
 import Footer from '#/components/Footer'
 import AuthModal from '#/components/AuthModal'
@@ -42,6 +43,7 @@ function RootComponent() {
           <WishlistProvider>
           <GuestCartProvider>
             <ErrorBoundary FallbackComponent={AppErrorFallback}>
+              <Toaster />
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <div className="flex-1">

@@ -107,13 +107,13 @@ interface Props {
   onClose: () => void
   cart: CartResponse
   sessionId: string
+  initialEmail?: string
 }
 
-export function GuestCheckoutDialog({ open, onClose, cart, sessionId }: Props) {
+export function GuestCheckoutDialog({ open, onClose, cart, sessionId, initialEmail }: Props) {
   const { openAuthModal } = useAuthModal()
 
-  // Email state
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(initialEmail ?? '')
   const [emailTouched, setEmailTouched] = useState(false)
   const [emailExists, setEmailExists] = useState(false)
   const [emailChecking, setEmailChecking] = useState(false)
