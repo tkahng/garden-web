@@ -95,6 +95,15 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
       {order?.status === 'PENDING_PAYMENT' && (
         <p className="mt-2 text-sm text-muted-foreground">Payment is being processed.</p>
       )}
+      {order?.orderId && (
+        <Link
+          to="/orders/lookup"
+          search={{ orderId: order.orderId }}
+          className="mt-4 inline-block text-sm text-primary underline hover:opacity-80"
+        >
+          View your order →
+        </Link>
+      )}
       <Link
         to="/products"
         search={{ page: 0 }}

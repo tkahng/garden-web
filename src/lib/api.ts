@@ -49,9 +49,10 @@ export function getGoogleOAuthUrl(): string {
   return `${base()}/api/v1/auth/oauth2/google`
 }
 
-export async function authLogin(email: string, password: string): Promise<AuthTokens> {
+export async function authLogin(email: string, password: string, sessionId?: string): Promise<AuthTokens> {
   const { data, error } = await createPublicClient().POST('/api/v1/auth/login', {
     body: { email, password },
+    headers: sessionId ? { 'X-Guest-Session': sessionId } as Record<string, string> : undefined,
   })
   if (error) throw error
   const t = data?.data
