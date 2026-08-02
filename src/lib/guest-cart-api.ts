@@ -85,7 +85,7 @@ export async function abandonGuestCart(sessionId: string): Promise<void> {
 }
 
 export async function saveGuestCartEmail(sessionId: string, email: string): Promise<void> {
-  const { error } = await (createPublicClient() as any).PATCH('/api/v1/guest-cart', {
+  const { error } = await (createPublicClient() as any).PUT('/api/v1/guest-cart', {
     params: { header: { 'X-Guest-Session': sessionId } },
     body: { email },
   })
