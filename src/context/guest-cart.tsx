@@ -109,7 +109,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
     try {
       await abandonGuestCart(sessionId.current)
       setCart(null)
-      setGuestEmail(null)
+      setGuestEmailState(null)
     } catch {
       toast.error('Failed to clear cart')
     }

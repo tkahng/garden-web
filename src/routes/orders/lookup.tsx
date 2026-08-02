@@ -1,12 +1,31 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createPublicClient, callApi } from '#/lib/client'
-import type { components } from '#/schema'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { Button } from '#/components/ui/button'
 
-type GuestOrderResponse = components['schemas']['GuestOrderResponse']
+interface GuestOrderResponse {
+  id?: string
+  guestEmail?: string
+  status?: string
+  totalAmount?: number
+  currency?: string
+  discountAmount?: number | null
+  giftCardAmount?: number | null
+  shippingCost?: number | null
+  taxAmount?: number | null
+  shippingAddress?: string | null
+  poNumber?: string | null
+  items?: Array<{
+    id?: string
+    variantId?: string
+    quantity?: number
+    unitPrice?: number
+    product?: { productId?: string; productTitle?: string; variantTitle?: string; imageUrl?: string | null } | null
+  }> | null
+  createdAt?: string | null
+}
 
 function formatPrice(amount: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
@@ -48,9 +67,11 @@ export function OrderLookupPage({ initialOrderId }: { initialOrderId?: string })
     setLoading(true)
     setError(null)
     try {
-      const data = await callApi(createPublicClient().GET('/api/v1/checkout/orders/{orderId}/lookup', {
-        params: { path: { orderId }, query: { guestEmail: email } },
-      })) as GuestOrderResponse
+      const data = await callApi(
+        (createPublicClient() as any).GET('/api/v1/checkout/orders/{orderId}/lookup', {
+          params: { path: { orderId }, query: { guestEmail: email } },
+        })
+      ) as GuestOrderResponse
       setOrder(data)
     } catch {
       setError('Order not found. Check your order ID and the email used at checkout.')
