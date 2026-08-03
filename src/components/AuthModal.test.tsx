@@ -65,7 +65,7 @@ describe('AuthModal - Login tab', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass' } })
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
-    await waitFor(() => expect(api.authLogin).toHaveBeenCalledWith('a@b.com', 'pass'))
+    await waitFor(() => expect(api.authLogin).toHaveBeenCalledWith('a@b.com', 'pass', expect.any(String)))
   })
 
   it('shows inline error on login failure', async () => {

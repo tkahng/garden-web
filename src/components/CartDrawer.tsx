@@ -57,8 +57,9 @@ function DrawerCartItem({ item }: { item: CartItemResponse }) {
 export function CartDrawer() {
   const { isAuthenticated } = useAuth()
   const { cart: authCart, itemCount: authCount } = useCart()
-  const { cart: guestCart, itemCount: guestCount, sessionId } = useGuestCart()
+  const { cart: guestCart, itemCount: guestCount, sessionId, guestEmail, updateGuestEmail } = useGuestCart()
   const [guestDialogOpen, setGuestDialogOpen] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
   const navigate = useNavigate()
 
   const cart = isAuthenticated ? authCart : guestCart
@@ -147,15 +148,36 @@ export function CartDrawer() {
                   </button>
                 </SheetClose>
               ) : (
-                <SheetClose asChild>
-                  <button
-                    type="button"
-                    onClick={() => setGuestDialogOpen(true)}
-                    className="w-full rounded-full bg-primary py-2.5 text-sm font-bold text-primary-foreground hover:opacity-90"
-                  >
-                    Checkout as guest
-                  </button>
-                </SheetClose>
+                <>
+                  {!guestEmail && (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="email"
+                        placeholder="Email for order updates (optional)"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        onBlur={() => {
+                          if (emailInput && emailInput.includes('@')) {
+                            updateGuestEmail(emailInput)
+                          }
+                        }}
+                        className="w-full rounded-full border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        We'll remind you if you leave items behind.
+                      </p>
+                    </div>
+                  )}
+                  <SheetClose asChild>
+                    <button
+                      type="button"
+                      onClick={() => setGuestDialogOpen(true)}
+                      className="w-full rounded-full bg-primary py-2.5 text-sm font-bold text-primary-foreground hover:opacity-90"
+                    >
+                      Checkout as guest
+                    </button>
+                  </SheetClose>
+                </>
               )}
             </div>
           )}
@@ -168,6 +190,7 @@ export function CartDrawer() {
           onClose={() => setGuestDialogOpen(false)}
           cart={guestCart}
           sessionId={sessionId}
+          initialEmail={guestEmail ?? undefined}
         />
       )}
     </>

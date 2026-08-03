@@ -10,6 +10,7 @@ import {
 } from '#/lib/api'
 import type { User, AuthTokens, ApiClient } from '#/lib/api'
 import { useAuthModal } from '#/context/auth-modal'
+import { getOrCreateGuestSessionId, clearGuestSession } from '#/lib/guest-cart-api'
 
 const STORAGE_KEY = 'garden:auth'
 
@@ -65,9 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []) // setState is stable; writeStorage/clearStorage are module-level
 
   const login = useCallback(async (email: string, password: string) => {
-    const tokens = await authLogin(email, password)
+    const sessionId = getOrCreateGuestSessionId()
+    const tokens = await authLogin(email, password, sessionId)
     const user = await getAccount(tokens.accessToken)
     setAndPersist({ user, accessToken: tokens.accessToken, refreshToken: tokens.refreshToken })
+    clearGuestSession()
   }, [setAndPersist])
 
   const register = useCallback(

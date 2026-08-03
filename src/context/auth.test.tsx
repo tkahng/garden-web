@@ -101,7 +101,7 @@ describe('AuthProvider', () => {
       screen.getByText('login').click()
     })
 
-    expect(api.authLogin).toHaveBeenCalledWith('a@b.com', 'pass')
+    expect(api.authLogin).toHaveBeenCalledWith('a@b.com', 'pass', expect.any(String))
     expect(api.getAccount).toHaveBeenCalledWith('acc')
     expect(screen.getByTestId('authenticated').textContent).toBe('true')
     expect(screen.getByTestId('email').textContent).toBe('a@b.com')

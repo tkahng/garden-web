@@ -84,6 +84,14 @@ export async function abandonGuestCart(sessionId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function saveGuestCartEmail(sessionId: string, email: string): Promise<void> {
+  const { error } = await (createPublicClient() as any).PUT('/api/v1/guest-cart/email', {
+    params: { header: { 'X-Guest-Session': sessionId } },
+    body: { email },
+  })
+  if (error) throw error
+}
+
 // ─── Shipping rates ───────────────────────────────────────────────────────────
 
 export function getShippingRates(

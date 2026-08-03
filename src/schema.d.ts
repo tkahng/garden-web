@@ -52,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/guest-cart/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setGuestEmail"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/{id}": {
         parameters: {
             query?: never;
@@ -3204,6 +3220,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/checkout/orders/{orderId}/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["lookupGuestOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cart": {
         parameters: {
             query?: never;
@@ -4078,9 +4110,14 @@ export interface components {
             /** Format: uuid */
             companyId?: string;
             currency?: string;
+            guestEmail?: string;
             items?: components["schemas"]["CartItemResponse"][];
             /** Format: date-time */
             createdAt?: string;
+        };
+        SetGuestEmailRequest: {
+            /** Format: email */
+            email: string;
         };
         UpdateCompanyRequest: {
             name: string;
@@ -6246,6 +6283,28 @@ export interface components {
             /** @enum {string} */
             status?: "DRAFT" | "PENDING_PAYMENT" | "PENDING_APPROVAL" | "PAID" | "CANCELLED" | "REFUNDED" | "PARTIALLY_FULFILLED" | "FULFILLED" | "INVOICED";
         };
+        ApiResponseGuestOrderResponse: {
+            data?: components["schemas"]["GuestOrderResponse"];
+            meta?: unknown;
+        };
+        GuestOrderResponse: {
+            /** Format: uuid */
+            id?: string;
+            guestEmail?: string;
+            /** @enum {string} */
+            status?: "DRAFT" | "PENDING_PAYMENT" | "PENDING_APPROVAL" | "PAID" | "CANCELLED" | "REFUNDED" | "PARTIALLY_FULFILLED" | "FULFILLED" | "INVOICED";
+            totalAmount?: number;
+            currency?: string;
+            discountAmount?: number;
+            giftCardAmount?: number;
+            shippingCost?: number;
+            taxAmount?: number;
+            shippingAddress?: string;
+            poNumber?: string;
+            items?: components["schemas"]["OrderItemResponse"][];
+            /** Format: date-time */
+            createdAt?: string;
+        };
         ApiResponsePagedResultBlogResponse: {
             data?: components["schemas"]["PagedResultBlogResponse"];
             meta?: unknown;
@@ -6736,6 +6795,30 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ApiResponseCartResponse"];
                 };
+            };
+        };
+    };
+    setGuestEmail: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Guest-Session": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetGuestEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9705,7 +9788,9 @@ export interface operations {
     login: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Guest-Session"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -13370,6 +13455,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseCheckoutReturnResponse"];
+                };
+            };
+        };
+    };
+    lookupGuestOrder: {
+        parameters: {
+            query: {
+                guestEmail: string;
+            };
+            header?: never;
+            path: {
+                orderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGuestOrderResponse"];
                 };
             };
         };

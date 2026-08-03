@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { CheckoutReturnResponse } from '#/lib/cart-api'
 import { createPublicClient, callApi } from '#/lib/client'
+import { clearGuestSession } from '#/lib/guest-cart-api'
 
 export const Route = createFileRoute('/checkout/return')({
   component: CheckoutReturnRoute,
@@ -33,6 +34,7 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
         const d = data as CheckoutReturnResponse
         setOrder(d)
         setStatus(d.status === 'CANCELLED' ? 'cancelled' : 'success')
+        if (d.status !== 'CANCELLED') clearGuestSession()
       })
       .catch(() => {
         if (!cancelled) setStatus('error')
@@ -94,6 +96,14 @@ export function CheckoutReturnPage({ sessionId }: { sessionId: string | null }) 
       </p>
       {order?.status === 'PENDING_PAYMENT' && (
         <p className="mt-2 text-sm text-muted-foreground">Payment is being processed.</p>
+      )}
+      {order?.orderId && (
+        <a
+          href={`/orders/lookup?orderId=${order.orderId}`}
+          className="mt-4 inline-block text-sm text-primary underline hover:opacity-80"
+        >
+          View your order →
+        </a>
       )}
       <Link
         to="/products"

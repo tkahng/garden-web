@@ -8,6 +8,7 @@ import {
   useRef,
 } from 'react'
 import type { ReactNode } from 'react'
+import { toast } from 'sonner'
 import type { CartResponse } from '#/lib/cart-api'
 import {
   getOrCreateGuestSessionId,
@@ -16,6 +17,7 @@ import {
   updateGuestCartItem,
   removeGuestCartItem,
   abandonGuestCart,
+  saveGuestCartEmail,
 } from '#/lib/guest-cart-api'
 import { useAuth } from '#/context/auth'
 
@@ -26,11 +28,13 @@ interface GuestCartContextValue {
   isLoading: boolean
   itemCount: number
   sessionId: string
+  guestEmail: string | null
   addItem: (variantId: string, qty?: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   updateQuantity: (itemId: string, qty: number) => Promise<void>
   abandon: () => Promise<void>
   refresh: () => Promise<void>
+  updateGuestEmail: (email: string) => Promise<void>
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -45,14 +49,17 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
 
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [guestEmail, setGuestEmailState] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setIsLoading(true)
     try {
       const data = await getGuestCart(sessionId.current)
       setCart(data)
+      setGuestEmailState((data as any).guestEmail ?? null)
     } catch {
       setCart(null)
+      toast.error('Failed to load cart')
     } finally {
       setIsLoading(false)
     }
@@ -66,33 +73,60 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     setIsLoading(true)
     getGuestCart(sessionId.current)
-      .then((data) => { if (!cancelled) setCart(data) })
+      .then((data) => { if (!cancelled) { setCart(data); setGuestEmailState((data as any).guestEmail ?? null) } })
       .catch(() => { if (!cancelled) setCart(null) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
     return () => { cancelled = true }
   }, [isAuthenticated])
 
   const addItem = useCallback(async (variantId: string, qty = 1) => {
-    const updated = await addGuestCartItem(sessionId.current, variantId, qty)
-    setCart(updated)
+    try {
+      const updated = await addGuestCartItem(sessionId.current, variantId, qty)
+      setCart(updated)
+    } catch {
+      toast.error('Failed to add item to cart')
+    }
   }, [])
 
   const removeItem = useCallback(async (itemId: string) => {
-    const updated = await removeGuestCartItem(sessionId.current, itemId)
-    setCart(updated)
+    try {
+      const updated = await removeGuestCartItem(sessionId.current, itemId)
+      setCart(updated)
+    } catch {
+      toast.error('Failed to remove item from cart')
+    }
   }, [])
 
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
-    const updated = await updateGuestCartItem(sessionId.current, itemId, qty)
-    setCart(updated)
+    try {
+      const updated = await updateGuestCartItem(sessionId.current, itemId, qty)
+      setCart(updated)
+    } catch {
+      toast.error('Failed to update cart')
+    }
   }, [])
 
   const abandon = useCallback(async () => {
-    await abandonGuestCart(sessionId.current)
-    setCart(null)
+    try {
+      await abandonGuestCart(sessionId.current)
+      setCart(null)
+      setGuestEmailState(null)
+    } catch {
+      toast.error('Failed to clear cart')
+    }
+  }, [])
+
+  const updateGuestEmail = useCallback(async (email: string) => {
+    try {
+      await saveGuestCartEmail(sessionId.current, email)
+      setGuestEmailState(email)
+    } catch {
+      toast.error('Failed to save email')
+    }
   }, [])
 
   const itemCount = useMemo(
+
     () => cart?.items?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) ?? 0,
     [cart],
   )
@@ -104,11 +138,13 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
         isLoading,
         itemCount,
         sessionId: sessionId.current,
+        guestEmail,
         addItem,
         removeItem,
         updateQuantity,
         abandon,
         refresh: load,
+        updateGuestEmail,
       }}
     >
       {children}
