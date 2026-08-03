@@ -56,6 +56,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
     try {
       const data = await getGuestCart(sessionId.current)
       setCart(data)
+      setGuestEmailState(data.guestEmail ?? null)
     } catch {
       setCart(null)
       toast.error('Failed to load cart')
@@ -72,7 +73,7 @@ export function GuestCartProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     setIsLoading(true)
     getGuestCart(sessionId.current)
-      .then((data) => { if (!cancelled) setCart(data) })
+      .then((data) => { if (!cancelled) { setCart(data); setGuestEmailState(data.guestEmail ?? null) } })
       .catch(() => { if (!cancelled) setCart(null) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
     return () => { cancelled = true }

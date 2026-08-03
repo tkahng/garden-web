@@ -155,7 +155,9 @@ export function OrderLookupPage({ initialOrderId }: { initialOrderId?: string })
             <div className="border-t border-border pt-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
-                <span className="text-sm text-foreground">{formatPrice(order.totalAmount ?? 0)}</span>
+                <span className="text-sm text-foreground">
+                  {formatPrice((order.totalAmount ?? 0) - (order.shippingCost ?? 0))}
+                </span>
               </div>
               {order.shippingCost ? (
                 <div className="flex items-center justify-between">
