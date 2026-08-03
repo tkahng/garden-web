@@ -4110,6 +4110,7 @@ export interface components {
             /** Format: uuid */
             companyId?: string;
             currency?: string;
+            guestEmail?: string;
             items?: components["schemas"]["CartItemResponse"][];
             /** Format: date-time */
             createdAt?: string;
